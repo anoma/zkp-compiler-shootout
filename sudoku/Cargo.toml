@@ -1,0 +1,14 @@
+[workspace]
+members = [
+    "methods",
+    "starter",
+]
+
+# [dev-dependencies]
+# criterion = "0.3"
+
+
+# starter = {path = "starter"}
+# [[bench]]
+# name = "my_benchmark"
+# harness = false
