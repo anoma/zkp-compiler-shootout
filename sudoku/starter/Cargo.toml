@@ -14,3 +14,13 @@ num-bigint = "0.4.3"
 num-traits = "0.2.15"
 sudoku-core = {path = "../core"}
 
+
+[dev-dependencies]
+ criterion = "0.3"
+
+
+[[bench]]
+name = "my_benchmark"
+harness = false
+path = "../benches/benchmark.rs"
+
