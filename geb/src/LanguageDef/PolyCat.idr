@@ -1367,10 +1367,10 @@ rnmCheckAlg (RNMDivF dom@(min, max) n) =
       Just (min', max')
     _ => Nothing
 rnmCheckAlg (RNMModF dom@(min, max) n) =
-  case (validRange dom, modMaybe min n, modMaybe max n) of
-    (True, Just min', Just max') =>
-      Just ?rnmCheckAlg_hole_mod
-    _ => Nothing
+  if (validRange dom) && (min == 0) && (n /= 0) && (n < max) then
+    Just (0, pred n)
+  else
+    Nothing
 rnmCheckAlg (RNMExtendF f n) = case f of
   Just (min, max) => if max < n then Just (min, n) else Nothing
   Nothing => Nothing
