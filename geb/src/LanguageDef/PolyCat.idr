@@ -312,6 +312,28 @@ public export
 muDiagCata : {f : Type -> Type} -> FromInitialFAlg f -> FromInitialDiagFAlg f
 muDiagCata {f} cata = muPairCata {f} {g=f} cata cata
 
+----------------------------
+---- Coproduct algebras ----
+----------------------------
+
+public export
+EitherFAlg : (Type -> Type) -> (Type -> Type) -> Type -> Type
+EitherFAlg f g x = (FAlg f x, FAlg g x)
+
+public export
+MuEitherCata : (Type -> Type) -> (Type -> Type) -> Type -> Type
+MuEitherCata f g x = EitherFAlg f g x -> Either (MuF f) (MuF g) -> x
+
+public export
+FromInitialEitherFAlg : (Type -> Type) -> (Type -> Type) -> Type
+FromInitialEitherFAlg f g = (x : Type) -> MuEitherCata f g x
+
+public export
+muEitherCata : {f, g : Type -> Type} ->
+  FromInitialFAlg f -> FromInitialFAlg g -> FromInitialEitherFAlg f g
+muEitherCata {f} {g} cataf catag x (algf, _) (Left ef) = cataf x algf ef
+muEitherCata {f} {g} cataf catag x (_, algg) (Right eg) = catag x algg eg
+
 -------------------------------------
 ---- Types dependent on algebras ----
 -------------------------------------
