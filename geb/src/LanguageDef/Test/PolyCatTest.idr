@@ -519,6 +519,12 @@ testRNM8Apply401 = Assert $ interpRNM testRNM8 401 == 2
 testRNM8Apply202 : Assertion
 testRNM8Apply202 = Assert $ interpRNM testRNM8 202 == 6
 
+testRNM9 : MuRNM
+testRNM9 = rnmId (37, 122)
+
+testRNM9Sig : Assertion
+testRNM9Sig = Assert $ rnmCheck testRNM9 == Just ((37, 122), (37, 122))
+
 --------------------------
 ---- Circuit category ----
 --------------------------

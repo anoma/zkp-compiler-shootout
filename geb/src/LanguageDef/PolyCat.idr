@@ -1387,6 +1387,10 @@ RNMExtendR : MuRNM -> Nat -> MuRNM
 RNMExtendR = InFCom .* RNMExtendRF
 
 public export
+rnmId : NatRange -> MuRNM
+rnmId range = RNMPoly range idPolyShape
+
+public export
 interpRNMAlg : RNMAlg (Nat -> Nat)
 interpRNMAlg (RNMPolyF dom ps) = psInterpNat ps
 interpRNMAlg (RNMSwitchF n left right) = \m => if m < n then left m else right m
