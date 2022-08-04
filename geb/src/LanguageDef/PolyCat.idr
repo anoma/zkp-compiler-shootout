@@ -678,79 +678,6 @@ natAna : {0 a : Type} -> NatCoalgebra a -> (Nat, a) -> Inf (Maybe (Nat, a))
 natAna coalg nx =
   map {f=Maybe} SigmaToPair $ natDepAna {p=(const a)} coalg $ PairToSigma nx
 
--------------------------------------
--------------------------------------
----- Bounded (finite) data types ----
--------------------------------------
--------------------------------------
-
----------------------------------
----- Bounded natural numbers ----
----------------------------------
-
-public export
-ltTrue : Nat -> Nat -> Type
-ltTrue m n = (m < n) = True
-
-public export
-lteTrue : Nat -> Nat -> Type
-lteTrue m n = (m <= n) = True
-
-public export
-gtTrue : Nat -> Nat -> Type
-gtTrue m n = (m > n) = True
-
-public export
-gteTrue : Nat -> Nat -> Type
-gteTrue m n = (m >= n) = True
-
--- All natural numbers less than or equal to `n`.
-public export
-BoundedNat : Nat -> Type
-BoundedNat = Refinement {a=Nat} . (>=)
-
-public export
-MkBoundedNat : {0 n : Nat} ->
-  (m : Nat) -> {auto 0 gte : gteTrue n m} -> BoundedNat n
-MkBoundedNat m {gte} = MkRefinement m {satisfies=gte}
-
-----------------------------------------
----- Tuples (fixed-length products) ----
-----------------------------------------
-
-public export
-NTuple : Type -> Nat -> Type
-NTuple a n = Refinement {a=(List a)} ((==) n . length)
-
-public export
-MkNTuple : {0 a : Type} -> (l : List a) -> NTuple a (length l)
-MkNTuple l = MkRefinement l {satisfies=(equalNatCorrect {m=(length l)})}
-
---------------------------------------------
----- Fixed-width binary natural numbers ----
---------------------------------------------
-
-public export
-FixedNat : Nat -> Type
-FixedNat = NTuple Digit
-
-public export
-toNat : {0 bits : Nat} -> FixedNat bits -> Nat
-toNat = toNat . shape
-
------------------------
----- Bounded lists ----
------------------------
-
-public export
-BoundedList : Type -> Nat -> Type
-BoundedList a n = Refinement {a=(List a)} ((>=) n . length)
-
-public export
-MkBoundedList : {0 a : Type} -> {0 n : Nat} ->
-  (l : List a) -> {auto 0 gte : gteTrue n (length l)} -> BoundedList a n
-MkBoundedList l {gte} = MkRefinement l {satisfies=gte}
-
 ---------------------
 ---- Polynomials ----
 ---------------------
@@ -1440,6 +1367,79 @@ RNMDiv = InFCom .* RNMDivF
 public export
 RNMMod : NatRange -> Nat -> MuRNM
 RNMMod = InFCom .* RNMModF
+
+-------------------------------------
+-------------------------------------
+---- Bounded (finite) data types ----
+-------------------------------------
+-------------------------------------
+
+---------------------------------
+---- Bounded natural numbers ----
+---------------------------------
+
+public export
+ltTrue : Nat -> Nat -> Type
+ltTrue m n = (m < n) = True
+
+public export
+lteTrue : Nat -> Nat -> Type
+lteTrue m n = (m <= n) = True
+
+public export
+gtTrue : Nat -> Nat -> Type
+gtTrue m n = (m > n) = True
+
+public export
+gteTrue : Nat -> Nat -> Type
+gteTrue m n = (m >= n) = True
+
+-- All natural numbers less than or equal to `n`.
+public export
+BoundedNat : Nat -> Type
+BoundedNat = Refinement {a=Nat} . (>=)
+
+public export
+MkBoundedNat : {0 n : Nat} ->
+  (m : Nat) -> {auto 0 gte : gteTrue n m} -> BoundedNat n
+MkBoundedNat m {gte} = MkRefinement m {satisfies=gte}
+
+----------------------------------------
+---- Tuples (fixed-length products) ----
+----------------------------------------
+
+public export
+NTuple : Type -> Nat -> Type
+NTuple a n = Refinement {a=(List a)} ((==) n . length)
+
+public export
+MkNTuple : {0 a : Type} -> (l : List a) -> NTuple a (length l)
+MkNTuple l = MkRefinement l {satisfies=(equalNatCorrect {m=(length l)})}
+
+--------------------------------------------
+---- Fixed-width binary natural numbers ----
+--------------------------------------------
+
+public export
+FixedNat : Nat -> Type
+FixedNat = NTuple Digit
+
+public export
+toNat : {0 bits : Nat} -> FixedNat bits -> Nat
+toNat = toNat . shape
+
+-----------------------
+---- Bounded lists ----
+-----------------------
+
+public export
+BoundedList : Type -> Nat -> Type
+BoundedList a n = Refinement {a=(List a)} ((>=) n . length)
+
+public export
+MkBoundedList : {0 a : Type} -> {0 n : Nat} ->
+  (l : List a) -> {auto 0 gte : gteTrue n (length l)} -> BoundedList a n
+MkBoundedList l {gte} = MkRefinement l {satisfies=gte}
 
 -------------------------------------------
 ---- Natural transformations in `Poly` ----
