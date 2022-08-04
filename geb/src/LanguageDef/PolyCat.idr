@@ -1239,7 +1239,7 @@ data RangedNatMorphF : Type -> Type where
   RNMPolyF : {0 carrier : Type} ->
     NatRange -> PolyShape -> RangedNatMorphF carrier
   RNMSwitchF : {0 carrier : Type} ->
-    carrier -> carrier -> RangedNatMorphF carrier
+    Nat -> carrier -> carrier -> RangedNatMorphF carrier
   RNMDivF : {0 carrier : Type} ->
     NatRange -> Nat -> RangedNatMorphF carrier
   RNMModF : {0 carrier : Type} ->
@@ -1250,7 +1250,7 @@ data RangedNatMorphF : Type -> Type where
 public export
 Functor RangedNatMorphF where
   map m (RNMPolyF dom ps) = RNMPolyF dom ps
-  map m (RNMSwitchF g f) = RNMSwitchF (m g) (m f)
+  map m (RNMSwitchF n g f) = RNMSwitchF n (m g) (m f)
   map m (RNMDivF dom n) = RNMDivF dom n
   map m (RNMModF dom n) = RNMModF dom n
   map m (RNMExtendF f n) = RNMExtendF (m f) n
@@ -1267,7 +1267,8 @@ public export
 rnmShowAlg : RNMAlg String
 rnmShowAlg (RNMPolyF dom ps) =
   show ps ++ " : (" ++ show dom ++ " -> " ++ show (psInterpRange ps dom) ++ ")"
-rnmShowAlg (RNMSwitchF left right) = left ++ " | " ++ right
+rnmShowAlg (RNMSwitchF n left right) =
+  left ++ " | < " ++ show n ++ "<= | " ++ right
 rnmShowAlg (RNMDivF range n) = show range ++ " / " ++ show n
 rnmShowAlg (RNMModF range n) = show range ++ " % " ++ show n
 rnmShowAlg (RNMExtendF rnm n) = rnm ++ " > " ++ show n
@@ -1289,7 +1290,7 @@ rnmCata : FromInitialFAlg RangedNatMorphF
 rnmCata x alg (InFreeM $ InTF $ Left v) = void v
 rnmCata x alg (InFreeM $ InTF $ Right c) = alg $ case c of
   RNMPolyF dom ps => RNMPolyF dom ps
-  RNMSwitchF g f => RNMSwitchF (rnmCata x alg g) (rnmCata x alg f)
+  RNMSwitchF n g f => RNMSwitchF n (rnmCata x alg g) (rnmCata x alg f)
   RNMDivF dom n => RNMDivF dom n
   RNMModF dom n => RNMModF dom n
   RNMExtendF f n => RNMExtendF (rnmCata x alg f) n
@@ -1301,10 +1302,11 @@ rnmCheckAlg (RNMPolyF dom ps) =
     Just $ (dom, psInterpRange ps dom)
   else
     Nothing
-rnmCheckAlg (RNMSwitchF left right) = case (left, right) of
-  (Just (domLow, codLow), Just (domHigh, codHigh)) =>
-    if (codLow == domHigh) then
-      Just (domLow, codHigh)
+rnmCheckAlg (RNMSwitchF n left right) = case (left, right) of
+  (Just ((domLeftMin, domLeftMax), codLeft),
+   Just ((domRightMin, domRightMax), codRight)) =>
+    if (S domLeftMax == n) && (domRightMin == n) && (codLeft == codRight) then
+      Just ((domLeftMin, domRightMax), codLeft)
     else
       Nothing
   _ => Nothing
@@ -1357,8 +1359,8 @@ RNMPoly : NatRange -> PolyShape -> MuRNM
 RNMPoly = InFCom .* RNMPolyF
 
 public export
-RNMSwitch : MuRNM -> MuRNM -> MuRNM
-RNMSwitch = InFCom .* RNMSwitchF
+RNMSwitch : Nat -> MuRNM -> MuRNM -> MuRNM
+RNMSwitch = InFCom .** RNMSwitchF
 
 public export
 RNMDiv : NatRange -> Nat -> MuRNM
@@ -1367,6 +1369,18 @@ RNMDiv = InFCom .* RNMDivF
 public export
 RNMMod : NatRange -> Nat -> MuRNM
 RNMMod = InFCom .* RNMModF
+
+public export
+interpRNMAlg : RNMAlg (Nat -> Nat)
+interpRNMAlg (RNMPolyF dom ps) = psInterpNat ps
+interpRNMAlg (RNMSwitchF n left right) = \m => if m < n then left m else right m
+interpRNMAlg (RNMDivF dom n) = ?interpRNMAlg_hole_div
+interpRNMAlg (RNMModF dom n) = ?interpRNMAlg_hole_mod
+interpRNMAlg (RNMExtendF f n) = ?interpRNMAlg_hole_extend
+
+public export
+interpRNM : MuRNM -> Nat -> Nat
+interpRNM = rnmCata _ interpRNMAlg
 
 -------------------------------------
 -------------------------------------
