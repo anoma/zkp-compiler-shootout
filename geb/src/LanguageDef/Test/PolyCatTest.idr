@@ -530,6 +530,39 @@ testRNM9Sig = Assert $ rnmCheck testRNM9 == Just ((37, 122), (37, 122))
 testRNM9Apply100 : Assertion
 testRNM9Apply100 = Assert $ interpRNM testRNM9 100 == 100
 
+testRNM10 : MuRNM
+testRNM10 = RNMPoly (45, 1382) [ (1, 2) ]
+
+testRNM10Sig : Assertion
+testRNM10Sig = Assert $ rnmCheck testRNM10 == Just ((45, 1382), (90, 2764))
+
+testRNM11 : MuRNM
+testRNM11 = RNMCompose testRNM10 testRNM6
+
+testRNM11Sig : Assertion
+testRNM11Sig = Assert $ rnmCheck testRNM11 == Nothing
+
+testRNM12 : MuRNM
+testRNM12 = RNMPoly (46, 1382) [ (1, 2) ]
+
+testRNM12Sig : Assertion
+testRNM12Sig = Assert $ rnmCheck testRNM12 == Just ((46, 1382), (92, 2764))
+
+testRNM13 : MuRNM
+testRNM13 = RNMCompose testRNM12 testRNM6
+
+testRNM13Sig : Assertion
+testRNM13Sig = Assert $ rnmCheck testRNM13 == Just ((2, 10), (92, 2764))
+
+testRNM13Apply2 : Assertion
+testRNM13Apply2 = Assert $ interpRNM testRNM13 2 == 94
+
+testRNM13Apply4 : Assertion
+testRNM13Apply4 = Assert $ interpRNM testRNM13 4 == 1166
+
+testRNM13Apply10 : Assertion
+testRNM13Apply10 = Assert $ interpRNM testRNM13 10 == 102
+
 --------------------------
 ---- Circuit category ----
 --------------------------
@@ -638,6 +671,7 @@ polyCatTest = do
   putStrLn $ show $ testRNMPolyS1
   putStrLn $ show $ testRNM0
   putStrLn $ show $ testRNM5
+  putStrLn $ show $ testRNM13
   putStrLn ""
   putStrLn "-----------------"
   putStrLn "Circuit category"

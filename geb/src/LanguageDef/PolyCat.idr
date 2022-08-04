@@ -1256,6 +1256,8 @@ idPSCorrect (min, max) = ?idPsCorrect_hole
 
 public export
 data RangedNatMorphF : Type -> Type where
+  RNMComposeF : {0 carrier : Type} ->
+    carrier -> carrier -> RangedNatMorphF carrier
   RNMPolyF : {0 carrier : Type} ->
     NatRange -> PolyShape -> RangedNatMorphF carrier
   RNMSwitchF : {0 carrier : Type} ->
@@ -1271,6 +1273,7 @@ data RangedNatMorphF : Type -> Type where
 
 public export
 Functor RangedNatMorphF where
+  map m (RNMComposeF g f) = RNMComposeF (m g) (m f)
   map m (RNMPolyF dom ps) = RNMPolyF dom ps
   map m (RNMSwitchF n l r) = RNMSwitchF n (m l) (m r)
   map m (RNMDivF dom n) = RNMDivF dom n
@@ -1292,6 +1295,7 @@ RNMPairAlg = PairFAlg RangedNatMorphF
 
 public export
 rnmShowAlg : RNMAlg String
+rnmShowAlg (RNMComposeF g f) = "(" ++ g ++ " . " ++ f ++ ")"
 rnmShowAlg (RNMPolyF dom ps) =
   show ps ++ " : (" ++ show dom ++ " -> " ++ show (psInterpRange ps dom) ++ ")"
 rnmShowAlg (RNMSwitchF n left right) =
@@ -1317,6 +1321,7 @@ public export
 rnmCata : FromInitialFAlg RangedNatMorphF
 rnmCata x alg (InFreeM $ InTF $ Left v) = void v
 rnmCata x alg (InFreeM $ InTF $ Right c) = alg $ case c of
+  RNMComposeF g f => RNMComposeF (rnmCata x alg g) (rnmCata x alg f)
   RNMPolyF dom ps => RNMPolyF dom ps
   RNMSwitchF n l r => RNMSwitchF n (rnmCata x alg l) (rnmCata x alg r)
   RNMDivF dom n => RNMDivF dom n
@@ -1330,6 +1335,13 @@ rnmPairCata = muPairCata rnmCata
 
 public export
 rnmCheckAlg : RNMAlg (Maybe RNMSig)
+rnmCheckAlg (RNMComposeF g f) = case (g, f) of
+  (Just (domg, codg), Just (domf, codf)) =>
+    if codf == domg then
+      Just (domf, codg)
+    else
+      Nothing
+  _ => Nothing
 rnmCheckAlg (RNMPolyF dom ps) =
   if validRange dom && validPoly ps then
     Just $ (dom, psInterpRange ps dom)
@@ -1391,6 +1403,10 @@ rnmRange (Element0 rnm valid) with (rnmCheck rnm)
   rnmRange (Element0 rnm Refl) | Nothing impossible
 
 public export
+RNMCompose : MuRNM -> MuRNM -> MuRNM
+RNMCompose = InFCom .* RNMComposeF
+
+public export
 RNMPoly : NatRange -> PolyShape -> MuRNM
 RNMPoly = InFCom .* RNMPolyF
 
@@ -1420,6 +1436,7 @@ rnmId range = RNMPoly range idPolyShape
 
 public export
 interpRNMAlg : RNMAlg (Nat -> Nat)
+interpRNMAlg (RNMComposeF g f) = g . f
 interpRNMAlg (RNMPolyF dom ps) = psInterpNat ps
 interpRNMAlg (RNMSwitchF n left right) = \m => if m < n then left m else right m
 interpRNMAlg (RNMDivF dom n) =
