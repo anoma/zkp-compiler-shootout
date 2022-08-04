@@ -498,6 +498,27 @@ testRNM7Apply210 = Assert $ interpRNM testRNM7 210 == 30
 testRNM7Apply401 : Assertion
 testRNM7Apply401 = Assert $ interpRNM testRNM7 401 == 57
 
+testRNM8 : MuRNM
+testRNM8 = RNMMod (122, 401) 7
+
+testRNM8Sig : Assertion
+testRNM8Sig = Assert $ rnmCheck testRNM8 == Just ((122, 401), (0, 6))
+
+testRNM8Apply122 : Assertion
+testRNM8Apply122 = Assert $ interpRNM testRNM8 122 == 3
+
+testRNM8Apply200 : Assertion
+testRNM8Apply200 = Assert $ interpRNM testRNM8 200 == 4
+
+testRNM8Apply210 : Assertion
+testRNM8Apply210 = Assert $ interpRNM testRNM8 210 == 0
+
+testRNM8Apply401 : Assertion
+testRNM8Apply401 = Assert $ interpRNM testRNM8 401 == 2
+
+testRNM8Apply202 : Assertion
+testRNM8Apply202 = Assert $ interpRNM testRNM8 202 == 6
+
 --------------------------
 ---- Circuit category ----
 --------------------------
