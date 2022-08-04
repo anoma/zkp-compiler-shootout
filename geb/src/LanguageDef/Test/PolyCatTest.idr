@@ -471,6 +471,15 @@ testRNM5Apply6 = Assert $ interpRNM testRNM5 6 == 47
 testRNM5Apply10 : Assertion
 testRNM5Apply10 = Assert $ interpRNM testRNM5 10 == 51
 
+testRNM6 : MuRNM
+testRNM6 = RNMExtendL testRNM5 46
+
+testRNM6Sig : Assertion
+testRNM6Sig = Assert $ rnmCheck testRNM6 == Just ((2, 10), (46, 1382))
+
+testRNM6Apply2 : Assertion
+testRNM6Apply2 = Assert $ interpRNM testRNM6 2 == 47
+
 --------------------------
 ---- Circuit category ----
 --------------------------
