@@ -1442,6 +1442,22 @@ rnmRange (Element0 rnm valid) with (rnmCheck rnm)
   rnmRange (Element0 rnm Refl) | Just range = range
   rnmRange (Element0 rnm Refl) | Nothing impossible
 
+public export
+RNMPoly : NatRange -> PolyShape -> MuRNM
+RNMPoly = InFCom .* RNMPolyF
+
+public export
+RNMSwitch : MuRNM -> MuRNM -> MuRNM
+RNMSwitch = InFCom .* RNMSwitchF
+
+public export
+RNMDiv : NatRange -> Nat -> MuRNM
+RNMDiv = InFCom .* RNMDivF
+
+public export
+RNMMod : NatRange -> Nat -> MuRNM
+RNMMod = InFCom .* RNMModF
+
 -------------------------------------------
 ---- Natural transformations in `Poly` ----
 -------------------------------------------
