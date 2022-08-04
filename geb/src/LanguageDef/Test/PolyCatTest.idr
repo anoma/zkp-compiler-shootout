@@ -521,6 +521,7 @@ polyCatTest = do
   putStrLn "------------------------"
   putStrLn $ show $ testRNMPolyS0
   putStrLn $ show $ testRNMPolyS1
+  putStrLn $ show $ testRNM0
   putStrLn ""
   putStrLn "-----------------"
   putStrLn "Circuit category"
