@@ -1545,6 +1545,28 @@ arnmCheck : AugRNM -> Maybe AugRNMSig
 arnmCheck (Left range) = Just (Nothing, range)
 arnmCheck (Right rnm) = map {f=Maybe} (mapHom {f=Pair} Just) (rnmCheck rnm)
 
+public export
+arnmId : AugNatRange -> AugRNM
+arnmId Nothing = Left Nothing
+arnmId (Just range) = Right (rnmId range)
+
+public export
+arnmUnvalidatedCompose : AugRNM -> AugRNM -> AugRNM
+arnmUnvalidatedCompose g f = ?arnmUnvalidatedCompose_hole
+
+-- This function witnesses that a polynomial may be viewed as a functor
+-- in the category whose objects are augmented ranges (terms of `AugNatRange`)
+-- and whose morphisms are augmented range morphisms (terms of `AugRNM`).
+public export
+psApplyAugRange : PolyShape -> AugNatRange -> AugNatRange
+psApplyAugRange = ?psApplyAugRange_hole
+
+-- This is the morphism map for the functor represented by a polynomial
+-- (whose object map is given by `psApplyARNM` above).
+public export
+psApplyARNM : PolyShape -> AugRNM -> AugRNM
+psApplyARNM = ?psApplyARNM_hole
+
 -------------------------------------
 -------------------------------------
 ---- Bounded (finite) data types ----
@@ -1623,34 +1645,34 @@ MkBoundedList l {gte} = MkRefinement l {satisfies=gte}
 -------------------------------------------
 
 public export
-record PolyShapeNT (p, q : PolyShape) where
-  constructor MkPSNT
+psCoeffSet : PolyShape -> AugNatRange
+psCoeffSet ps with (sumPTCoeff ps)
+  psCoeffSet ps | Z = Nothing
+  psCoeffSet ps | (S n) = Just (0, n)
+
+public export
+pCoeffSet : Polynomial -> AugNatRange
+pCoeffSet = psCoeffSet . shape
+
+public export
+record PolyNTShape where
+  constructor MkPNT
+  psOnPos : AugRNM
+
+public export
+validPNTS : Polynomial -> Polynomial -> DecPred PolyNTShape
+validPNTS p q nt = ?validate_PNTS_is_correct_hole
 
 public export
 PolyNT : Polynomial -> Polynomial -> Type
-PolyNT p q = PolyShapeNT (shape p) (shape q)
+PolyNT p q = Refinement {a=PolyNTShape} (validPNTS p q)
 
+-- Polynomials may be viewed as endofunctors in the category of ranges of
+-- natural numbers, or of augmented ranges of natural numbers.  A
+-- natural transformation between polynomials `p` and `q` therefore has one
+-- component `m` for each augmented range `r`, where that `m` is a morphism --
+-- hence a term of `AugRNM` -- from `p(r)` to `q(r)`.  (`p(r)` and `q(r)` are
+-- the ranges computed by `psApplyAugRange`.)
 public export
-applyPSNT : {p, q : PolyShape} ->
-  PolyShapeNT p q -> (range : NatRange) -> PolyShape
-applyPSNT {p} {q} alpha range = ?applyPSNT_hole
-
-public export
-applyPolyNT : {p, q : Polynomial} ->
-  PolyNT p q -> (range : NatRange) -> Polynomial
-applyPolyNT {p} {q} alpha range = ?applyPolyNT_hole
-
-public export
-interpPSNT : {p, q : PolyShape} -> PolyShapeNT p q ->
-  (min, max : Nat) ->
-  RangedNat (psInterpNat p min) (psInterpNat p max) ->
-  RangedNat (psInterpNat q min) (psInterpNat q max)
-interpPSNT {p} {q} alpha min max n = ?interpPSNT_hole
-
-public export
-interpPolyNT : {p, q : Polynomial} -> PolyNT p q ->
-  (min, max : Nat) ->
-  RangedNat (polyInterpNat p min) (polyInterpNat p max) ->
-  RangedNat (polyInterpNat q min) (polyInterpNat q max)
-interpPolyNT {p} {q} alpha min max n =
-  interpPSNT {p=(shape p)} {q=(shape q)} alpha min max n
+pntsComponent : PolyShape -> PolyShape -> PolyNTShape -> AugNatRange -> AugRNM
+pntsComponent p q alpha range = ?pntsComponent_hole
