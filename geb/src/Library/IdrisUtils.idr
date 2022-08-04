@@ -134,12 +134,12 @@ IsJustTrue x = isJust x = True
 public export
 repeatIdx : {0 x : Type} -> (Nat -> x -> x) -> Nat -> Nat -> x -> x
 repeatIdx f Z i e = e
-repeatIdx f (S n) i e = f i (repeatIdx f n (S i) e)
+repeatIdx f (S n) i e = repeatIdx f n (S i) (f i e)
 
 public export
 repeat : {0 x : Type} -> (x -> x) -> Nat -> x -> x
 repeat f Z e = e
-repeat f (S n) e = f (repeat f n e)
+repeat f (S n) e = repeat f n (f e)
 
 public export
 fromIsJust : {a : Type} -> {x : Maybe a} -> IsJustTrue x -> a
