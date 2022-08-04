@@ -411,6 +411,12 @@ testRNMPolyS1 = [(1, 1), (0, 1)]
 testRNMPolyS1Valid : Assertion
 testRNMPolyS1Valid = Assert $ validPoly testRNMPolyS1
 
+testRNM0 : MuRNM
+testRNM0 = RNMPoly (2, 5) testRNMPolyS0
+
+testRNM0Codomain : Assertion
+testRNM0Codomain = Assert $ rnmCheck testRNM0 == Just (47, 1382)
+
 --------------------------
 ---- Circuit category ----
 --------------------------
