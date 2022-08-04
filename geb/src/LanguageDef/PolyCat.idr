@@ -1321,7 +1321,7 @@ rnmCheckAlg (RNMDivF dom@(min, max) n) =
       Just (dom, (min', max'))
     _ => Nothing
 rnmCheckAlg (RNMModF dom@(min, max) n) =
-  if (validRange dom) && (min == 0) && (n /= 0) && (n < max) then
+  if (validRange dom) && (n /= 0) && (n < max) then
     Just (dom, (0, pred n))
   else
     Nothing
