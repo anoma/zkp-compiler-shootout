@@ -561,6 +561,21 @@ testRNM13Apply4 = Assert $ interpRNM testRNM13 4 == 1166
 testRNM13Apply10 : Assertion
 testRNM13Apply10 = Assert $ interpRNM testRNM13 10 == 102
 
+testRNM14 : MuRNM
+testRNM14 = RNMRestrictDomAbove testRNM13 8
+
+testRNM14Sig : Assertion
+testRNM14Sig = Assert $ rnmCheck testRNM14 == Just ((2, 8), (92, 2764))
+
+testRNM15 : MuRNM
+testRNM15 = RNMRestrictDomBelow testRNM14 4
+
+testRNM15Sig : Assertion
+testRNM15Sig = Assert $ rnmCheck testRNM15 == Just ((4, 8), (92, 2764))
+
+testRNM15Apply6 : Assertion
+testRNM15Apply6 = Assert $ interpRNM testRNM15 6 == interpRNM testRNM13 6
+
 --------------------------
 ---- Circuit category ----
 --------------------------
@@ -668,6 +683,7 @@ polyCatTest = do
   putStrLn $ show $ testRNM0
   putStrLn $ show $ testRNM5
   putStrLn $ show $ testRNM13
+  putStrLn $ show $ testRNM15
   putStrLn ""
   putStrLn "-----------------"
   putStrLn "Circuit category"

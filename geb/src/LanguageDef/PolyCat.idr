@@ -1270,6 +1270,10 @@ data RangedNatMorphF : Type -> Type where
     carrier -> Nat -> RangedNatMorphF carrier
   RNMExtendRF : {0 carrier : Type} ->
     carrier -> Nat -> RangedNatMorphF carrier
+  RNMRestrictDomBelowF : {0 carrier : Type} ->
+    carrier -> Nat -> RangedNatMorphF carrier
+  RNMRestrictDomAboveF : {0 carrier : Type} ->
+    carrier -> Nat -> RangedNatMorphF carrier
 
 public export
 Functor RangedNatMorphF where
@@ -1280,6 +1284,8 @@ Functor RangedNatMorphF where
   map m (RNMModF dom n) = RNMModF dom n
   map m (RNMExtendLF f n) = RNMExtendLF (m f) n
   map m (RNMExtendRF f n) = RNMExtendRF (m f) n
+  map m (RNMRestrictDomBelowF f n) = RNMRestrictDomBelowF (m f) n
+  map m (RNMRestrictDomAboveF f n) = RNMRestrictDomAboveF (m f) n
 
 public export
 RNMSig : Type
@@ -1304,6 +1310,8 @@ rnmShowAlg (RNMDivF range n) = show range ++ " / " ++ show n
 rnmShowAlg (RNMModF range n) = show range ++ " % " ++ show n
 rnmShowAlg (RNMExtendLF rnm n) = rnm ++ " < " ++ show n
 rnmShowAlg (RNMExtendRF rnm n) = rnm ++ " > " ++ show n
+rnmShowAlg (RNMRestrictDomBelowF rnm n) = show n ++ " > " ++ rnm
+rnmShowAlg (RNMRestrictDomAboveF rnm n) = show n ++ " < " ++ rnm
 
 public export
 showRNMF : {0 x : Type} -> (shx : x -> String) -> RangedNatMorphF x -> String
@@ -1328,6 +1336,8 @@ rnmCata x alg (InFreeM $ InTF $ Right c) = alg $ case c of
   RNMModF dom n => RNMModF dom n
   RNMExtendLF f n => RNMExtendLF (rnmCata x alg f) n
   RNMExtendRF f n => RNMExtendRF (rnmCata x alg f) n
+  RNMRestrictDomBelowF f n => RNMRestrictDomBelowF (rnmCata x alg f) n
+  RNMRestrictDomAboveF f n => RNMRestrictDomAboveF (rnmCata x alg f) n
 
 public export
 rnmPairCata : FromInitialPairFAlg RangedNatMorphF
@@ -1370,6 +1380,14 @@ rnmCheckAlg (RNMExtendLF f n) = case f of
   Nothing => Nothing
 rnmCheckAlg (RNMExtendRF f n) = case f of
   Just (dom, (min, max)) => if max < n then Just (dom, (min, n)) else Nothing
+  Nothing => Nothing
+rnmCheckAlg (RNMRestrictDomBelowF f n) = case f of
+  Just ((min, max), cod) =>
+    if (min < n) && (n < max) then Just ((n, max), cod) else Nothing
+  Nothing => Nothing
+rnmCheckAlg (RNMRestrictDomAboveF f n) = case f of
+  Just ((min, max), cod) =>
+    if (min < n) && (n < max) then Just ((min, n), cod) else Nothing
   Nothing => Nothing
 
 public export
@@ -1431,6 +1449,14 @@ RNMExtendR : MuRNM -> Nat -> MuRNM
 RNMExtendR = InFCom .* RNMExtendRF
 
 public export
+RNMRestrictDomBelow : MuRNM -> Nat -> MuRNM
+RNMRestrictDomBelow = InFCom .* RNMRestrictDomBelowF
+
+public export
+RNMRestrictDomAbove : MuRNM -> Nat -> MuRNM
+RNMRestrictDomAbove = InFCom .* RNMRestrictDomAboveF
+
+public export
 rnmId : NatRange -> MuRNM
 rnmId range = RNMPoly range idPolyShape
 
@@ -1449,6 +1475,8 @@ interpRNMAlg (RNMModF dom n) =
     Nothing => 0
 interpRNMAlg (RNMExtendLF f n) = f
 interpRNMAlg (RNMExtendRF f n) = f
+interpRNMAlg (RNMRestrictDomBelowF f n) = f
+interpRNMAlg (RNMRestrictDomAboveF f n) = f
 
 public export
 interpRNM : MuRNM -> Nat -> Nat
