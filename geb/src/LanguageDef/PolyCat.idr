@@ -1371,6 +1371,10 @@ RNMMod : NatRange -> Nat -> MuRNM
 RNMMod = InFCom .* RNMModF
 
 public export
+RNMExtend : MuRNM -> Nat -> MuRNM
+RNMExtend = InFCom .* RNMExtendF
+
+public export
 interpRNMAlg : RNMAlg (Nat -> Nat)
 interpRNMAlg (RNMPolyF dom ps) = psInterpNat ps
 interpRNMAlg (RNMSwitchF n left right) = \m => if m < n then left m else right m
