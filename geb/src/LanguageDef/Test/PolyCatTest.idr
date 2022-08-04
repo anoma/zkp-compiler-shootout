@@ -442,7 +442,7 @@ testRNM3Sig : Assertion
 testRNM3Sig = Assert $ rnmCheck testRNM3 == Nothing
 
 testRNM4 : MuRNM
-testRNM4 = RNMExtendR testRNM2 1382
+testRNM4 = RNMExtendCodAbove testRNM2 1382
 
 testRNM4Sig : Assertion
 testRNM4Sig = Assert $ rnmCheck testRNM4 == Just ((6, 10), (47, 1382))
@@ -472,7 +472,7 @@ testRNM5Apply10 : Assertion
 testRNM5Apply10 = Assert $ interpRNM testRNM5 10 == 51
 
 testRNM6 : MuRNM
-testRNM6 = RNMExtendL testRNM5 46
+testRNM6 = RNMExtendCodBelow testRNM5 46
 
 testRNM6Sig : Assertion
 testRNM6Sig = Assert $ rnmCheck testRNM6 == Just ((2, 10), (46, 1382))

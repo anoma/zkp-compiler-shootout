@@ -1266,9 +1266,9 @@ data RangedNatMorphF : Type -> Type where
     NatRange -> Nat -> RangedNatMorphF carrier
   RNMModF : {0 carrier : Type} ->
     NatRange -> Nat -> RangedNatMorphF carrier
-  RNMExtendLF : {0 carrier : Type} ->
+  RNMExtendCodBelowF : {0 carrier : Type} ->
     carrier -> Nat -> RangedNatMorphF carrier
-  RNMExtendRF : {0 carrier : Type} ->
+  RNMExtendCodAboveF : {0 carrier : Type} ->
     carrier -> Nat -> RangedNatMorphF carrier
   RNMRestrictDomBelowF : {0 carrier : Type} ->
     carrier -> Nat -> RangedNatMorphF carrier
@@ -1282,8 +1282,8 @@ Functor RangedNatMorphF where
   map m (RNMSwitchF n l r) = RNMSwitchF n (m l) (m r)
   map m (RNMDivF dom n) = RNMDivF dom n
   map m (RNMModF dom n) = RNMModF dom n
-  map m (RNMExtendLF f n) = RNMExtendLF (m f) n
-  map m (RNMExtendRF f n) = RNMExtendRF (m f) n
+  map m (RNMExtendCodBelowF f n) = RNMExtendCodBelowF (m f) n
+  map m (RNMExtendCodAboveF f n) = RNMExtendCodAboveF (m f) n
   map m (RNMRestrictDomBelowF f n) = RNMRestrictDomBelowF (m f) n
   map m (RNMRestrictDomAboveF f n) = RNMRestrictDomAboveF (m f) n
 
@@ -1308,8 +1308,8 @@ rnmShowAlg (RNMSwitchF n left right) =
   left ++ " | < " ++ show n ++ "<= | " ++ right
 rnmShowAlg (RNMDivF range n) = show range ++ " / " ++ show n
 rnmShowAlg (RNMModF range n) = show range ++ " % " ++ show n
-rnmShowAlg (RNMExtendLF rnm n) = rnm ++ " < " ++ show n
-rnmShowAlg (RNMExtendRF rnm n) = rnm ++ " > " ++ show n
+rnmShowAlg (RNMExtendCodBelowF rnm n) = rnm ++ " < " ++ show n
+rnmShowAlg (RNMExtendCodAboveF rnm n) = rnm ++ " > " ++ show n
 rnmShowAlg (RNMRestrictDomBelowF rnm n) = show n ++ " > " ++ rnm
 rnmShowAlg (RNMRestrictDomAboveF rnm n) = show n ++ " < " ++ rnm
 
@@ -1334,8 +1334,8 @@ rnmCata x alg (InFreeM $ InTF $ Right c) = alg $ case c of
   RNMSwitchF n l r => RNMSwitchF n (rnmCata x alg l) (rnmCata x alg r)
   RNMDivF dom n => RNMDivF dom n
   RNMModF dom n => RNMModF dom n
-  RNMExtendLF f n => RNMExtendLF (rnmCata x alg f) n
-  RNMExtendRF f n => RNMExtendRF (rnmCata x alg f) n
+  RNMExtendCodBelowF f n => RNMExtendCodBelowF (rnmCata x alg f) n
+  RNMExtendCodAboveF f n => RNMExtendCodAboveF (rnmCata x alg f) n
   RNMRestrictDomBelowF f n => RNMRestrictDomBelowF (rnmCata x alg f) n
   RNMRestrictDomAboveF f n => RNMRestrictDomAboveF (rnmCata x alg f) n
 
@@ -1375,10 +1375,10 @@ rnmCheckAlg (RNMModF dom@(min, max) n) =
     Just (dom, (0, pred n))
   else
     Nothing
-rnmCheckAlg (RNMExtendLF f n) = case f of
+rnmCheckAlg (RNMExtendCodBelowF f n) = case f of
   Just (dom, (min, max)) => if n < min then Just (dom, (n, max)) else Nothing
   Nothing => Nothing
-rnmCheckAlg (RNMExtendRF f n) = case f of
+rnmCheckAlg (RNMExtendCodAboveF f n) = case f of
   Just (dom, (min, max)) => if max < n then Just (dom, (min, n)) else Nothing
   Nothing => Nothing
 rnmCheckAlg (RNMRestrictDomBelowF f n) = case f of
@@ -1441,12 +1441,12 @@ RNMMod : NatRange -> Nat -> MuRNM
 RNMMod = InFCom .* RNMModF
 
 public export
-RNMExtendL : MuRNM -> Nat -> MuRNM
-RNMExtendL = InFCom .* RNMExtendLF
+RNMExtendCodBelow : MuRNM -> Nat -> MuRNM
+RNMExtendCodBelow = InFCom .* RNMExtendCodBelowF
 
 public export
-RNMExtendR : MuRNM -> Nat -> MuRNM
-RNMExtendR = InFCom .* RNMExtendRF
+RNMExtendCodAbove : MuRNM -> Nat -> MuRNM
+RNMExtendCodAbove = InFCom .* RNMExtendCodAboveF
 
 public export
 RNMRestrictDomBelow : MuRNM -> Nat -> MuRNM
@@ -1473,8 +1473,8 @@ interpRNMAlg (RNMModF dom n) =
   \m => case modMaybe m n of
     Just p => p
     Nothing => 0
-interpRNMAlg (RNMExtendLF f n) = f
-interpRNMAlg (RNMExtendRF f n) = f
+interpRNMAlg (RNMExtendCodBelowF f n) = f
+interpRNMAlg (RNMExtendCodAboveF f n) = f
 interpRNMAlg (RNMRestrictDomBelowF f n) = f
 interpRNMAlg (RNMRestrictDomAboveF f n) = f
 
