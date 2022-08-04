@@ -417,6 +417,60 @@ testRNM0 = RNMPoly (2, 5) testRNMPolyS0
 testRNM0Codomain : Assertion
 testRNM0Codomain = Assert $ rnmCheck testRNM0 == Just ((2, 5), (47, 1382))
 
+testRNM0Apply3 : Assertion
+testRNM0Apply3 = Assert $ interpRNM testRNM0 3 == 196
+
+testRNM0Apply4 : Assertion
+testRNM0Apply4 = Assert $ interpRNM testRNM0 4 == 583
+
+testRNM2 : MuRNM
+testRNM2 = RNMPoly (6, 10) [ (1, 1), (0, 41) ]
+
+testRNM2Apply6 : Assertion
+testRNM2Apply6 = Assert $ interpRNM testRNM2 6 == 47
+
+testRNM2Apply10 : Assertion
+testRNM2Apply10 = Assert $ interpRNM testRNM2 10 == 51
+
+testRNM2Sig : Assertion
+testRNM2Sig = Assert $ rnmCheck testRNM2 == Just ((6, 10), (47, 51))
+
+testRNM3 : MuRNM
+testRNM3 = RNMSwitch 6 testRNM0 testRNM2
+
+testRNM3Sig : Assertion
+testRNM3Sig = Assert $ rnmCheck testRNM3 == Nothing
+
+testRNM4 : MuRNM
+testRNM4 = RNMExtend testRNM2 1382
+
+testRNM4Sig : Assertion
+testRNM4Sig = Assert $ rnmCheck testRNM4 == Just ((6, 10), (47, 1382))
+
+testRNM5 : MuRNM
+testRNM5 = RNMSwitch 6 testRNM0 testRNM4
+
+testRNM5Sig : Assertion
+testRNM5Sig = Assert $ rnmCheck testRNM5 == Just ((2, 10), (47, 1382))
+
+testRNM5Apply2 : Assertion
+testRNM5Apply2 = Assert $ interpRNM testRNM5 2 == 47
+
+testRNM5Apply3 : Assertion
+testRNM5Apply3 = Assert $ interpRNM testRNM5 3 == 196
+
+testRNM5Apply4 : Assertion
+testRNM5Apply4 = Assert $ interpRNM testRNM5 4 == 583
+
+testRNM5Apply5 : Assertion
+testRNM5Apply5 = Assert $ interpRNM testRNM5 5 == 1382
+
+testRNM5Apply6 : Assertion
+testRNM5Apply6 = Assert $ interpRNM testRNM5 6 == 47
+
+testRNM5Apply10 : Assertion
+testRNM5Apply10 = Assert $ interpRNM testRNM5 10 == 51
+
 --------------------------
 ---- Circuit category ----
 --------------------------
@@ -522,6 +576,7 @@ polyCatTest = do
   putStrLn $ show $ testRNMPolyS0
   putStrLn $ show $ testRNMPolyS1
   putStrLn $ show $ testRNM0
+  putStrLn $ show $ testRNM5
   putStrLn ""
   putStrLn "-----------------"
   putStrLn "Circuit category"
