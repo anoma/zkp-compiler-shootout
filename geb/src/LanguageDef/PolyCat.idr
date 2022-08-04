@@ -845,7 +845,7 @@ pIdx = psIdx . shape
 public export
 psIdxFold : {0 x : Type} -> (Nat -> x -> x) -> x -> PolyShape -> x
 psIdxFold f z [] = z
-psIdxFold f z ((p, c) :: ts) = repeat (f p) c $ psIdxFold f z ts
+psIdxFold f z ((p, c) :: ts) = psIdxFold f (repeat (f p) c z) ts
 
 public export
 pIdxFold : {0 x : Type} -> (Nat -> x -> x) -> x -> Polynomial -> x
