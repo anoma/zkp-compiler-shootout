@@ -843,17 +843,23 @@ pIdx : Polynomial -> Nat -> Nat
 pIdx = psIdx . shape
 
 public export
-psIdxFold : {0 x : Type} -> (Nat -> Nat -> x -> x) -> x -> Nat -> PolyShape -> x
-psIdxFold f z i [] = z
-psIdxFold f z i ((p, c) :: ts) = psIdxFold f (repeatIdx (f p) c i z) (i + c) ts
+psIdxFoldStartingAt : {0 x : Type} ->
+  ((pos, pow : Nat) -> x -> x) -> x -> (pos : Nat) -> PolyShape -> x
+psIdxFoldStartingAt f acc pos [] = acc
+psIdxFoldStartingAt f acc pos ((pow, c) :: ts) =
+  psIdxFoldStartingAt f (repeatIdx (flip f pow) c pos acc) (pos + c) ts
 
 public export
-pIdxFold : {0 x : Type} -> (Nat -> Nat -> x -> x) -> x -> Nat -> Polynomial -> x
-pIdxFold f e i = psIdxFold f e i . shape
+psIdxFold : {0 x : Type} -> ((pos, pow : Nat) -> x -> x) -> x -> PolyShape -> x
+psIdxFold f acc = psIdxFoldStartingAt f acc 0
+
+public export
+pIdxFold : {0 x : Type} -> ((pos, pow : Nat) -> x -> x) -> x -> Polynomial -> x
+pIdxFold f acc = psIdxFold f acc . shape
 
 public export
 sumPSDir : PolyShape -> Nat
-sumPSDir = psIdxFold (\m, i, n => m + n) 0 0
+sumPSDir = psIdxFold (const (+)) 0
 
 public export
 sumPolyDir : Polynomial -> Nat
@@ -1215,11 +1221,11 @@ iterNPoly n (Element0 poly valid) =
 
 public export
 psSumOverIdx : (Nat -> PolyShape) -> PolyShape -> PolyShape
-psSumOverIdx f = psIdxFold (\n, i => addPolyShape $ f n) initialPolyShape 0
+psSumOverIdx f = psIdxFold (const $ addPolyShape . f) initialPolyShape
 
 public export
 psProductOverIdx : (Nat -> PolyShape) -> PolyShape -> PolyShape
-psProductOverIdx f = psIdxFold (\n, i => mulPolyShape $ f n) terminalPolyShape 0
+psProductOverIdx f = psIdxFold (const $ mulPolyShape . f) terminalPolyShape
 
 public export
 polyShapeClosure :
