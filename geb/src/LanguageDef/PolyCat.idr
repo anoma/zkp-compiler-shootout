@@ -1552,20 +1552,31 @@ arnmId (Just range) = Right (rnmId range)
 
 public export
 arnmUnvalidatedCompose : AugRNM -> AugRNM -> AugRNM
-arnmUnvalidatedCompose g f = ?arnmUnvalidatedCompose_hole
+arnmUnvalidatedCompose (Left r) _ = Left r -- right morphism must be id on Void
+arnmUnvalidatedCompose (Right g) (Left r) = case rnmCheck g of
+  Just (domg, codg) => Left $ Just codg
+  Nothing => Left Nothing
+arnmUnvalidatedCompose (Right g) (Right f) = Right $ RNMCompose g f
 
 -- This function witnesses that a polynomial may be viewed as a functor
 -- in the category whose objects are augmented ranges (terms of `AugNatRange`)
 -- and whose morphisms are augmented range morphisms (terms of `AugRNM`).
 public export
 psApplyAugRange : PolyShape -> AugNatRange -> AugNatRange
-psApplyAugRange = ?psApplyAugRange_hole
+psApplyAugRange = map {f=Maybe} . psInterpRange
 
 -- This is the morphism map for the functor represented by a polynomial
 -- (whose object map is given by `psApplyARNM` above).
 public export
 psApplyARNM : PolyShape -> AugRNM -> AugRNM
-psApplyARNM = ?psApplyARNM_hole
+psApplyARNM ps rnm =
+  case arnmCheck rnm of
+    Just (Nothing, cod) =>
+      Left $ psApplyAugRange ps cod
+    Just (Just r, _) =>
+      arnmUnvalidatedCompose (Right (RNMPoly r ps)) rnm
+    Nothing =>
+      Left Nothing
 
 -------------------------------------
 -------------------------------------
