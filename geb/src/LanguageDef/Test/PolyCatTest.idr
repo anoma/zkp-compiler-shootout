@@ -578,22 +578,11 @@ testRNM15Sig = Assert $ rnmCheck testRNM15 == Just ((4, 8), (92, 2764))
 testRNM15Apply6 : Assertion
 testRNM15Apply6 = Assert $ interpRNM testRNM15 6 == interpRNM testRNM13 6
 
---------------------------
----- Circuit category ----
---------------------------
-
-testCircuitObj0 : CircuitObj
-testCircuitObj0 = (0, 3)
-
-testCircuitPS0 : PolyShape
-testCircuitPS0 = [(1, 1), (0, 1)]
-
-testCircuitObj1 : CircuitObj
-testCircuitObj1 = (1, 4)
-
-testCircuitMorph0 :
-  CircuitMorphism PolyCatTest.testCircuitObj0 PolyCatTest.testCircuitObj1
-testCircuitMorph0 = MkCircuitPolyMorphism testCircuitPS0
+----------------------------------
+----------------------------------
+----- Exported test function -----
+----------------------------------
+----------------------------------
 
 export
 polyCatTest : IO ()
@@ -688,13 +677,6 @@ polyCatTest = do
   putStrLn $ show $ testRNM5
   putStrLn $ show $ testRNM13
   putStrLn $ show $ testRNM15
-  putStrLn ""
-  putStrLn "-----------------"
-  putStrLn "Circuit category"
-  putStrLn "-----------------"
-  putStrLn $ show $ psInterpNat testCircuitPS0 0
-  putStrLn $ show $ psInterpNat testCircuitPS0 3
-  putStrLn $ "testCircuitMorph0 = " ++ cmShow testCircuitMorph0
   putStrLn ""
   putStrLn "End polyCatTest."
   putStrLn "=================="
