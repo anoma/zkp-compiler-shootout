@@ -843,20 +843,20 @@ pIdx : Polynomial -> Nat -> Nat
 pIdx = psIdx . shape
 
 public export
-psIdxFoldStartingAt : {0 x : Type} ->
+psPosFoldStartingAt : {0 x : Type} ->
   ((pos, pow : Nat) -> x -> x) -> x -> (pos : Nat) -> PolyShape -> x
-psIdxFoldStartingAt f acc pos [] = acc
-psIdxFoldStartingAt f acc pos ((pow, c) :: ts) =
-  psIdxFoldStartingAt f (repeatIdx (flip f pow) c pos acc) (pos + c) ts
+psPosFoldStartingAt f acc pos [] = acc
+psPosFoldStartingAt f acc pos ((pow, c) :: ts) =
+  psPosFoldStartingAt f (repeatIdx (flip f pow) c pos acc) (pos + c) ts
 
 public export
-psIdxFold : {0 x : Type} -> ((pos, pow : Nat) -> x -> x) -> x -> PolyShape -> x
-psIdxFold f acc = psIdxFoldStartingAt f acc 0
+psPosFold : {0 x : Type} -> ((pos, pow : Nat) -> x -> x) -> x -> PolyShape -> x
+psPosFold f acc = psPosFoldStartingAt f acc 0
 
 public export
 psIdxShow : PolyShape -> String
 psIdxShow =
-  psIdxFold
+  psPosFold
     (\pos, pow, str =>
       let pre = if (pos == 0) then "" else str ++ "; " in
       pre ++ "pos[" ++ show pos ++ "] = " ++ show pow)
@@ -864,11 +864,11 @@ psIdxShow =
 
 public export
 pIdxFold : {0 x : Type} -> ((pos, pow : Nat) -> x -> x) -> x -> Polynomial -> x
-pIdxFold f acc = psIdxFold f acc . shape
+pIdxFold f acc = psPosFold f acc . shape
 
 public export
 sumPSDir : PolyShape -> Nat
-sumPSDir = psIdxFold (const (+)) 0
+sumPSDir = psPosFold (const (+)) 0
 
 public export
 sumPolyDir : Polynomial -> Nat
@@ -1230,11 +1230,11 @@ iterNPoly n (Element0 poly valid) =
 
 public export
 psSumOverIdx : (Nat -> PolyShape) -> PolyShape -> PolyShape
-psSumOverIdx f = psIdxFold (const $ addPolyShape . f) initialPolyShape
+psSumOverIdx f = psPosFold (const $ addPolyShape . f) initialPolyShape
 
 public export
 psProductOverIdx : (Nat -> PolyShape) -> PolyShape -> PolyShape
-psProductOverIdx f = psIdxFold (const $ mulPolyShape . f) terminalPolyShape
+psProductOverIdx f = psPosFold (const $ mulPolyShape . f) terminalPolyShape
 
 public export
 polyShapeClosure :
