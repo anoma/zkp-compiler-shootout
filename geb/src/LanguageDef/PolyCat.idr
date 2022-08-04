@@ -1409,6 +1409,18 @@ public export
 validRNM : DecPred MuRNM
 validRNM = isJust . rnmCheck
 
+public export
+ValidRNM : MuRNM -> Type
+ValidRNM = IsTrue . validRNM
+
+public export
+RefRNM : Type
+RefRNM = Refinement validRNM
+
+public export
+MkRefRNM : (rnm : MuRNM) -> {auto 0 valid : ValidRNM rnm} -> RefRNM
+MkRefRNM rnm {valid} = MkRefinement rnm {satisfies=valid}
+
 -------------------------------------------
 ---- Natural transformations in `Poly` ----
 -------------------------------------------
