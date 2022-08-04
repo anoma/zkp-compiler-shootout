@@ -910,7 +910,7 @@ public export
 polyMax : Polynomial -> Nat -> Nat
 polyMax = psMax . shape
 
--- XXX arenas w/bijections
+-- XXX arenas w/bijections (unless I can implement all formulas without this)
 
 -- XXX lenses / natural transformations w/bijections
 
