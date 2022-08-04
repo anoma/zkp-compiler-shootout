@@ -274,6 +274,26 @@ public export
 ToTerminalFCoalg : (Type -> Type) -> Type
 ToTerminalFCoalg f = (x : Type) -> NuAna f x
 
+-----------------------
+---- Pair algebras ----
+-----------------------
+
+public export
+PairFAlg : (Type -> Type) -> Type -> Type
+PairFAlg f = FAlg f . FAlg f
+
+public export
+MuPairCata : (Type -> Type) -> Type -> Type
+MuPairCata f x = PairFAlg f x -> MuF f -> MuF f -> x
+
+public export
+FromInitialPairFAlg : (Type -> Type) -> Type
+FromInitialPairFAlg f = (x : Type) -> MuPairCata f x
+
+public export
+muPairCata : {f : Type -> Type} -> FromInitialFAlg f -> FromInitialPairFAlg f
+muPairCata {f} cata x alg e e' = cata x (cata (FAlg f x) alg e) e'
+
 -------------------------------------
 ---- Types dependent on algebras ----
 -------------------------------------
@@ -1267,6 +1287,10 @@ RNMAlg : Type -> Type
 RNMAlg = FAlg RangedNatMorphF
 
 public export
+RNMPairAlg : Type -> Type
+RNMPairAlg = PairFAlg RangedNatMorphF
+
+public export
 rnmShowAlg : RNMAlg String
 rnmShowAlg (RNMPolyF dom ps) =
   show ps ++ " : (" ++ show dom ++ " -> " ++ show (psInterpRange ps dom) ++ ")"
@@ -1299,6 +1323,10 @@ rnmCata x alg (InFreeM $ InTF $ Right c) = alg $ case c of
   RNMModF dom n => RNMModF dom n
   RNMExtendLF f n => RNMExtendLF (rnmCata x alg f) n
   RNMExtendRF f n => RNMExtendRF (rnmCata x alg f) n
+
+public export
+rnmPairCata : FromInitialPairFAlg RangedNatMorphF
+rnmPairCata = muPairCata rnmCata
 
 public export
 rnmCheckAlg : RNMAlg (Maybe RNMSig)
