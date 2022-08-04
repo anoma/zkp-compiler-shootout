@@ -1272,7 +1272,7 @@ data RangedNatMorphF : Type -> Type where
 public export
 Functor RangedNatMorphF where
   map m (RNMPolyF dom ps) = RNMPolyF dom ps
-  map m (RNMSwitchF n g f) = RNMSwitchF n (m g) (m f)
+  map m (RNMSwitchF n l r) = RNMSwitchF n (m l) (m r)
   map m (RNMDivF dom n) = RNMDivF dom n
   map m (RNMModF dom n) = RNMModF dom n
   map m (RNMExtendLF f n) = RNMExtendLF (m f) n
@@ -1318,7 +1318,7 @@ rnmCata : FromInitialFAlg RangedNatMorphF
 rnmCata x alg (InFreeM $ InTF $ Left v) = void v
 rnmCata x alg (InFreeM $ InTF $ Right c) = alg $ case c of
   RNMPolyF dom ps => RNMPolyF dom ps
-  RNMSwitchF n g f => RNMSwitchF n (rnmCata x alg g) (rnmCata x alg f)
+  RNMSwitchF n l r => RNMSwitchF n (rnmCata x alg l) (rnmCata x alg r)
   RNMDivF dom n => RNMDivF dom n
   RNMModF dom n => RNMModF dom n
   RNMExtendLF f n => RNMExtendLF (rnmCata x alg f) n

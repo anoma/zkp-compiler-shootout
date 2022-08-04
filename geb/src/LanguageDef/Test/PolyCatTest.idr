@@ -224,6 +224,7 @@ testPolyS9exp4 = expNPolyShape 4 testPolyS9
 testPoly9exp4 : Polynomial
 testPoly9exp4 = MkPolynomial testPolyS9exp4
 
+{- XXX temporary
 testMulPolyNat0 : Assertion
 testMulPolyNat0 = Assert $
   mulPolyShapeList [ expNPolyShape 3 testPolyS9, testPolyS0 ] ==
@@ -277,6 +278,7 @@ ex378_6 : Assertion
 ex378_6 = Assert $
   parProdClosureShape [(2, 1), (1,2)] [(3, 2), (0, 3)] ==
     [(9, 64), (6, 204), (3, 180), (0, 27)]
+    -}
 
 sumViaMu : Nat -> Nat -> Nat
 sumViaMu m n = muToNat $ natSum (natToMu m) (natToMu n)
@@ -577,6 +579,7 @@ polyCatTest = do
   putStrLn $ show testPoly0m7
   putStrLn $ show testPoly9
   putStrLn $ show testPoly9exp4
+  {- XXX temporary
   putStrLn $ show $ testPolyNatIter 0
   putStrLn $ show $ testPolyNatIter 1
   putStrLn $ show $ testPolyNatIter 2
@@ -590,6 +593,7 @@ polyCatTest = do
   putStrLn $ show $ polyShapeExponential idPolyShape idPolyShape
   putStrLn $ show $ polyShapeExponential idPolyShape (prodIdPolyShape 4)
   putStrLn $ show $ parProdClosureShape [(2, 1), (1,2)] [(3, 2), (0, 3)]
+  -}
   putStrLn $ psIdxShow testPolyS6
   putStrLn "--------------------"
   putStrLn ""
