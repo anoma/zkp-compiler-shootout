@@ -1258,27 +1258,6 @@ public export
 leftCoclosureShape : PolyShape -> PolyShape -> PolyShape
 leftCoclosureShape r p = psSumOverIdx (homNPolyShape . psInterpNat r) p
 
------------------------------------------------------------------------
----- Finite prefixes as bicartesian category (Robinson arithmetic) ----
------------------------------------------------------------------------
-
-public export
-FinNEPrefix : Type
-FinNEPrefix = Nat
-
-public export
-interpFinNEPrefix : FinNEPrefix -> Type
-interpFinNEPrefix n = BoundedNat n
-
-public export
-FinPrefix : Type
-FinPrefix = Maybe FinNEPrefix
-
-public export
-interpFinPrefix : FinPrefix -> Type
-interpFinPrefix Nothing = Void
-interpFinPrefix (Just nep) = interpFinNEPrefix nep
-
 --------------------------
 --------------------------
 ---- Polynomial types ----
