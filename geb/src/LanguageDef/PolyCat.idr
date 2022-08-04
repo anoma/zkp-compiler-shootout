@@ -1350,6 +1350,10 @@ Functor RangedNatMorphF where
   map m (RNMExtendF f n) = RNMExtendF (m f) n
 
 public export
+RNMSig : Type
+RNMSig = (NatRange, NatRange)
+
+public export
 RNMAlg : Type -> Type
 RNMAlg = FAlg RangedNatMorphF
 
@@ -1385,10 +1389,10 @@ rnmCata x alg (InFreeM $ InTF $ Right c) = alg $ case c of
   RNMExtendF f n => RNMExtendF (rnmCata x alg f) n
 
 public export
-rnmCheckAlg : RNMAlg (Maybe NatRange)
+rnmCheckAlg : RNMAlg (Maybe RNMSig)
 rnmCheckAlg (RNMPolyF dom ps) =
   if validRange dom && validPoly ps then
-    Just $ psInterpRange ps dom
+    Just $ (dom, psInterpRange ps dom)
   else
     Nothing
 rnmCheckAlg (RNMSwitchF left right) = case (left, right) of
@@ -1401,19 +1405,19 @@ rnmCheckAlg (RNMSwitchF left right) = case (left, right) of
 rnmCheckAlg (RNMDivF dom@(min, max) n) =
   case (validRange dom, divMaybe min n, divMaybe max n) of
     (True, Just min', Just max') =>
-      Just (min', max')
+      Just (dom, (min', max'))
     _ => Nothing
 rnmCheckAlg (RNMModF dom@(min, max) n) =
   if (validRange dom) && (min == 0) && (n /= 0) && (n < max) then
-    Just (0, pred n)
+    Just (dom, (0, pred n))
   else
     Nothing
 rnmCheckAlg (RNMExtendF f n) = case f of
-  Just (min, max) => if max < n then Just (min, n) else Nothing
+  Just (dom, (min, max)) => if max < n then Just (dom, (min, n)) else Nothing
   Nothing => Nothing
 
 public export
-rnmCheck : MuRNM -> Maybe NatRange
+rnmCheck : MuRNM -> Maybe RNMSig
 rnmCheck = rnmCata _ rnmCheckAlg
 
 public export
@@ -1437,7 +1441,7 @@ MkRefRNM : (rnm : MuRNM) -> {auto 0 valid : ValidRNM rnm} -> RefRNM
 MkRefRNM rnm {valid} = MkRefinement rnm {satisfies=valid}
 
 public export
-rnmRange : RefRNM -> NatRange
+rnmRange : RefRNM -> RNMSig
 rnmRange (Element0 rnm valid) with (rnmCheck rnm)
   rnmRange (Element0 rnm Refl) | Just range = range
   rnmRange (Element0 rnm Refl) | Nothing impossible

@@ -415,7 +415,7 @@ testRNM0 : MuRNM
 testRNM0 = RNMPoly (2, 5) testRNMPolyS0
 
 testRNM0Codomain : Assertion
-testRNM0Codomain = Assert $ rnmCheck testRNM0 == Just (47, 1382)
+testRNM0Codomain = Assert $ rnmCheck testRNM0 == Just ((2, 5), (47, 1382))
 
 --------------------------
 ---- Circuit category ----
