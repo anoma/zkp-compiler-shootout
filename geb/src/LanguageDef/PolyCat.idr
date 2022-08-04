@@ -1334,6 +1334,23 @@ RNMAlg : Type -> Type
 RNMAlg = FAlg RangedNatMorphF
 
 public export
+rnmShowAlg : RNMAlg String
+rnmShowAlg (RNMPolyF dom ps) =
+  show ps ++ "(" ++ show dom ++ " -> " ++ show (psInterpRange ps dom) ++ ")"
+rnmShowAlg (RNMSwitchF left right) = left ++ " | " ++ right
+rnmShowAlg (RNMDivF range n) = show range ++ " / " ++ show n
+rnmShowAlg (RNMModF range n) = show range ++ " % " ++ show n
+rnmShowAlg (RNMExtendF rnm n) = rnm ++ " > " ++ show n
+
+public export
+showRNMF : {0 x : Type} -> (shx : x -> String) -> RangedNatMorphF x -> String
+showRNMF = (.) rnmShowAlg . map
+
+public export
+Show carrier => Show (RangedNatMorphF carrier) where
+  show = showRNMF show
+
+public export
 MuRNM : Type
 MuRNM = MuF RangedNatMorphF
 
@@ -1378,6 +1395,10 @@ rnmCheckAlg (RNMExtendF f n) = case f of
 public export
 rnmCheck : MuRNM -> Maybe NatRange
 rnmCheck = rnmCata _ rnmCheckAlg
+
+public export
+Show MuRNM where
+  show = rnmCata _ rnmShowAlg
 
 public export
 data RangedNatMorph : NatRange -> NatRange -> Type where
