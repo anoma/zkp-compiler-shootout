@@ -461,6 +461,7 @@ polyCatTest = do
   putStrLn $ show $ polyShapeExponential idPolyShape idPolyShape
   putStrLn $ show $ polyShapeExponential idPolyShape (prodIdPolyShape 4)
   putStrLn $ show $ parProdClosureShape [(2, 1), (1,2)] [(3, 2), (0, 3)]
+  putStrLn $ psIdxShow testPolyS6
   putStrLn "--------------------"
   putStrLn ""
   putStrLn "------------------------"

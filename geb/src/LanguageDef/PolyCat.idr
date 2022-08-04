@@ -854,6 +854,15 @@ psIdxFold : {0 x : Type} -> ((pos, pow : Nat) -> x -> x) -> x -> PolyShape -> x
 psIdxFold f acc = psIdxFoldStartingAt f acc 0
 
 public export
+psIdxShow : PolyShape -> String
+psIdxShow =
+  psIdxFold
+    (\pos, pow, str =>
+      let pre = if (pos == 0) then "" else str ++ "; " in
+      pre ++ "pos[" ++ show pos ++ "] = " ++ show pow)
+    ""
+
+public export
 pIdxFold : {0 x : Type} -> ((pos, pow : Nat) -> x -> x) -> x -> Polynomial -> x
 pIdxFold f acc = psIdxFold f acc . shape
 
