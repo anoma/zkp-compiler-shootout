@@ -1304,6 +1304,11 @@ public export
 polyInterpRange : Polynomial ->  NatRange -> NatRange
 polyInterpRange = psInterpRange . shape
 
+public export
+idPSCorrect : (0 range : NatRange) ->
+  psInterpRange PolyCat.idPolyShape range = range
+idPSCorrect range = ?idPsCorrect_hole
+
 --------------------------------
 ---- Morphisms on RangedNat ----
 --------------------------------
@@ -1401,37 +1406,8 @@ Show MuRNM where
   show = rnmCata _ rnmShowAlg
 
 public export
-data RangedNatMorph : NatRange -> NatRange -> Type where
-  RNMorphPoly :
-    (dom : NatRange) -> (ps : PolyShape) ->
-    RangedNatMorph dom (psInterpRange ps dom)
-  RNMorphSwitch : {a, b, c : NatRange} ->
-    RangedNatMorph a b -> RangedNatMorph b c -> RangedNatMorph a c
-
-public export
-idPSCorrect : (0 range : NatRange) ->
-  psInterpRange PolyCat.idPolyShape range = range
-idPSCorrect range = ?idPsCorrect_hole
-
-public export
-RangedNatId : (range : NatRange) -> RangedNatMorph range range
-RangedNatId range =
-  replace {p=(RangedNatMorph range)} (idPSCorrect range) $
-    RNMorphPoly range idPolyShape
-
-public export
-RangedNatCompose : {a, b, c : NatRange} ->
-  RangedNatMorph b c ->
-  RangedNatMorph a b ->
-  RangedNatMorph a c
-RangedNatCompose (RNMorphPoly _ ps) (RNMorphPoly dom' ps') =
-  ?RangedNatCompose_hole_1
-RangedNatCompose {a} (RNMorphPoly dom ps) (RNMorphSwitch f' f) =
-  ?RangedNatCompose_hole_2
-RangedNatCompose {c} (RNMorphSwitch g' g) (RNMorphPoly dom ps) =
-  ?RangedNatCompose_hole_3
-RangedNatCompose {a} {b} {c} (RNMorphSwitch g' g) (RNMorphSwitch f' f) =
-  ?RangedNatCompose_hole_4
+validRNM : DecPred MuRNM
+validRNM = isJust . rnmCheck
 
 -------------------------------------------
 ---- Natural transformations in `Poly` ----
