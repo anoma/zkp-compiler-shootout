@@ -27,6 +27,11 @@ public export
 (|>) : {0 a, b, c : Type} -> (a -> b) -> (b -> c) -> (a -> c)
 (|>) = flip (.)
 
+infixr 1 .*
+public export
+(.*) : {0 a, b, c, d : Type} -> (c -> d) -> (a -> b -> c) -> (a -> b -> d)
+(.*) = (.) . (.)
+
 -- Like Idris's standard `Subset`, but with even the `pred` type
 -- parameter erased.
 public export
