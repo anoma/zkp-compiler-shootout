@@ -132,6 +132,11 @@ IsJustTrue : {a : Type} -> Maybe a -> Type
 IsJustTrue x = isJust x = True
 
 public export
+repeatIdx : {0 x : Type} -> (Nat -> x -> x) -> Nat -> Nat -> x -> x
+repeatIdx f Z i e = e
+repeatIdx f (S n) i e = f i (repeatIdx f n (S i) e)
+
+public export
 repeat : {0 x : Type} -> (x -> x) -> Nat -> x -> x
 repeat f Z e = e
 repeat f (S n) e = f (repeat f n e)
