@@ -1522,6 +1522,29 @@ public export
 interpRNM : MuRNM -> Nat -> Nat
 interpRNM = rnmCata _ interpRNMAlg
 
+---------------------------------------------
+---- Possibly-empty ("augmented") ranges ----
+---------------------------------------------
+
+-- `Nothing` means an empty range (Void).
+public export
+AugNatRange : Type
+AugNatRange = Maybe NatRange
+
+-- `Left` means the unique morphism from Void to the given (augmented) range.
+public export
+AugRNM : Type
+AugRNM = Either AugNatRange MuRNM
+
+public export
+AugRNMSig : Type
+AugRNMSig = (AugNatRange, AugNatRange)
+
+public export
+arnmCheck : AugRNM -> Maybe AugRNMSig
+arnmCheck (Left range) = Just (Nothing, range)
+arnmCheck (Right rnm) = map {f=Maybe} (mapHom {f=Pair} Just) (rnmCheck rnm)
+
 -------------------------------------
 -------------------------------------
 ---- Bounded (finite) data types ----

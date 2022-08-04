@@ -576,6 +576,35 @@ testRNM15Sig = Assert $ rnmCheck testRNM15 == Just ((4, 8), (92, 2764))
 testRNM15Apply6 : Assertion
 testRNM15Apply6 = Assert $ interpRNM testRNM15 6 == interpRNM testRNM13 6
 
+---------------------------------------
+---- Augmented range-nat morphisms ----
+---------------------------------------
+
+testARNM0 : AugRNM
+testARNM0 = Right $ RNMPoly (0, 0) [ (0, 0), (1, 0) ]
+
+testARNM0Sig : Assertion
+testARNM0Sig = Assert $ arnmCheck testARNM0 == Nothing
+
+testARNM1 : AugRNM
+testARNM1 = Left Nothing
+
+testARNM1Sig : Assertion
+testARNM1Sig = Assert $ arnmCheck testARNM1 == Just (Nothing, Nothing)
+
+testARNM2 : AugRNM
+testARNM2 = Left (Just (5, 10))
+
+testARNM2Sig : Assertion
+testARNM2Sig = Assert $ arnmCheck testARNM2 == Just (Nothing, Just (5, 10))
+
+testARNM3 : AugRNM
+testARNM3 = Right testRNM15
+
+testARNM3Sig : Assertion
+testARNM3Sig = Assert $
+  arnmCheck testARNM3 == Just (Just (4, 8), Just (92, 2764))
+
 ----------------------------------
 ----------------------------------
 ----- Exported test function -----
@@ -588,11 +617,14 @@ polyCatTest = do
   putStrLn ""
   putStrLn "=================="
   putStrLn "Begin polyCatTest:"
+  putStrLn "------------------"
   putStrLn ""
+  putStrLn "--------------------"
   putStrLn "---- BoundedNat ----"
   putStrLn $ show testBN0
   putStrLn "--------------------"
   putStrLn ""
+  putStrLn "----------------"
   putStrLn "---- NTuple ----"
   putStrLn $ show testNT0
   putStrLn "----------------"
@@ -605,6 +637,7 @@ polyCatTest = do
   putStrLn $ show testBL4
   putStrLn "---------------------"
   putStrLn ""
+  putStrLn "--------------------"
   putStrLn "---- Polynomial ----"
   putStrLn $ show testPoly6
   putStrLn $ show testPoly0
@@ -646,6 +679,7 @@ polyCatTest = do
   putStrLn $ show (power 2 1000)
   putStrLn $ show (power 2 10000)
   putStrLn $ show $ ptInterpNat powerByMultsTestTerm 2
+  putStrLn "------------------------"
   putStrLn ""
   putStrLn "------"
   putStrLn "MuNatO"
@@ -663,6 +697,7 @@ polyCatTest = do
   putStrLn $ showPreMeta 4 testPre4
   putStrLn $ show testPre5
   putStrLn $ showPreMeta 4 testPre5
+  putStrLn "------"
   putStrLn ""
   putStrLn "------------------------"
   putStrLn "RangedNat/RangedNatMorph"
@@ -673,7 +708,17 @@ polyCatTest = do
   putStrLn $ show $ testRNM5
   putStrLn $ show $ testRNM13
   putStrLn $ show $ testRNM15
+  putStrLn "------------------------"
   putStrLn ""
+  putStrLn "-----------------------------------"
+  putStrLn "Augmented RangedNat/RangedNatMorph"
+  putStrLn "-----------------------------------"
+  putStrLn $ show $ testARNM1
+  putStrLn $ show $ testARNM2
+  putStrLn $ show $ testARNM3
+  putStrLn "-----------------------------------"
+  putStrLn ""
+  putStrLn "----------------"
   putStrLn "End polyCatTest."
-  putStrLn "=================="
+  putStrLn "================"
   pure ()
