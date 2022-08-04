@@ -1244,7 +1244,7 @@ data RangedNatMorphF : Type -> Type where
     NatRange -> Nat -> RangedNatMorphF carrier
   RNMModF : {0 carrier : Type} ->
     NatRange -> Nat -> RangedNatMorphF carrier
-  RNMExtendF : {0 carrier : Type} ->
+  RNMExtendRF : {0 carrier : Type} ->
     carrier -> Nat -> RangedNatMorphF carrier
 
 public export
@@ -1253,7 +1253,7 @@ Functor RangedNatMorphF where
   map m (RNMSwitchF n g f) = RNMSwitchF n (m g) (m f)
   map m (RNMDivF dom n) = RNMDivF dom n
   map m (RNMModF dom n) = RNMModF dom n
-  map m (RNMExtendF f n) = RNMExtendF (m f) n
+  map m (RNMExtendRF f n) = RNMExtendRF (m f) n
 
 public export
 RNMSig : Type
@@ -1271,7 +1271,7 @@ rnmShowAlg (RNMSwitchF n left right) =
   left ++ " | < " ++ show n ++ "<= | " ++ right
 rnmShowAlg (RNMDivF range n) = show range ++ " / " ++ show n
 rnmShowAlg (RNMModF range n) = show range ++ " % " ++ show n
-rnmShowAlg (RNMExtendF rnm n) = rnm ++ " > " ++ show n
+rnmShowAlg (RNMExtendRF rnm n) = rnm ++ " > " ++ show n
 
 public export
 showRNMF : {0 x : Type} -> (shx : x -> String) -> RangedNatMorphF x -> String
@@ -1293,7 +1293,7 @@ rnmCata x alg (InFreeM $ InTF $ Right c) = alg $ case c of
   RNMSwitchF n g f => RNMSwitchF n (rnmCata x alg g) (rnmCata x alg f)
   RNMDivF dom n => RNMDivF dom n
   RNMModF dom n => RNMModF dom n
-  RNMExtendF f n => RNMExtendF (rnmCata x alg f) n
+  RNMExtendRF f n => RNMExtendRF (rnmCata x alg f) n
 
 public export
 rnmCheckAlg : RNMAlg (Maybe RNMSig)
@@ -1320,7 +1320,7 @@ rnmCheckAlg (RNMModF dom@(min, max) n) =
     Just (dom, (0, pred n))
   else
     Nothing
-rnmCheckAlg (RNMExtendF f n) = case f of
+rnmCheckAlg (RNMExtendRF f n) = case f of
   Just (dom, (min, max)) => if max < n then Just (dom, (min, n)) else Nothing
   Nothing => Nothing
 
@@ -1371,8 +1371,8 @@ RNMMod : NatRange -> Nat -> MuRNM
 RNMMod = InFCom .* RNMModF
 
 public export
-RNMExtend : MuRNM -> Nat -> MuRNM
-RNMExtend = InFCom .* RNMExtendF
+RNMExtendR : MuRNM -> Nat -> MuRNM
+RNMExtendR = InFCom .* RNMExtendRF
 
 public export
 interpRNMAlg : RNMAlg (Nat -> Nat)
@@ -1386,7 +1386,7 @@ interpRNMAlg (RNMModF dom n) =
   \m => case modMaybe m n of
     Just p => p
     Nothing => 0
-interpRNMAlg (RNMExtendF f n) = f
+interpRNMAlg (RNMExtendRF f n) = f
 
 public export
 interpRNM : MuRNM -> Nat -> Nat

@@ -442,7 +442,7 @@ testRNM3Sig : Assertion
 testRNM3Sig = Assert $ rnmCheck testRNM3 == Nothing
 
 testRNM4 : MuRNM
-testRNM4 = RNMExtend testRNM2 1382
+testRNM4 = RNMExtendR testRNM2 1382
 
 testRNM4Sig : Assertion
 testRNM4Sig = Assert $ rnmCheck testRNM4 == Just ((6, 10), (47, 1382))
