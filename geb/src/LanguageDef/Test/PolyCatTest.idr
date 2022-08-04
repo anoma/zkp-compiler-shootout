@@ -395,9 +395,21 @@ testPre4 = metaToPre 2 4
 testPre5 : NatPreMeta 4
 testPre5 = metaToPre 3 4
 
--------------------
----- RangedNat ----
--------------------
+--------------------------------------
+---- RangedNat and RangedNatMorph ----
+--------------------------------------
+
+testRNMPolyS0 : PolyShape
+testRNMPolyS0 = [ (4, 2), (3, 1), (0, 7) ]
+
+testRNMPolyS0Valid : Assertion
+testRNMPolyS0Valid = Assert $ validPoly testRNMPolyS0
+
+testRNMPolyS1 : PolyShape
+testRNMPolyS1 = [(1, 1), (0, 1)]
+
+testRNMPolyS1Valid : Assertion
+testRNMPolyS1Valid = Assert $ validPoly testRNMPolyS1
 
 --------------------------
 ---- Circuit category ----
@@ -498,9 +510,11 @@ polyCatTest = do
   putStrLn $ show testPre5
   putStrLn $ showPreMeta 4 testPre5
   putStrLn ""
-  putStrLn "---------"
-  putStrLn "RangedNat"
-  putStrLn "---------"
+  putStrLn "------------------------"
+  putStrLn "RangedNat/RangedNatMorph"
+  putStrLn "------------------------"
+  putStrLn $ show $ testRNMPolyS0
+  putStrLn $ show $ testRNMPolyS1
   putStrLn ""
   putStrLn "-----------------"
   putStrLn "Circuit category"
