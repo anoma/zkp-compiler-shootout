@@ -480,6 +480,24 @@ testRNM6Sig = Assert $ rnmCheck testRNM6 == Just ((2, 10), (46, 1382))
 testRNM6Apply2 : Assertion
 testRNM6Apply2 = Assert $ interpRNM testRNM6 2 == 47
 
+testRNM7 : MuRNM
+testRNM7 = RNMDiv (122, 401) 7
+
+testRNM7Sig : Assertion
+testRNM7Sig = Assert $ rnmCheck testRNM7 == Just ((122, 401), (17, 57))
+
+testRNM7Apply122 : Assertion
+testRNM7Apply122 = Assert $ interpRNM testRNM7 122 == 17
+
+testRNM7Apply200 : Assertion
+testRNM7Apply200 = Assert $ interpRNM testRNM7 200 == 28
+
+testRNM7Apply210 : Assertion
+testRNM7Apply210 = Assert $ interpRNM testRNM7 210 == 30
+
+testRNM7Apply401 : Assertion
+testRNM7Apply401 = Assert $ interpRNM testRNM7 401 == 57
+
 --------------------------
 ---- Circuit category ----
 --------------------------
