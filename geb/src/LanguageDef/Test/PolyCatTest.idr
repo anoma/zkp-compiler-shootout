@@ -525,6 +525,9 @@ testRNM9 = rnmId (37, 122)
 testRNM9Sig : Assertion
 testRNM9Sig = Assert $ rnmCheck testRNM9 == Just ((37, 122), (37, 122))
 
+testRNM9Apply100 : Assertion
+testRNM9Apply100 = Assert $ interpRNM testRNM9 100 == 100
+
 --------------------------
 ---- Circuit category ----
 --------------------------
