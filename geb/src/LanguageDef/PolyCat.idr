@@ -1374,9 +1374,15 @@ public export
 interpRNMAlg : RNMAlg (Nat -> Nat)
 interpRNMAlg (RNMPolyF dom ps) = psInterpNat ps
 interpRNMAlg (RNMSwitchF n left right) = \m => if m < n then left m else right m
-interpRNMAlg (RNMDivF dom n) = ?interpRNMAlg_hole_div
-interpRNMAlg (RNMModF dom n) = ?interpRNMAlg_hole_mod
-interpRNMAlg (RNMExtendF f n) = ?interpRNMAlg_hole_extend
+interpRNMAlg (RNMDivF dom n) =
+  \m => case divMaybe m n of
+    Just p => p
+    Nothing => 0
+interpRNMAlg (RNMModF dom n) =
+  \m => case modMaybe m n of
+    Just p => p
+    Nothing => 0
+interpRNMAlg (RNMExtendF f n) = f
 
 public export
 interpRNM : MuRNM -> Nat -> Nat
