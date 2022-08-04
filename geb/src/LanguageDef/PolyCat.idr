@@ -1222,13 +1222,13 @@ psInterpRange : PolyShape -> NatRange -> NatRange
 psInterpRange = mapHom {f=Pair} . psInterpNat
 
 public export
-polyInterpRange : Polynomial ->  NatRange -> NatRange
+polyInterpRange : Polynomial -> NatRange -> NatRange
 polyInterpRange = psInterpRange . shape
 
 public export
 idPSCorrect : (0 range : NatRange) ->
   psInterpRange PolyCat.idPolyShape range = range
-idPSCorrect range = ?idPsCorrect_hole
+idPSCorrect (min, max) = ?idPsCorrect_hole
 
 --------------------------------
 ---- Morphisms on RangedNat ----
