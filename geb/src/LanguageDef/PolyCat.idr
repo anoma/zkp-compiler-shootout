@@ -1356,7 +1356,7 @@ RNMAlg = FAlg RangedNatMorphF
 public export
 rnmShowAlg : RNMAlg String
 rnmShowAlg (RNMPolyF dom ps) =
-  show ps ++ "(" ++ show dom ++ " -> " ++ show (psInterpRange ps dom) ++ ")"
+  show ps ++ " : (" ++ show dom ++ " -> " ++ show (psInterpRange ps dom) ++ ")"
 rnmShowAlg (RNMSwitchF left right) = left ++ " | " ++ right
 rnmShowAlg (RNMDivF range n) = show range ++ " / " ++ show n
 rnmShowAlg (RNMModF range n) = show range ++ " % " ++ show n
