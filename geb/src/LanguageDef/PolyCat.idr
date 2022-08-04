@@ -1421,6 +1421,12 @@ public export
 MkRefRNM : (rnm : MuRNM) -> {auto 0 valid : ValidRNM rnm} -> RefRNM
 MkRefRNM rnm {valid} = MkRefinement rnm {satisfies=valid}
 
+public export
+rnmRange : RefRNM -> NatRange
+rnmRange (Element0 rnm valid) with (rnmCheck rnm)
+  rnmRange (Element0 rnm Refl) | Just range = range
+  rnmRange (Element0 rnm Refl) | Nothing impossible
+
 -------------------------------------------
 ---- Natural transformations in `Poly` ----
 -------------------------------------------
