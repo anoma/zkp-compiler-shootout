@@ -443,6 +443,21 @@ public export
 SOProduct : {0 x : Type} -> FreeSubstO x -> FreeSubstO x -> FreeSubstO x
 SOProduct = InFCom .* SOProductF
 
+public export
+substOCata : FromInitialFAlg SubstObjF
+substOCata x alg (InFreeM (InTF (Left v))) = void v
+substOCata x alg (InFreeM (InTF (Right c))) = alg $ case c of
+  Left () => Left ()
+  Right t => Right $ case t of
+    Left () => Left ()
+    Right t' => Right $ case t' of
+      Left (y, z) => Left (substOCata x alg y, substOCata x alg z)
+      Right (y, z) => Right (substOCata x alg y, substOCata x alg z)
+
+public export
+substODiagCata : FromInitialDiagFAlg SubstObjF
+substODiagCata = muDiagCata substOCata
+
 -- Depths of inhabited types begin at 1 -- depth 0 is the initial
 -- object, before any iterations of SubstObjF have been applied,
 -- and the initial object is uninhabited (it's Void).
@@ -452,6 +467,10 @@ substODepthAlg (Left ()) = 1
 substODepthAlg (Right (Left ())) = 1
 substODepthAlg (Right (Right (Left (m, n)))) = S $ max m n
 substODepthAlg (Right (Right (Right (m, n)))) = S $ max m n
+
+public export
+substODepth : MuSubstO -> Nat
+substODepth = substOCata Nat substODepthAlg
 
 ---------------------------------
 ---------------------------------
