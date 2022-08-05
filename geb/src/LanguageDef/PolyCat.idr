@@ -373,8 +373,90 @@ public export
 RefinedCoalg : {f : Type -> Type} -> DecPredF f -> Refined -> Type
 RefinedCoalg {f} pf x = RefinedMorphism x (RefinedF pf x)
 
+-------------------------------
+-------------------------------
+---- Substitution category ----
+-------------------------------
+-------------------------------
+
+-------------------------------------------------------------
+---- Definition by fixed point of (metalanguage) functor ----
+-------------------------------------------------------------
+
+public export
+SubstObjF : Type -> Type
+SubstObjF x =
+  -- Initial object (Void)
+  Either () $
+  -- Terminal object (Unit)
+  Either () $
+  -- Coproduct
+  Either (x, x) $
+  -- Product
+  (x, x)
+
+public export
+SOInitialF : {0 x : Type} -> SubstObjF x
+SOInitialF = Left ()
+
+public export
+SOTerminalF : {0 x : Type} -> SubstObjF x
+SOTerminalF = Right $ Left ()
+
+public export
+SOCoproductF : {0 x : Type} -> x -> x -> SubstObjF x
+SOCoproductF t t' = Right $ Right $ Left (t, t')
+
+public export
+SOProductF : {0 x : Type} -> x -> x -> SubstObjF x
+SOProductF t t' = Right $ Right $ Right (t, t')
+
+public export
+SubstOAlg : Type -> Type
+SubstOAlg = FAlg SubstObjF
+
+public export
+SubstODiagAlg : Type -> Type
+SubstODiagAlg = DiagFAlg SubstObjF
+
+public export
+FreeSubstO : (0 _ : Type) -> Type
+FreeSubstO = FreeM SubstObjF
+
+public export
+MuSubstO : Type
+MuSubstO = MuF SubstObjF
+
+public export
+SOInitial : {0 x : Type} -> FreeSubstO x
+SOInitial = InFCom $ SOInitialF
+
+public export
+SOTerminal : {0 x : Type} -> FreeSubstO x
+SOTerminal = InFCom $ SOTerminalF
+
+public export
+SOCoproduct : {0 x : Type} -> FreeSubstO x -> FreeSubstO x -> FreeSubstO x
+SOCoproduct = InFCom .* SOCoproductF
+
+public export
+SOProduct : {0 x : Type} -> FreeSubstO x -> FreeSubstO x -> FreeSubstO x
+SOProduct = InFCom .* SOProductF
+
+-- Depths of inhabited types begin at 1 -- depth 0 is the initial
+-- object, before any iterations of SubstObjF have been applied,
+-- and the initial object is uninhabited (it's Void).
+public export
+substODepthAlg : SubstOAlg Nat
+substODepthAlg (Left ()) = 1
+substODepthAlg (Right (Left ())) = 1
+substODepthAlg (Right (Right (Left (m, n)))) = S $ max m n
+substODepthAlg (Right (Right (Right (m, n)))) = S $ max m n
+
+---------------------------------
 ---------------------------------
 ---- Natural number functors ----
+---------------------------------
 ---------------------------------
 
 public export
