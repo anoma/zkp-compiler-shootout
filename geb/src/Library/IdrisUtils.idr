@@ -38,6 +38,11 @@ public export
   (d -> e) -> (a -> b -> c -> d) -> (a -> b -> c -> e)
 (.**) = (.) . (.) . (.)
 
+public export
+eitherElim : {0 a, b, c : Type} -> (a -> c) -> (b -> c) -> Either a b -> c
+eitherElim f g (Left e) = f e
+eitherElim f g (Right e) = g e
+
 -- Like Idris's standard `Subset`, but with even the `pred` type
 -- parameter erased.
 public export

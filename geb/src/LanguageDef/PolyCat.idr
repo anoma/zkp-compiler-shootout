@@ -379,9 +379,9 @@ RefinedCoalg {f} pf x = RefinedMorphism x (RefinedF pf x)
 -------------------------------
 -------------------------------
 
--------------------------------------------------------------
----- Definition by fixed point of (metalanguage) functor ----
--------------------------------------------------------------
+--------------------------------------------------------------------
+---- Inhabited types from fixed point of (metalanguage) functor ----
+--------------------------------------------------------------------
 
 -- Inhabited types only
 public export
@@ -395,75 +395,91 @@ ISubstObjF x =
   (x, x)
 
 public export
-SubstObjF : Type -> Type
-SubstObjF x =
-  -- Initial object (Void)
-  Either () $
-  -- Inhabited type
-  ISubstObjF x
+ISOTerminalF : {0 x : Type} -> ISubstObjF x
+ISOTerminalF = Left ()
 
 public export
-SOInitialF : {0 x : Type} -> SubstObjF x
-SOInitialF = Left ()
+ISOCoproductF : {0 x : Type} -> x -> x -> ISubstObjF x
+ISOCoproductF t t' = Right $ Left (t, t')
 
 public export
-SOTerminalF : {0 x : Type} -> SubstObjF x
-SOTerminalF = Right $ Left ()
+ISOProductF : {0 x : Type} -> x -> x -> ISubstObjF x
+ISOProductF t t' = Right $ Right (t, t')
 
 public export
-SOCoproductF : {0 x : Type} -> x -> x -> SubstObjF x
-SOCoproductF t t' = Right $ Right $ Left (t, t')
+ISubstOAlg : Type -> Type
+ISubstOAlg = FAlg ISubstObjF
 
 public export
-SOProductF : {0 x : Type} -> x -> x -> SubstObjF x
-SOProductF t t' = Right $ Right $ Right (t, t')
+ISubstODiagAlg : Type -> Type
+ISubstODiagAlg = DiagFAlg ISubstObjF
 
 public export
-SubstOAlg : Type -> Type
-SubstOAlg = FAlg SubstObjF
+FreeISubstO : (0 _ : Type) -> Type
+FreeISubstO = FreeM ISubstObjF
 
 public export
-SubstODiagAlg : Type -> Type
-SubstODiagAlg = DiagFAlg SubstObjF
+MuISubstO : Type
+MuISubstO = MuF ISubstObjF
 
 public export
-FreeSubstO : (0 _ : Type) -> Type
-FreeSubstO = FreeM SubstObjF
+ISOTerminal : {0 x : Type} -> FreeISubstO x
+ISOTerminal = InFCom $ ISOTerminalF
 
 public export
-MuSubstO : Type
-MuSubstO = MuF SubstObjF
+ISOCoproduct : {0 x : Type} -> FreeISubstO x -> FreeISubstO x -> FreeISubstO x
+ISOCoproduct = InFCom .* ISOCoproductF
 
 public export
-SOInitial : {0 x : Type} -> FreeSubstO x
-SOInitial = InFCom $ SOInitialF
+ISOProduct : {0 x : Type} -> FreeISubstO x -> FreeISubstO x -> FreeISubstO x
+ISOProduct = InFCom .* ISOProductF
 
 public export
-SOTerminal : {0 x : Type} -> FreeSubstO x
-SOTerminal = InFCom $ SOTerminalF
-
-public export
-SOCoproduct : {0 x : Type} -> FreeSubstO x -> FreeSubstO x -> FreeSubstO x
-SOCoproduct = InFCom .* SOCoproductF
-
-public export
-SOProduct : {0 x : Type} -> FreeSubstO x -> FreeSubstO x -> FreeSubstO x
-SOProduct = InFCom .* SOProductF
-
-public export
-substOCata : FromInitialFAlg SubstObjF
-substOCata x alg (InFreeM (InTF (Left v))) = void v
-substOCata x alg (InFreeM (InTF (Right c))) = alg $ case c of
+isubstOCata : FromInitialFAlg ISubstObjF
+isubstOCata x alg (InFreeM (InTF (Left v))) = void v
+isubstOCata x alg (InFreeM (InTF (Right c))) = alg $ case c of
   Left () => Left ()
   Right t => Right $ case t of
-    Left () => Left ()
-    Right t' => Right $ case t' of
-      Left (y, z) => Left (substOCata x alg y, substOCata x alg z)
-      Right (y, z) => Right (substOCata x alg y, substOCata x alg z)
+    Left (y, z) => Left (isubstOCata x alg y, isubstOCata x alg z)
+    Right (y, z) => Right (isubstOCata x alg y, isubstOCata x alg z)
 
 public export
-substODiagCata : FromInitialDiagFAlg SubstObjF
-substODiagCata = muDiagCata substOCata
+isubstODiagCata : FromInitialDiagFAlg ISubstObjF
+isubstODiagCata = muDiagCata isubstOCata
+
+---------------------------------------------------------------
+---- Substitution category including initial object (Void) ----
+---------------------------------------------------------------
+
+public export
+SubstObj : Type
+SubstObj =
+  -- Void
+  Either ()
+  -- Inhabited type
+  MuISubstO
+
+public export
+SOInitial : SubstObj
+SOInitial = Left ()
+
+public export
+SOTerminal : SubstObj
+SOTerminal = Right ISOTerminal
+
+public export
+SOCoproduct : SubstObj -> SubstObj -> SubstObj
+SOCoproduct (Left ()) (Left ()) = Left ()
+SOCoproduct (Left ()) (Right t) = Right t
+SOCoproduct (Right t) (Left ()) = Right t
+SOCoproduct (Right t) (Right t') = Right $ ISOCoproduct t t'
+
+public export
+SOProduct : SubstObj -> SubstObj -> SubstObj
+SOProduct (Left ()) (Left ()) = Left ()
+SOProduct (Left ()) (Right _) = Left ()
+SOProduct (Right _) (Left ()) = Left ()
+SOProduct (Right t) (Right t') = Right $ ISOProduct t t'
 
 ---------------------------------------------
 ---- Properties of substitution category ----
@@ -473,15 +489,18 @@ substODiagCata = muDiagCata substOCata
 -- object, before any iterations of SubstObjF have been applied,
 -- and the initial object is uninhabited (it's Void).
 public export
-substODepthAlg : SubstOAlg Nat
-substODepthAlg (Left ()) = 1
-substODepthAlg (Right (Left ())) = 1
-substODepthAlg (Right (Right (Left (m, n)))) = S $ max m n
-substODepthAlg (Right (Right (Right (m, n)))) = S $ max m n
+isubstODepthAlg : ISubstOAlg Nat
+isubstODepthAlg (Left ()) = 1
+isubstODepthAlg (Right (Left (m, n))) = S $ max m n
+isubstODepthAlg (Right (Right (m, n))) = S $ max m n
 
 public export
-substODepth : MuSubstO -> Nat
-substODepth = substOCata Nat substODepthAlg
+isubstODepth : MuISubstO -> Nat
+isubstODepth = isubstOCata Nat isubstODepthAlg
+
+public export
+substODepth : SubstObj -> Nat
+substODepth = eitherElim (const 1) isubstODepth
 
 -----------------------------------------------
 ---- Exponentials in substitution category ----
