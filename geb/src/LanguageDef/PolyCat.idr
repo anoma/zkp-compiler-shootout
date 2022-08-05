@@ -338,17 +338,33 @@ muEitherCata {f} {g} cataf catag x (_, algg) (Right eg) = catag x algg eg
 ---- Types dependent on algebras ----
 -------------------------------------
 
+-- A slice of a `MuF` type over some type `x` for which we have a
+-- catamorphism and an algebra.
 public export
-MuSliceObj : (f : Type -> Type) -> Type
-MuSliceObj f = (MuCata f Type, FAlg f Type)
+MuSlice : {0 f : Type -> Type} -> {0 x : Type} ->
+  MuCata f x -> FAlg f x -> x -> Type
+MuSlice {f} {x} cata alg elemX = Subset0 (MuF f) (Equal elemX . cata alg)
 
 public export
-MuPiType : {f : Type -> Type} -> MuSliceObj f -> Type
-MuPiType {f} (cata, tyAlg) = (e : MuF f) -> cata tyAlg e
+MuSlicePred : {0 f : Type -> Type} -> {x : Type} ->
+  (cata : MuCata f x) -> (alg : FAlg f x) -> Type
+MuSlicePred {f} {x} cata alg =
+  (ex : x) -> MuSlice {f} {x} cata alg ex -> Type
 
 public export
-MuSigmaType : {f : Type -> Type} -> MuSliceObj f -> Type
-MuSigmaType {f} (cata, tyAlg) = (e : MuF f ** cata tyAlg e)
+MuSliceCata : {0 f : Type -> Type} -> {x : Type} ->
+  {cata : MuCata f x} -> {alg : FAlg f x} ->
+  MuSlicePred {f} {x} cata alg ->
+  Type
+MuSliceCata {f} {x} {cata} {alg} depPred =
+  (ex : x) -> (emu : MuSlice {f} {x} cata alg ex) -> depPred ex emu
+
+public export
+FromInitialSliceAlg : {f : Type -> Type} -> (cata : FromInitialFAlg f) -> Type
+FromInitialSliceAlg {f} cata =
+  (x : Type) -> (alg : FAlg f x) ->
+  (depPred : MuSlicePred {f} {x} (cata x) alg) ->
+  MuSliceCata {f} {x} {cata=(cata x)} {alg} depPred
 
 --------------------------------------
 ---- Algebras of refined functors ----
