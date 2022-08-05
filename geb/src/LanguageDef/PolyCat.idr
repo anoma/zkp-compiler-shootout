@@ -383,17 +383,24 @@ RefinedCoalg {f} pf x = RefinedMorphism x (RefinedF pf x)
 ---- Definition by fixed point of (metalanguage) functor ----
 -------------------------------------------------------------
 
+-- Inhabited types only
 public export
-SubstObjF : Type -> Type
-SubstObjF x =
-  -- Initial object (Void)
-  Either () $
+ISubstObjF : Type -> Type
+ISubstObjF x =
   -- Terminal object (Unit)
   Either () $
   -- Coproduct
   Either (x, x) $
   -- Product
   (x, x)
+
+public export
+SubstObjF : Type -> Type
+SubstObjF x =
+  -- Initial object (Void)
+  Either () $
+  -- Inhabited type
+  ISubstObjF x
 
 public export
 SOInitialF : {0 x : Type} -> SubstObjF x
@@ -458,6 +465,10 @@ public export
 substODiagCata : FromInitialDiagFAlg SubstObjF
 substODiagCata = muDiagCata substOCata
 
+---------------------------------------------
+---- Properties of substitution category ----
+---------------------------------------------
+
 -- Depths of inhabited types begin at 1 -- depth 0 is the initial
 -- object, before any iterations of SubstObjF have been applied,
 -- and the initial object is uninhabited (it's Void).
@@ -471,6 +482,10 @@ substODepthAlg (Right (Right (Right (m, n)))) = S $ max m n
 public export
 substODepth : MuSubstO -> Nat
 substODepth = substOCata Nat substODepthAlg
+
+-----------------------------------------------
+---- Exponentials in substitution category ----
+-----------------------------------------------
 
 ---------------------------------
 ---------------------------------
