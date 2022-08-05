@@ -1,0 +1,4 @@
+*.ibc
+*.o
+build/
+.vscode
