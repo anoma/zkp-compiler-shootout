@@ -253,10 +253,10 @@ NormalizerF predf = (a : Coequalizable) ->
 public export
 CoequalizedF :
   {f : Type -> Type} ->
-  (predf : CoeqPredF f) ->
+  {predf : CoeqPredF f} ->
   (normalizerf : NormalizerF {f} predf) ->
   Coequalized -> Coequalized
-CoequalizedF {f} predf normalizerf (a ** fn) =
+CoequalizedF {f} {predf} normalizerf (a ** fn) =
   (CoequalizableF {f} predf a ** normalizerf a fn)
 
 --------------------------------
@@ -439,6 +439,21 @@ RefinedAlg {f} pf x = RefinedMorphism (RefinedF pf x) x
 public export
 RefinedCoalg : {f : Type -> Type} -> DecPredF f -> Refined -> Type
 RefinedCoalg {f} pf x = RefinedMorphism x (RefinedF pf x)
+
+public export
+CoeqMorphism : Coequalized -> Coequalized -> Type
+CoeqMorphism ((Element0 a apred) ** _) ((Element0 b bpred) ** _) =
+  Subset0 (a -> b) (PreservesRefinement (coeqNormalized apred) (coeqBase bpred))
+
+public export
+CoeqAlg : {f : Type -> Type} -> {pf : CoeqPredF f} ->
+  NormalizerF pf -> Coequalized -> Type
+CoeqAlg nf x = CoeqMorphism (CoequalizedF nf x) x
+
+public export
+CoeqCoalg : {f : Type -> Type} -> {pf : CoeqPredF f} ->
+  NormalizerF pf -> Coequalized -> Type
+CoeqCoalg nf x = CoeqMorphism x (CoequalizedF nf x)
 
 -------------------------------
 -------------------------------
