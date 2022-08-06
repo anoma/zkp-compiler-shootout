@@ -601,16 +601,6 @@ substODepth = eitherElim (const 1) isubstODepth
 ---------------------------------------------------------------------------
 
 public export
-isubstOFunctorAlg : ISubstOAlg (Type -> Type)
-isubstOFunctorAlg (Left ()) = const Unit
-isubstOFunctorAlg (Right (Left (f, g))) = CoproductF f g
-isubstOFunctorAlg (Right (Right (f, g))) = ProductF f g
-
-public export
-isubstOFunctor : MuISubstO -> (Type -> Type)
-isubstOFunctor = isubstOCata (Type -> Type) isubstOFunctorAlg
-
-public export
 ISubstEndoFunctorF : Type -> Type
 ISubstEndoFunctorF x =
   -- Identity
@@ -693,6 +683,18 @@ public export
 iSubstEndoDiagCata : FromInitialDiagFAlg ISubstEndoFunctorF
 iSubstEndoDiagCata = muDiagCata isubstEndoCata
 
+public export
+isoFunctorAlg : ISOEFAlg (Type -> Type)
+isoFunctorAlg (Left ()) = id
+isoFunctorAlg (Right (Left (g, f))) = g . f
+isoFunctorAlg (Right (Right (Left ()))) = const Unit
+isoFunctorAlg (Right (Right (Right (Left (f, g))))) = CoproductF f g
+isoFunctorAlg (Right (Right (Right (Right (f, g))))) = ProductF f g
+
+public export
+isoFunctor : ISubstEndo -> Type -> Type
+isoFunctor = isubstEndoCata (Type -> Type) isoFunctorAlg
+
 -- Computes the endofunctor which results from pre-composing the
 -- endofunctor `Const Void` with the given endofunctor.  If the
 -- result is `Const Void`, it returns `Nothing`, since `FreeISOEF` does
@@ -734,10 +736,10 @@ isoAppVoid = isubstEndoCata _ isoAppVoidAlg
 public export
 FreeSubstEndo : Type -> Type
 FreeSubstEndo x =
-  -- Non-void endofunctor (which takes all inhabited types to inhabited types)
-  Either (FreeISOEF x)
   -- const Void
-  ()
+  Either ()
+  -- Non-void endofunctor (which takes all inhabited types to inhabited types)
+  (FreeISOEF x)
 
 public export
 SubstEndo : Type
@@ -745,37 +747,42 @@ SubstEndo = FreeSubstEndo Void
 
 public export
 SOEFInitial : {0 x : Type} -> FreeSubstEndo x
-SOEFInitial = Right ()
+SOEFInitial = Left ()
 
 public export
 SOEFTerminal : {0 x : Type} -> FreeSubstEndo x
-SOEFTerminal = Left ISOEFTerminal
+SOEFTerminal = Right ISOEFTerminal
 
 public export
 SOEFId : {0 x : Type} -> FreeSubstEndo x
-SOEFId = Left ISOEFId
+SOEFId = Right ISOEFId
 
 public export
 SOEFCompose : SubstEndo -> SubstEndo -> SubstEndo
-SOEFCompose (Left f) (Left g) = Left $ ISOEFCompose f g
-SOEFCompose (Left f) (Right ()) = case isoAppVoid f of
-  Just f' => Left f'
-  Nothing => Right ()
-SOEFCompose (Right ()) _ = Right ()
+SOEFCompose (Left ()) _ = Left ()
+SOEFCompose (Right f) (Left ()) = case isoAppVoid f of
+  Just f' => Right f'
+  Nothing => Left ()
+SOEFCompose (Right f) (Right g) = Right $ ISOEFCompose f g
 
 public export
 SOEFCoproduct : SubstEndo -> SubstEndo -> SubstEndo
-SOEFCoproduct (Left f) (Left g) = Left $ ISOEFCoproduct f g
-SOEFCoproduct (Left f) (Right ()) = Left f
-SOEFCoproduct (Right ()) (Left g) = Left g
-SOEFCoproduct (Right ()) (Right ()) = Right ()
+SOEFCoproduct (Left ()) (Left ()) = Left ()
+SOEFCoproduct (Left ()) (Right g) = Right g
+SOEFCoproduct (Right f) (Left ()) = Right f
+SOEFCoproduct (Right f) (Right g) = Right $ ISOEFCoproduct f g
 
 public export
 SOEFProduct : SubstEndo -> SubstEndo -> SubstEndo
-SOEFProduct (Left f) (Left g) = Left $ ISOEFProduct f g
-SOEFProduct (Left _) (Right ()) = Right ()
-SOEFProduct (Right ()) (Left _) = Right ()
-SOEFProduct (Right ()) (Right ()) = Right ()
+SOEFProduct (Left ()) (Left ()) = Left ()
+SOEFProduct (Left ()) (Right _) = Left ()
+SOEFProduct (Right _) (Left ()) = Left ()
+SOEFProduct (Right f) (Right g) = Right $ ISOEFProduct f g
+
+public export
+substEF : SubstEndo -> Type -> Type
+substEF (Left ()) = const Void
+substEF (Right f) = isoFunctor f
 
 ---------------------------------------------
 ---------------------------------------------
