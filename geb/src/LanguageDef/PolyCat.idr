@@ -463,6 +463,14 @@ public export
 isubstODiagCata : FromInitialDiagFAlg ISubstObjF
 isubstODiagCata = muDiagCata isubstOCata
 
+public export
+ISubstOSlice : {x : Type} -> ISubstOAlg x -> x -> Type
+ISubstOSlice {x} = MuSlice (isubstOCata x)
+
+public export
+ISubstOSlicePred : {x : Type} -> ISubstOAlg x -> Type
+ISubstOSlicePred {x} = MuSlicePred (isubstOCata x)
+
 ---------------------------------------------------------------
 ---- Substitution category including initial object (Void) ----
 ---------------------------------------------------------------
@@ -521,6 +529,20 @@ substODepth = eitherElim (const 1) isubstODepth
 -----------------------------------------------
 ---- Exponentials in substitution category ----
 -----------------------------------------------
+
+---------------------------------------------------------------------------
+---- Interpretation of substitution objects as polynomial endofunctors ----
+---------------------------------------------------------------------------
+
+public export
+isubstOFunctorAlg : ISubstOAlg (Type -> Type)
+isubstOFunctorAlg (Left ()) = const Unit
+isubstOFunctorAlg (Right (Left (f, g))) = CoproductF f g
+isubstOFunctorAlg (Right (Right (f, g))) = ProductF f g
+
+public export
+isubstOFunctor : MuISubstO -> (Type -> Type)
+isubstOFunctor = isubstOCata (Type -> Type) isubstOFunctorAlg
 
 ---------------------------------
 ---------------------------------
