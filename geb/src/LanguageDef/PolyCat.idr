@@ -138,54 +138,82 @@ RefinedF {f} pf (Element0 a pred) = Element0 (f a) (pf a pred)
 ----------------------------------
 
 public export
-Normalized : {a : Type} ->
-  (pred : DecPred a) -> (norm : DecPred a) -> Type
-Normalized {a} pred norm = AndRefinement pred norm
+DecPredPair : Type -> Type
+DecPredPair = ProductMonad . DecPred
 
 public export
-NonNormalized : {a : Type} ->
-  (pred : DecPred a) -> (norm : DecPred a) -> Type
-NonNormalized {a} pred norm = AndNotRefinement pred norm
+CoeqPred : Type -> Type
+CoeqPred = DecPredPair
 
 public export
-Normalizer : {a : Type} ->
-  (pred : DecPred a) -> (norm : DecPred a) -> Type
-Normalizer {a} pred norm = NonNormalized pred norm -> Normalized pred norm
+coeqBase : {0 a : Type} -> CoeqPred a -> DecPred a
+coeqBase = fst
+
+public export
+coeqNormalized : {0 a : Type} -> CoeqPred a -> DecPred a
+coeqNormalized = snd
+
+public export
+CoeqPredF : (Type -> Type) -> Type
+CoeqPredF f = (DecPredF f, DecPredF f)
+
+public export
+coeqFBase : {0 f : Type -> Type} -> CoeqPredF f -> DecPredF f
+coeqFBase = fst
+
+public export
+coeqFNormalized : {0 f : Type -> Type} -> CoeqPredF f -> DecPredF f
+coeqFNormalized = snd
+
+public export
+coeqFApp : {0 f : Type -> Type} -> {x : Type} ->
+  CoeqPredF f -> CoeqPred x -> CoeqPred (f x)
+coeqFApp {f} {x} (predf, normf) (pred, norm) = (predf x pred, normf x norm)
+
+public export
+Normalized : {a : Type} -> CoeqPred a -> Type
+Normalized (pred, norm) = AndRefinement pred norm
+
+public export
+NonNormalized : {a : Type} -> CoeqPred a -> Type
+NonNormalized (pred, norm) = AndNotRefinement pred norm
+
+public export
+Normalizer : {a : Type} -> CoeqPred a -> Type
+Normalizer pred = NonNormalized pred -> Normalized pred
 
 public export
 Coequalized : Type
-Coequalized =
-  (a : Type ** pred : DecPred a ** norm : DecPred a ** Normalizer pred norm)
+Coequalized = (a : Type ** pred : CoeqPred a ** Normalizer pred)
 
 public export
 normalizedCompose :
   {0 a, b, c : Type} ->
-  {0 pred : DecPred b} ->
-  {norm : DecPred b} ->
-  {fn : Normalizer pred norm} ->
-  (g : Normalized {a=b} pred norm -> c) ->
-  (f : a -> Refinement {a=b} pred) ->
+  {pred : CoeqPred b} ->
+  {fn : Normalizer pred} ->
+  (g : Normalized {a=b} pred -> c) ->
+  (f : a -> Refinement {a=b} (coeqBase pred)) ->
   a -> c
-normalizedCompose {norm} {fn} g f x = g $ case f x of
+normalizedCompose {pred=(_, norm)} {fn} g f x = g $ case f x of
   Element0 x' satisfies => case decEq (norm x') True of
     Yes normalized => Element0 x' $ rewrite satisfies in normalized
     No nonNormalized => fn $ Element0 x' $
       rewrite satisfies in rewrite notTrueIsFalse nonNormalized in Refl
 
 public export
-NormalizerF : {f : Type -> Type} -> (predf, normf : DecPredF f) -> Type
-NormalizerF {f} predf normf =
-  (a : Type) -> (pred, norm : DecPred a) ->
-  Normalizer pred norm -> Normalizer (predf a pred) (normf a norm)
+NormalizerF : {f : Type -> Type} -> (predf : CoeqPredF f) -> Type
+NormalizerF {f} predf =
+  (a : Type) -> (pred : CoeqPred a) ->
+  Normalizer pred -> Normalizer (coeqFApp predf pred)
 
 public export
 CoequalizedF :
   {f : Type -> Type} ->
-  (predf, normf : DecPredF f) ->
-  (normalizerf : NormalizerF {f} predf normf) ->
+  (predf : CoeqPredF f) ->
+  (normalizerf : NormalizerF {f} predf) ->
   Coequalized -> Coequalized
-CoequalizedF {f} predf normf normalizerf (a ** pred ** norm ** fn) =
-  (f a ** predf a pred ** normf a norm ** normalizerf a pred norm fn)
+CoequalizedF {f} predf normalizerf (a ** pred ** fn) =
+  (f a ** coeqFApp predf pred ** normalizerf a pred fn)
 
 --------------------------------
 ---- General F-(co)algebras ----
