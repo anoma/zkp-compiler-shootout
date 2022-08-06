@@ -240,15 +240,15 @@ coeqForgetfulCompose :
 coeqForgetfulCompose g f = g . coeqInject {a=b} {pred} . f
 
 public export
-CoequalizeableAppF : {f : Type -> Type} -> (0 _ : CoeqPredF f) ->
+CoequalizableAppF : {f : Type -> Type} -> (0 _ : CoeqPredF f) ->
   Coequalizable -> Coequalizable
-CoequalizeableAppF {f} predf (Element0 x pred) =
+CoequalizableAppF {f} predf (Element0 x pred) =
   (Element0 (f x) $ coeqFApp {f} {x} predf pred)
 
 public export
 NormalizerF : {f : Type -> Type} -> (0 predf : CoeqPredF f) -> Type
-NormalizerF {f} predf = (a : Coequalizable) ->
-  CoeqNormalizer a -> CoeqNormalizer (CoequalizeableAppF {f} predf a)
+NormalizerF predf = (a : Coequalizable) ->
+  CoeqNormalizer a -> CoeqNormalizer (CoequalizableAppF {f} predf a)
 
 public export
 CoequalizedF :
@@ -257,7 +257,7 @@ CoequalizedF :
   (normalizerf : NormalizerF {f} predf) ->
   Coequalized -> Coequalized
 CoequalizedF {f} predf normalizerf (a ** fn) =
-  (CoequalizeableAppF {f} predf a ** normalizerf a fn)
+  (CoequalizableAppF {f} predf a ** normalizerf a fn)
 
 --------------------------------
 ---- General F-(co)algebras ----
