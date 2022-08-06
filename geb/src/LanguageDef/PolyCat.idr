@@ -604,16 +604,6 @@ public export
 ISOEFProduct : {0 x : Type} -> FreeISOEF x -> FreeISOEF x -> FreeISOEF x
 ISOEFProduct = InFCom .* ISOEFProductF
 
-{- XXX
-public export
-isubstOCata : FromInitialFAlg ISubstObjF
-isubstOCata x alg (InFreeM (InTF (Left v))) = void v
-isubstOCata x alg (InFreeM (InTF (Right c))) = alg $ case c of
-  Left () => Left ()
-  Right t => Right $ case t of
-    Left (y, z) => Left (isubstOCata x alg y, isubstOCata x alg z)
-    Right (y, z) => Right (isubstOCata x alg y, isubstOCata x alg z)
-    XXX -}
 public export
 isubstEndoCata : FromInitialFAlg ISubstEndoFunctorF
 isubstEndoCata x alg (InFreeM (InTF (Left v))) = void v
