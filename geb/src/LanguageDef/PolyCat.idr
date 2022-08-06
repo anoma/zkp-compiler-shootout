@@ -187,12 +187,6 @@ CoequalizedF :
 CoequalizedF {f} predf normf normalizerf (a ** pred ** norm ** fn) =
   (f a ** predf a pred ** normf a norm ** normalizerf a pred norm fn)
 
----------------------------------------------
----------------------------------------------
----- Natural numbers as directed colimit ----
----------------------------------------------
----------------------------------------------
-
 --------------------------------
 ---- General F-(co)algebras ----
 --------------------------------
@@ -544,11 +538,188 @@ public export
 isubstOFunctor : MuISubstO -> (Type -> Type)
 isubstOFunctor = isubstOCata (Type -> Type) isubstOFunctorAlg
 
----------------------------------
----------------------------------
----- Natural number functors ----
----------------------------------
----------------------------------
+public export
+ISubstEndoFunctorF : Type -> Type
+ISubstEndoFunctorF x =
+  -- Identity
+  Either () $
+  -- Composition
+  Either (x, x) $
+  -- const unit, coproduct, product
+  ISubstObjF x
+
+public export
+ISOEFIdF : {0 x : Type} -> ISubstEndoFunctorF x
+ISOEFIdF = Left ()
+
+public export
+ISOEFComposeF : {0 x : Type} -> x -> x -> ISubstEndoFunctorF x
+ISOEFComposeF = Right . Left .* MkPair
+
+public export
+ISOEFTerminalF : {0 x : Type} -> ISubstEndoFunctorF x
+ISOEFTerminalF = Right $ Right $ ISOTerminalF
+
+public export
+ISOEFCoproductF : {0 x : Type} -> x -> x -> ISubstEndoFunctorF x
+ISOEFCoproductF = Right . Right .* ISOCoproductF
+
+public export
+ISOEFProductF : {0 x : Type} -> x -> x -> ISubstEndoFunctorF x
+ISOEFProductF = Right . Right .* ISOProductF
+
+public export
+ISOEFAlg : Type -> Type
+ISOEFAlg = FAlg ISubstEndoFunctorF
+
+public export
+ISOEFDiagAlg : Type -> Type
+ISOEFDiagAlg = DiagFAlg ISubstEndoFunctorF
+
+public export
+FreeISOEF : (0 _ : Type) -> Type
+FreeISOEF = FreeM ISubstEndoFunctorF
+
+public export
+ISubstEndo : Type
+ISubstEndo = MuF ISubstEndoFunctorF
+
+public export
+ISOEFId : {0 x : Type} -> FreeISOEF x
+ISOEFId = InFCom $ ISOEFIdF
+
+public export
+ISOEFCompose : {0 x : Type} -> FreeISOEF x -> FreeISOEF x -> FreeISOEF x
+ISOEFCompose = InFCom .* ISOEFComposeF
+
+public export
+ISOEFTerminal : {0 x : Type} -> FreeISOEF x
+ISOEFTerminal = InFCom $ ISOEFTerminalF
+
+public export
+ISOEFCoproduct : {0 x : Type} -> FreeISOEF x -> FreeISOEF x -> FreeISOEF x
+ISOEFCoproduct = InFCom .* ISOEFCoproductF
+
+public export
+ISOEFProduct : {0 x : Type} -> FreeISOEF x -> FreeISOEF x -> FreeISOEF x
+ISOEFProduct = InFCom .* ISOEFProductF
+
+{- XXX
+public export
+isubstOCata : FromInitialFAlg ISubstObjF
+isubstOCata x alg (InFreeM (InTF (Left v))) = void v
+isubstOCata x alg (InFreeM (InTF (Right c))) = alg $ case c of
+  Left () => Left ()
+  Right t => Right $ case t of
+    Left (y, z) => Left (isubstOCata x alg y, isubstOCata x alg z)
+    Right (y, z) => Right (isubstOCata x alg y, isubstOCata x alg z)
+    XXX -}
+public export
+isubstEndoCata : FromInitialFAlg ISubstEndoFunctorF
+isubstEndoCata x alg (InFreeM (InTF (Left v))) = void v
+isubstEndoCata x alg (InFreeM (InTF (Right c))) = alg $ case c of
+  Left () => Left ()
+  Right c' => Right $ case c' of
+    Left (l, r) => Left (isubstEndoCata x alg l, isubstEndoCata x alg r)
+    Right c'' => Right $ case c'' of
+      Left () => Left ()
+      Right c''' => Right $ case c''' of
+        Left (l, r) => Left (isubstEndoCata x alg l, isubstEndoCata x alg r)
+        Right (l, r) => Right (isubstEndoCata x alg l, isubstEndoCata x alg r)
+
+public export
+iSubstEndoDiagCata : FromInitialDiagFAlg ISubstEndoFunctorF
+iSubstEndoDiagCata = muDiagCata isubstEndoCata
+
+-- Computes the endofunctor which results from pre-composing the
+-- endofunctor `Const Void` with the given endofunctor.  If the
+-- result is `Const Void`, it returns `Nothing`, since `FreeISOEF` does
+-- not contain `Const Void` (it contains only the non-zero polynomials).
+-- (Viewing an endofunctor `f` as a polynomial `p`, this computes
+-- `p(0)` and then interprets the resulting polynomial as an endofunctor --
+-- which must be constant.)
+public export
+isoAppVoidAlg : {0 x : Type} -> ISOEFAlg $ Maybe $ FreeISOEF x
+-- 1 . 0 = Void
+isoAppVoidAlg (Left ()) = Nothing
+-- 0 . f = 0
+isoAppVoidAlg (Right (Left (Nothing, _))) = Nothing
+-- f(0) . 0 = f(0)
+isoAppVoidAlg (Right (Left ((Just g), Nothing))) = Just g
+-- g(0) . f(0) = (g + f)(0)
+isoAppVoidAlg (Right (Left ((Just g), (Just f)))) = Just $ ISOEFCoproduct g f
+-- 1(1) = 1
+isoAppVoidAlg (Right (Right (Left ()))) = Just ISOEFTerminal
+-- 0 + f(0) = f(0)
+isoAppVoidAlg (Right (Right (Right (Left (Nothing, f))))) = f
+-- f(0) + 0 = f(0)
+isoAppVoidAlg (Right (Right (Right (Left (f, Nothing))))) = f
+-- f(0) + g(0) = (f + g)(0)
+isoAppVoidAlg (Right (Right (Right (Left ((Just f), (Just g)))))) =
+  Just $ ISOEFCoproduct g f
+-- 0 * g(0) = 0
+isoAppVoidAlg (Right (Right (Right (Right (Nothing, g))))) = Nothing
+-- f(0) * 0 = 0
+isoAppVoidAlg (Right (Right (Right (Right ((Just f), Nothing))))) = Nothing
+-- f(0) * g(0) = (f * g)(0)
+isoAppVoidAlg (Right (Right (Right (Right ((Just f), (Just g)))))) =
+  Just $ ISOEFProduct g f
+
+public export
+isoAppVoid : ISubstEndo -> Maybe ISubstEndo
+isoAppVoid = isubstEndoCata _ isoAppVoidAlg
+
+public export
+FreeSubstEndo : Type -> Type
+FreeSubstEndo x =
+  -- Non-void endofunctor (which takes all inhabited types to inhabited types)
+  Either (FreeISOEF x)
+  -- const Void
+  ()
+
+public export
+SubstEndo : Type
+SubstEndo = FreeSubstEndo Void
+
+public export
+SOEFInitial : {0 x : Type} -> FreeSubstEndo x
+SOEFInitial = Right ()
+
+public export
+SOEFTerminal : {0 x : Type} -> FreeSubstEndo x
+SOEFTerminal = Left ISOEFTerminal
+
+public export
+SOEFId : {0 x : Type} -> FreeSubstEndo x
+SOEFId = Left ISOEFId
+
+public export
+SOEFCompose : SubstEndo -> SubstEndo -> SubstEndo
+SOEFCompose (Left f) (Left g) = Left $ ISOEFCompose f g
+SOEFCompose (Left f) (Right ()) = case isoAppVoid f of
+  Just f' => Left f'
+  Nothing => Right ()
+SOEFCompose (Right ()) _ = Right ()
+
+public export
+SOEFCoproduct : SubstEndo -> SubstEndo -> SubstEndo
+SOEFCoproduct (Left f) (Left g) = Left $ ISOEFCoproduct f g
+SOEFCoproduct (Left f) (Right ()) = Left f
+SOEFCoproduct (Right ()) (Left g) = Left g
+SOEFCoproduct (Right ()) (Right ()) = Right ()
+
+public export
+SOEFProduct : SubstEndo -> SubstEndo -> SubstEndo
+SOEFProduct (Left f) (Left g) = Left $ ISOEFProduct f g
+SOEFProduct (Left _) (Right ()) = Right ()
+SOEFProduct (Right ()) (Left _) = Right ()
+SOEFProduct (Right ()) (Right ()) = Right ()
+
+---------------------------------------------
+---------------------------------------------
+---- Natural numbers as directed colimit ----
+---------------------------------------------
+---------------------------------------------
 
 public export
 MaybeEUF : Type -> Type
