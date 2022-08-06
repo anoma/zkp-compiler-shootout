@@ -191,20 +191,24 @@ Normalizer : {a : Type} -> (0 pred : CoeqPred a) -> Type
 Normalizer pred = NonNormalized pred -> Normalized pred
 
 public export
-CoeqT : Type
-CoeqT = Subset0 Type CoeqPred
+Coequalizable : Type
+Coequalizable = Subset0 Type CoeqPred
 
 public export
-coRefBase : CoeqT -> Type
+coRefBase : Coequalizable -> Type
 coRefBase (Element0 a _) = a
 
 public export
-0 coRefPred : (cr : CoeqT) -> CoeqPred (coRefBase cr)
+0 coRefPred : (cr : Coequalizable) -> CoeqPred (coRefBase cr)
 coRefPred (Element0 _ p) = p
 
 public export
+CoeqNormalizer : Coequalizable -> Type
+CoeqNormalizer cr = Normalizer (coRefPred cr)
+
+public export
 NormalizedT : Type
-NormalizedT = (c : CoeqT ** Normalizer (coRefPred c))
+NormalizedT = Exists {type=Coequalizable} CoeqNormalizer
 
 public export
 Coequalized : Type
