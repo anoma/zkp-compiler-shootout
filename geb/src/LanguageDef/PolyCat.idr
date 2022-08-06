@@ -417,21 +417,6 @@ MuSlicePred : {0 f : Type -> Type} -> {x : Type} ->
 MuSlicePred {f} {x} cata alg =
   (ex : x) -> MuSlice {f} {x} cata alg ex -> Type
 
-public export
-MuSliceCata : {0 f : Type -> Type} -> {x : Type} ->
-  {cata : MuCata f x} -> {alg : FAlg f x} ->
-  MuSlicePred {f} {x} cata alg ->
-  Type
-MuSliceCata {f} {x} {cata} {alg} depPred =
-  (ex : x) -> (emu : MuSlice {f} {x} cata alg ex) -> depPred ex emu
-
-public export
-FromInitialSliceAlg : {f : Type -> Type} -> (cata : FromInitialFAlg f) -> Type
-FromInitialSliceAlg {f} cata =
-  (x : Type) -> (alg : FAlg f x) ->
-  (depPred : MuSlicePred {f} {x} (cata x) alg) ->
-  MuSliceCata {f} {x} {cata=(cata x)} {alg} depPred
-
 --------------------------------------
 ---- Algebras of refined functors ----
 --------------------------------------
