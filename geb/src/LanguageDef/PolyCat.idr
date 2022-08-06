@@ -176,7 +176,7 @@ normalized (pred, norm) = AndPred pred norm
 
 public export
 Normalized : {a : Type} -> CoeqPred a -> Type
-Normalized (pred, norm) = AndRefinement pred norm
+Normalized = Refinement . normalized
 
 public export
 nonNormalized : {a : Type} -> CoeqPred a -> DecPred a
@@ -184,7 +184,7 @@ nonNormalized (pred, norm) = AndNotPred pred norm
 
 public export
 NonNormalized : {a : Type} -> CoeqPred a -> Type
-NonNormalized (pred, norm) = AndNotRefinement pred norm
+NonNormalized = Refinement . nonNormalized
 
 public export
 Normalizer : {a : Type} -> CoeqPred a -> Type
@@ -212,6 +212,16 @@ public export
 coeqInject : {0 a : Type} -> {0 pred : CoeqPred b} ->
   Refinement (normalized pred) -> Refinement (coeqBase pred)
 coeqInject {a} {pred=(pred, _)} (Element0 e n) = (Element0 e $ andLeft n)
+
+public export
+coeqForgetfulCompose :
+  {0 a, b, c : Type} ->
+  {pred : CoeqPred b} ->
+  {fn : Normalizer pred} ->
+  (g : Refinement {a=b} (coeqBase pred) -> c) ->
+  (f : a -> Normalized {a=b} pred) ->
+  a -> c
+coeqForgetfulCompose g f = g . coeqInject {a=b} {pred} . f
 
 public export
 NormalizerF : {f : Type -> Type} -> (predf : CoeqPredF f) -> Type
