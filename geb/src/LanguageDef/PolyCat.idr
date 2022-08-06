@@ -171,8 +171,16 @@ coeqFApp : {0 f : Type -> Type} -> {x : Type} ->
 coeqFApp {f} {x} (predf, normf) (pred, norm) = (predf x pred, normf x norm)
 
 public export
+normalized : {a : Type} -> CoeqPred a -> DecPred a
+normalized (pred, norm) = AndPred pred norm
+
+public export
 Normalized : {a : Type} -> CoeqPred a -> Type
 Normalized (pred, norm) = AndRefinement pred norm
+
+public export
+nonNormalized : {a : Type} -> CoeqPred a -> DecPred a
+nonNormalized (pred, norm) = AndNotPred pred norm
 
 public export
 NonNormalized : {a : Type} -> CoeqPred a -> Type
@@ -199,6 +207,11 @@ normalizedCompose {pred=(_, norm)} {fn} g f x = g $ case f x of
     Yes normalized => Element0 x' $ rewrite satisfies in normalized
     No nonNormalized => fn $ Element0 x' $
       rewrite satisfies in rewrite notTrueIsFalse nonNormalized in Refl
+
+public export
+coeqInject : {0 a : Type} -> {0 pred : CoeqPred b} ->
+  Refinement (normalized pred) -> Refinement (coeqBase pred)
+coeqInject {a} {pred=(pred, _)} (Element0 e n) = (Element0 e $ andLeft n)
 
 public export
 NormalizerF : {f : Type -> Type} -> (predf : CoeqPredF f) -> Type
