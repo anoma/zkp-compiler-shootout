@@ -72,7 +72,7 @@ Satisfies : {0 a : Type} -> DecPred a -> a -> Type
 Satisfies p x = p x = True
 
 public export
-Refinement : {a : Type} -> DecPred a -> Type
+Refinement : {a : Type} -> (0 pred : DecPred a) -> Type
 Refinement {a} p = Subset0 a (Satisfies p)
 
 public export
@@ -85,7 +85,7 @@ FalseRefinement a = Refinement (FalsePred a)
 
 public export
 NotRefinement : {a : Type} -> DecPred a -> Type
-NotRefinement = Refinement . NotPred
+NotRefinement p = Refinement (NotPred p)
 
 public export
 AndRefinement : {a : Type} -> DecPred a -> DecPred a -> Type
@@ -146,24 +146,24 @@ CoeqPred : Type -> Type
 CoeqPred = DecPredPair
 
 public export
-coeqBase : {0 a : Type} -> CoeqPred a -> DecPred a
-coeqBase = fst
+0 coeqBase : {0 a : Type} -> (0 pred : CoeqPred a) -> DecPred a
+coeqBase (pred, _) = pred
 
 public export
-coeqNormalized : {0 a : Type} -> CoeqPred a -> DecPred a
-coeqNormalized = snd
+0 coeqNormalized : {0 a : Type} -> (0 pred : CoeqPred a) -> DecPred a
+coeqNormalized (_, norm) = norm
 
 public export
 CoeqPredF : (Type -> Type) -> Type
 CoeqPredF f = (DecPredF f, DecPredF f)
 
 public export
-coeqFBase : {0 f : Type -> Type} -> CoeqPredF f -> DecPredF f
-coeqFBase = fst
+0 coeqFBase : {0 f : Type -> Type} -> (0 pred : CoeqPredF f) -> DecPredF f
+coeqFBase (pred, _) = pred
 
 public export
-coeqFNormalized : {0 f : Type -> Type} -> CoeqPredF f -> DecPredF f
-coeqFNormalized = snd
+0 coeqFNormalized : {0 f : Type -> Type} -> (0 pred : CoeqPredF f) -> DecPredF f
+coeqFNormalized (_, norm) = norm
 
 public export
 coeqFApp : {0 f : Type -> Type} -> {x : Type} ->
@@ -171,36 +171,40 @@ coeqFApp : {0 f : Type -> Type} -> {x : Type} ->
 coeqFApp {f} {x} (predf, normf) (pred, norm) = (predf x pred, normf x norm)
 
 public export
-normalized : {a : Type} -> CoeqPred a -> DecPred a
+0 normalized : {0 a : Type} -> (0 pred : CoeqPred a) -> DecPred a
 normalized (pred, norm) = AndPred pred norm
 
 public export
-Normalized : {a : Type} -> CoeqPred a -> Type
-Normalized = Refinement . normalized
+Normalized : {a : Type} -> (0 pred : CoeqPred a) -> Type
+Normalized pred = Refinement (normalized pred)
 
 public export
-nonNormalized : {a : Type} -> CoeqPred a -> DecPred a
+0 nonNormalized : {0 a : Type} -> (0 pred : CoeqPred a) -> DecPred a
 nonNormalized (pred, norm) = AndNotPred pred norm
 
 public export
-NonNormalized : {a : Type} -> CoeqPred a -> Type
-NonNormalized = Refinement . nonNormalized
+NonNormalized : {a : Type} -> (0 pred : CoeqPred a) -> Type
+NonNormalized pred = Refinement (nonNormalized pred)
 
 public export
-Normalizer : {a : Type} -> CoeqPred a -> Type
+Normalizer : {a : Type} -> (0 pred : CoeqPred a) -> Type
 Normalizer pred = NonNormalized pred -> Normalized pred
 
 public export
-Corefinement : Type
-Corefinement = Subset0 Type CoeqPred
+CoeqT : Type
+CoeqT = Subset0 Type CoeqPred
 
 public export
-coRefBase : Corefinement -> Type
+coRefBase : CoeqT -> Type
 coRefBase (Element0 a _) = a
 
 public export
-0 coRefPred : (cr : Corefinement) -> CoeqPred (coRefBase cr)
+0 coRefPred : (cr : CoeqT) -> CoeqPred (coRefBase cr)
 coRefPred (Element0 _ p) = p
+
+public export
+NormalizedT : Type
+NormalizedT = (c : CoeqT ** Normalizer (coRefPred c))
 
 public export
 Coequalized : Type
@@ -2004,7 +2008,7 @@ gteTrue m n = (m >= n) = True
 -- All natural numbers less than or equal to `n`.
 public export
 BoundedNat : Nat -> Type
-BoundedNat = Refinement {a=Nat} . (>=)
+BoundedNat n = Refinement {a=Nat} ((>=) n)
 
 public export
 MkBoundedNat : {0 n : Nat} ->
