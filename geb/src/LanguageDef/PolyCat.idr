@@ -468,13 +468,15 @@ CoeqCoalg nf x = CoeqMorphism x (CoequalizedF nf x)
 -- Inhabited types only
 public export
 ISubstObjF : Type -> Type
-ISubstObjF x =
-  -- Terminal object (Unit)
-  Either () $
+ISubstObjF =
+  CoproductF
+    -- const Unit
+  (const Unit) $
+  CoproductF
   -- Coproduct
-  Either (x, x) $
+  ProductMonad
   -- Product
-  (x, x)
+  ProductMonad
 
 public export
 ISOTerminalF : {0 x : Type} -> ISubstObjF x
@@ -734,6 +736,27 @@ isoAppVoid : ISubstEndo -> Maybe ISubstEndo
 isoAppVoid = isubstEndoCata _ isoAppVoidAlg
 
 public export
+ISOEFCoproductM : ISubstEndo -> ISubstEndo -> ISubstEndo
+ISOEFCoproductM f g = ISOEFCoproduct f g
+
+public export
+ISOEFCodiag : ISubstEndo
+ISOEFCodiag = ISOEFCoproductM ISOEFId ISOEFId
+
+public export
+ISOEFProductM : ISubstEndo -> ISubstEndo -> ISubstEndo
+ISOEFProductM f g = ISOEFProduct f g
+
+public export
+ISOEFDiag : ISubstEndo
+ISOEFDiag = ISOEFProductM ISOEFId ISOEFId
+
+public export
+repISubstObjF : ISubstEndo
+repISubstObjF =
+  ISOEFCoproduct ISOEFTerminal (ISOEFCoproduct ISOEFCodiag ISOEFCodiag)
+
+public export
 FreeSubstEndo : Type -> Type
 FreeSubstEndo x =
   -- const Void
@@ -780,9 +803,9 @@ SOEFProduct (Right _) (Left ()) = Left ()
 SOEFProduct (Right f) (Right g) = Right $ ISOEFProduct f g
 
 public export
-substEF : SubstEndo -> Type -> Type
-substEF (Left ()) = const Void
-substEF (Right f) = isoFunctor f
+soFunctor : SubstEndo -> Type -> Type
+soFunctor (Left ()) = const Void
+soFunctor (Right f) = isoFunctor f
 
 ---------------------------------------------
 ---------------------------------------------
