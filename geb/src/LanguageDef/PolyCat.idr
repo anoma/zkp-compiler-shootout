@@ -285,6 +285,10 @@ interpFinSubst (FinCoproduct x y) = Either (interpFinSubst x) (interpFinSubst y)
 interpFinSubst (FinProduct x y) = Pair (interpFinSubst x) (interpFinSubst y)
 
 public export
+data FinSubstMorph : {0 cx, cy : Nat} ->
+    FinSubstT cx -> FinSubstT cy -> Type where
+
+public export
 0 finSubstHomObjCard : {0 cx, cy : Nat} ->
   FinSubstT cx -> FinSubstT cy -> Nat
 finSubstHomObjCard {cx} {cy} _ _ = power cy cx
@@ -307,17 +311,23 @@ FinSubstHomObj {cx=(cx * cy)} {cy=cz} (FinProduct x y) z =
   FinSubstHomObj x (FinSubstHomObj y z)
 
 public export
-FinSubstMorph : {0 m, n : Nat} -> FinSubstT m -> FinSubstT n -> Type
-FinSubstMorph = interpFinSubst .* FinSubstHomObj
+morphToHom : {0 cx, cy : Nat} -> {x : FinSubstT cx} -> {y : FinSubstT cy} ->
+  FinSubstMorph x y -> interpFinSubst (FinSubstHomObj x y)
+morphToHom {x} {y} m = ?morphToHom_hole
 
 public export
-finSubstEval : {0 m, n : Nat} -> (x : FinSubstT m) -> (y : FinSubstT n) ->
+homToMorph : {0 cx, cy : Nat} -> {x : FinSubstT cx} -> {y : FinSubstT cy} ->
+  interpFinSubst (FinSubstHomObj x y) -> FinSubstMorph x y
+homToMorph {x} {y} m = ?homToMorph_hole
+
+public export
+finSubstEval : {0 cx, cy : Nat} -> (x : FinSubstT cx) -> (y : FinSubstT cy) ->
   FinSubstMorph (FinProduct (FinSubstHomObj x y) x) y
 finSubstEval x y = ?finSubstEval_hole
 
 public export
-finSubstCurry : {0 m, n, p : Nat} ->
-  {x : FinSubstT m} -> {y : FinSubstT n} -> {z : FinSubstT p} ->
+finSubstCurry : {0 cx, cy, cz : Nat} ->
+  {x : FinSubstT cx} -> {y : FinSubstT cy} -> {z : FinSubstT cz} ->
   FinSubstMorph (FinProduct x y) z -> FinSubstMorph x (FinSubstHomObj y z)
 finSubstCurry {x} {y} {z} f = ?finSubstCurry_hole
 
