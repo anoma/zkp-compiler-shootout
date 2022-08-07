@@ -278,6 +278,13 @@ data FinSubstT : Nat -> Type where
     FinSubstT c -> FinSubstT c' -> FinSubstT (c * c')
 
 public export
+interpFinSubst : {0 n : Nat} -> FinSubstT n -> Type
+interpFinSubst FinInitial = Void
+interpFinSubst FinTerminal = Unit
+interpFinSubst (FinCoproduct x y) = Either (interpFinSubst x) (interpFinSubst y)
+interpFinSubst (FinProduct x y) = Pair (interpFinSubst x) (interpFinSubst y)
+
+public export
 0 finSubstHomObjCard : {0 cx, cy : Nat} ->
   FinSubstT cx -> FinSubstT cy -> Nat
 finSubstHomObjCard {cx} {cy} _ _ = power cy cx
@@ -298,6 +305,21 @@ FinSubstHomObj {cx=(cx + cy)} {cy=cz} (FinCoproduct x y) z =
 FinSubstHomObj {cx=(cx * cy)} {cy=cz} (FinProduct x y) z =
   rewrite powerOfMulSym cz cx cy in
   FinSubstHomObj x (FinSubstHomObj y z)
+
+public export
+FinSubstMorph : {0 m, n : Nat} -> FinSubstT m -> FinSubstT n -> Type
+FinSubstMorph = interpFinSubst .* FinSubstHomObj
+
+public export
+finSubstEval : {0 m, n : Nat} -> (x : FinSubstT m) -> (y : FinSubstT n) ->
+  FinSubstMorph (FinProduct (FinSubstHomObj x y) x) y
+finSubstEval x y = ?finSubstEval_hole
+
+public export
+finSubstCurry : {0 m, n, p : Nat} ->
+  {x : FinSubstT m} -> {y : FinSubstT n} -> {z : FinSubstT p} ->
+  FinSubstMorph (FinProduct x y) z -> FinSubstMorph x (FinSubstHomObj y z)
+finSubstCurry {x} {y} {z} f = ?finSubstCurry_hole
 
 ------------------------
 ------------------------
