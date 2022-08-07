@@ -474,23 +474,6 @@ muEitherCata : {f, g : Type -> Type} ->
 muEitherCata {f} {g} cataf catag x (algf, _) (Left ef) = cataf x algf ef
 muEitherCata {f} {g} cataf catag x (_, algg) (Right eg) = catag x algg eg
 
--------------------------------------
----- Types dependent on algebras ----
--------------------------------------
-
--- A slice of a `MuF` type over some type `x` for which we have a
--- catamorphism and an algebra.
-public export
-MuSlice : {0 f : Type -> Type} -> {0 x : Type} ->
-  MuCata f x -> FAlg f x -> x -> Type
-MuSlice {f} {x} cata alg elemX = Subset0 (MuF f) (Equal elemX . cata alg)
-
-public export
-MuSlicePred : {0 f : Type -> Type} -> {x : Type} ->
-  (cata : MuCata f x) -> (alg : FAlg f x) -> Type
-MuSlicePred {f} {x} cata alg =
-  (ex : x) -> MuSlice {f} {x} cata alg ex -> Type
-
 --------------------------------------
 ---- Algebras of refined functors ----
 --------------------------------------
@@ -528,6 +511,23 @@ public export
 CoeqCoalg : {f : Type -> Type} -> {pf : CoeqPredF f} ->
   NormalizerF pf -> Coequalized -> Type
 CoeqCoalg nf x = CoeqMorphism x (CoequalizedF nf x)
+
+-------------------------------------
+---- Types dependent on algebras ----
+-------------------------------------
+
+-- A slice of a `MuF` type over some type `x` for which we have a
+-- catamorphism and an algebra.
+public export
+MuSlice : {0 f : Type -> Type} -> {0 x : Type} ->
+  MuCata f x -> FAlg f x -> x -> Type
+MuSlice {f} {x} cata alg elemX = Subset0 (MuF f) (Equal elemX . cata alg)
+
+public export
+MuSlicePred : {0 f : Type -> Type} -> {x : Type} ->
+  (cata : MuCata f x) -> (alg : FAlg f x) -> Type
+MuSlicePred {f} {x} cata alg =
+  (ex : x) -> MuSlice {f} {x} cata alg ex -> Type
 
 -------------------------------
 -------------------------------
