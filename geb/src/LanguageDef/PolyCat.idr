@@ -490,6 +490,13 @@ RefinedMorphism (Element0 a pa) (Element0 b pb) =
   Subset0 (a -> b) (PreservesRefinement pa pb)
 
 public export
+RefinedFMap : {0 f : Type -> Type} -> (0 pf : DecPredF f) ->
+  {0 a, b : Refined} ->
+  RefinedMorphism a b ->
+  RefinedMorphism (RefinedF pf a) (RefinedF pf b)
+RefinedFMap {f} pf {a} {b} m = ?RefinedFMap_hole
+
+public export
 RefinedAlg : {f : Type -> Type} -> DecPredF f -> Refined -> Type
 RefinedAlg {f} pf x = RefinedMorphism (RefinedF pf x) x
 
@@ -501,6 +508,14 @@ public export
 CoeqMorphism : Coequalized -> Coequalized -> Type
 CoeqMorphism ((Element0 a apred) ** _) ((Element0 b bpred) ** _) =
   Subset0 (a -> b) (PreservesRefinement (coeqNormalized apred) (coeqBase bpred))
+
+public export
+CoequalizedFMap : {0 f : Type -> Type} -> {0 predf : CoeqPredF f} ->
+  (0 nf : NormalizerF predf) ->
+  {0 a, b : Coequalized} ->
+  CoeqMorphism a b -> CoeqMorphism
+  (CoequalizedF {predf} nf a) (CoequalizedF {predf} nf b)
+CoequalizedFMap {f} {predf} nf {a} {b} m = ?CoequalizedFMap_hole
 
 public export
 CoeqAlg : {f : Type -> Type} -> {pf : CoeqPredF f} ->
