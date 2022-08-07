@@ -666,32 +666,64 @@ record S0ObjAlg (a : Type) where
   soAlgProduct : a -> a -> a
 
 public export
+S0ObjDiagAlg : Type -> Type
+S0ObjDiagAlg a = S0ObjAlg (S0ObjAlg a)
+
+public export
 s0ObjFreeCata : {0 v, a : Type} ->
-  (v -> a) -> S0ObjAlg a -> FreeS0Obj v -> a
-s0ObjFreeCata subst alg (InFreeM (InTF e)) = case e of
+  S0ObjAlg a -> (v -> a) -> FreeS0Obj v -> a
+s0ObjFreeCata alg subst (InFreeM (InTF e)) = case e of
   Left var => subst var
   Right S0InitialF => soAlgInitial alg
   Right S0TerminalF => soAlgTerminal alg
   Right (S0CoproductF x y) =>
     soAlgCoproduct alg
-      (s0ObjFreeCata subst alg x)
-      (s0ObjFreeCata subst alg y)
+      (s0ObjFreeCata alg subst x)
+      (s0ObjFreeCata alg subst y)
   Right (S0ProductF x y) =>
     soAlgProduct alg
-      (s0ObjFreeCata subst alg x)
-      (s0ObjFreeCata subst alg y)
+      (s0ObjFreeCata alg subst x)
+      (s0ObjFreeCata alg subst y)
+
+public export
+s0ObjFreeDiagCata : {0 algv, v, a : Type} ->
+  S0ObjDiagAlg a -> (algv -> S0ObjAlg a) -> (v -> a) ->
+  FreeS0Obj algv -> FreeS0Obj v -> a
+s0ObjFreeDiagCata {v} {a} alg algsubst subst x y =
+  s0ObjFreeCata (s0ObjFreeCata alg algsubst x) subst y
 
 public export
 s0ObjCata : {0 a : Type} -> S0ObjAlg a -> S0Obj -> a
-s0ObjCata {a} = s0ObjFreeCata {a} {v=Void} (voidF a)
+s0ObjCata {a} alg = s0ObjFreeCata {a} {v=Void} alg (voidF a)
+
+public export
+s0ObjDiagCata : {0 a : Type} -> S0ObjDiagAlg a -> S0Obj -> S0Obj -> a
+s0ObjDiagCata {a} alg =
+  s0ObjFreeDiagCata {a} {v=Void} {algv=Void} alg (voidF (S0ObjAlg a)) (voidF a)
+
+public export
+s0ObjDepthAlg : S0ObjAlg Nat
+s0ObjDepthAlg = MkS0ObjAlg Z Z (S .* max) (S .* max)
 
 public export
 s0ObjDepth : {0 v : Type} -> (v -> Nat) -> FreeS0Obj v -> Nat
-s0ObjDepth subst = s0ObjFreeCata subst $ MkS0ObjAlg Z Z (S .* max) (S .* max)
+s0ObjDepth = s0ObjFreeCata s0ObjDepthAlg
+
+public export
+s0ObjCardAlg : S0ObjAlg Nat
+s0ObjCardAlg = MkS0ObjAlg Z (S Z) (+) (*)
 
 public export
 s0ObjCard : {0 v : Type} -> (v -> Nat) -> FreeS0Obj v -> Nat
-s0ObjCard subst = s0ObjFreeCata subst $ MkS0ObjAlg Z (S Z) (+) (*)
+s0ObjCard = s0ObjFreeCata s0ObjCardAlg
+
+public export
+s0ObjTermAlg : S0ObjAlg Type
+s0ObjTermAlg = MkS0ObjAlg Void Unit Either Pair
+
+public export
+s0ObjTerm : {0 v : Type} -> (v -> Type) -> FreeS0Obj v -> Type
+s0ObjTerm = s0ObjFreeCata s0ObjTermAlg
 
 -------------------------------
 -------------------------------
