@@ -490,11 +490,23 @@ RefinedMorphism (Element0 a pa) (Element0 b pb) =
   Subset0 (a -> b) (PreservesRefinement pa pb)
 
 public export
-RefinedFMap : {0 f : Type -> Type} -> (0 pf : DecPredF f) ->
+0 IsRefinedFunctor :
+  {0 f : Type -> Type} -> {0 isF : Functor f} -> (0 pf : DecPredF f) -> Type
+IsRefinedFunctor {f} {isF} pf =
+  (0 a, b : Type) -> (0 pa : DecPred a) -> (0 pb : DecPred b) ->
+  (0 m : a -> b) -> (0 _ : PreservesRefinement pa pb m) ->
+  PreservesRefinement (pf a pa) (pf b pb) (map {f} m)
+
+public export
+RefinedFMap : {0 f : Type -> Type} -> {isF : Functor f} ->
+  (0 pf : DecPredF f) ->
+  {auto 0 isRF : IsRefinedFunctor {f} {isF} pf} ->
   {0 a, b : Refined} ->
   RefinedMorphism a b ->
   RefinedMorphism (RefinedF pf a) (RefinedF pf b)
-RefinedFMap {f} pf {a} {b} m = ?RefinedFMap_hole
+RefinedFMap
+  {f} {isF} {isRF} pf {a=(Element0 a pa)} {b=(Element0 b pb)} (Element0 m pr) =
+    (Element0 (map {f} m) $ isRF a b pa pb m pr)
 
 public export
 RefinedAlg : {f : Type -> Type} -> DecPredF f -> Refined -> Type
