@@ -195,6 +195,18 @@ predLen : {0 a : Type} -> List a -> Nat
 predLen = pred . length
 
 public export
+powerOfSum : (x, y, z : Nat) -> power x (y + z) = power x y * power x z
+powerOfSum x y z = ?powerOfSum_hole
+
+public export
+powerOfMul : (x, y, z : Nat) -> power x (y * z) = power (power x y) z
+powerOfMul x y z = ?powerOfMul_hole
+
+public export
+powerOfMulSym : (x, y, z : Nat) -> power x (y * z) = power (power x z) y
+powerOfMulSym x y z = rewrite multCommutative y z in powerOfMul x z y
+
+public export
 magmaFromNonEmptyList : {a : Type} -> (a -> a -> a) -> a -> List a -> a
 magmaFromNonEmptyList f x [] = x
 magmaFromNonEmptyList f x (x' :: l) = f x $ magmaFromNonEmptyList f x' l

@@ -259,9 +259,51 @@ CoequalizedF :
 CoequalizedF {f} {predf} normalizerf (a ** fn) =
   (CoequalizableF {f} predf a ** normalizerf a fn)
 
---------------------------------
----- General F-(co)algebras ----
---------------------------------
+-----------------------------------------------------------
+-----------------------------------------------------------
+---- Idris representation of substitutive finite topos ----
+-----------------------------------------------------------
+-----------------------------------------------------------
+
+-- A finite type, generated only from initial and terminal objects
+-- and coproducts, and products, which is indexed by a natural-number size
+-- (which is the cardinality of the set of the type's elements).
+public export
+data FinSubstT : Nat -> Type where
+  FinInitial : FinSubstT 0
+  FinTerminal : FinSubstT 1
+  FinCoproduct : {0 c, c' : Nat} ->
+    FinSubstT c -> FinSubstT c' -> FinSubstT (c + c')
+  FinProduct : {0 c, c' : Nat} ->
+    FinSubstT c -> FinSubstT c' -> FinSubstT (c * c')
+
+public export
+0 finSubstHomObjCard : {0 cx, cy : Nat} ->
+  FinSubstT cx -> FinSubstT cy -> Nat
+finSubstHomObjCard {cx} {cy} _ _ = power cy cx
+
+-- Compute the exponential object of given finite substitutive type.
+public export
+FinSubstHomObj : {0 cx, cy : Nat} ->
+  (x : FinSubstT cx) -> (y : FinSubstT cy) -> FinSubstT (finSubstHomObjCard x y)
+-- 0 -> x == 1
+FinSubstHomObj FinInitial x = FinTerminal
+-- 1 -> x == x
+FinSubstHomObj {cy} FinTerminal x = rewrite multOneRightNeutral cy in x
+-- (x + y) -> z == (x -> z) * (y -> z)
+FinSubstHomObj {cx=(cx + cy)} {cy=cz} (FinCoproduct x y) z =
+  rewrite powerOfSum cz cx cy in
+  FinProduct (FinSubstHomObj x z) (FinSubstHomObj y z)
+-- (x * y) -> z == x -> y -> z
+FinSubstHomObj {cx=(cx * cy)} {cy=cz} (FinProduct x y) z =
+  rewrite powerOfMulSym cz cx cy in
+  FinSubstHomObj x (FinSubstHomObj y z)
+
+------------------------
+------------------------
+---- F-(co)algebras ----
+------------------------
+------------------------
 
 public export
 FAlg : (Type -> Type) -> Type -> Type
@@ -644,6 +686,20 @@ substOHomObj (Right x) (Right y) = Right $ isubstOHomObj x y
 --------------------------------------------
 ---- Morphisms in substitution category ----
 --------------------------------------------
+
+public export
+isubstOMorphism : MuISubstO -> MuISubstO -> Type
+isubstOMorphism = isubstOToMeta .* isubstOHomObj
+
+public export
+isubstOEval : (x, y : MuISubstO) ->
+  isubstOMorphism (ISOProduct (isubstOHomObj x y) x) y
+isubstOEval x y = ?isubstOEval_hole
+
+public export
+isubstOCurry : {x, y, z : MuISubstO} ->
+  isubstOMorphism (ISOProduct x y) z -> isubstOMorphism x (isubstOHomObj y z)
+isubstOCurry {x} {y} {z} f = ?isubstOCurry_hole
 
 --------------------------------------------------------------------
 ---- Interpretation of substitution endofunctors as polynomials ----
