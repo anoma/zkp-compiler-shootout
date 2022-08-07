@@ -578,7 +578,7 @@ Functor InitialComonad where
   map _ v = v
 
 public export
-InitialNTCounit : (a : Type) -> InitialComonad a -> a
+InitialNTCounit : (0 a : Type) -> InitialComonad a -> a
 InitialNTCounit = voidF
 
 public export

@@ -346,14 +346,6 @@ finSubstCurry {x} {y} {z} f = ?finSubstCurry_hole
 ------------------------
 
 public export
-FAlg : (Type -> Type) -> Type -> Type
-FAlg f a = f a -> a
-
-public export
-FCoalg : (Type -> Type) -> Type -> Type
-FCoalg f a = a -> f a
-
-public export
 data TranslateF : (0 f : Type -> Type) -> (0 a, x : Type) -> Type where
   InTF : {0 f : Type -> Type} -> {0 a, x : Type} ->
     Either a (f x) -> TranslateF f a x
@@ -405,6 +397,14 @@ MuF f = FreeM f Void
 public export
 NuF : (0 f : Type -> Type) -> Type
 NuF f = CofreeCM f Unit
+
+public export
+FAlg : (Type -> Type) -> Type -> Type
+FAlg f a = f a -> a
+
+public export
+FCoalg : (Type -> Type) -> Type -> Type
+FCoalg f a = a -> f a
 
 public export
 MuCata : (Type -> Type) -> Type -> Type
@@ -609,6 +609,89 @@ MuSlicePred : {0 f : Type -> Type} -> {x : Type} ->
   (cata : MuCata f x) -> (alg : FAlg f x) -> Type
 MuSlicePred {f} {x} cata alg =
   (ex : x) -> MuSlice {f} {x} cata alg ex -> Type
+
+------------------------------------------------------
+------------------------------------------------------
+---- Zeroth-order unrefined substitutive category ----
+------------------------------------------------------
+------------------------------------------------------
+
+public export
+data S0ObjF : Type -> Type where
+  S0InitialF : {0 carrier : Type} -> S0ObjF carrier
+  S0TerminalF : {0 carrier : Type} -> S0ObjF carrier
+  S0CoproductF : {0 carrier : Type} -> carrier -> carrier -> S0ObjF carrier
+  S0ProductF : {0 carrier : Type} -> carrier -> carrier -> S0ObjF carrier
+
+public export
+FreeS0Obj : (0 _ : Type) -> Type
+FreeS0Obj = FreeM S0ObjF
+
+public export
+CofreeS0Obj : (0 _ : Type) -> Type
+CofreeS0Obj = CofreeCM S0ObjF
+
+public export
+S0Obj : Type
+S0Obj = MuF S0ObjF
+
+public export
+InfS0Obj : Type
+InfS0Obj = NuF S0ObjF
+
+public export
+S0ObjInitial : {0 carrier : Type} -> FreeS0Obj carrier
+S0ObjInitial = InFCom S0InitialF
+
+public export
+S0ObjTerminal : {0 carrier : Type} -> FreeS0Obj carrier
+S0ObjTerminal = InFCom S0TerminalF
+
+public export
+S0ObjCoproduct : {0 carrier : Type} ->
+  FreeS0Obj carrier -> FreeS0Obj carrier -> FreeS0Obj carrier
+S0ObjCoproduct = InFCom .* S0CoproductF
+
+public export
+S0ObjProduct : {0 carrier : Type} ->
+  FreeS0Obj carrier -> FreeS0Obj carrier -> FreeS0Obj carrier
+S0ObjProduct = InFCom .* S0ProductF
+
+public export
+record S0ObjAlg (a : Type) where
+  constructor MkS0ObjAlg
+  soAlgInitial : a
+  soAlgTerminal : a
+  soAlgCoproduct : a -> a -> a
+  soAlgProduct : a -> a -> a
+
+public export
+s0ObjFreeCata : {0 v, a : Type} ->
+  (v -> a) -> S0ObjAlg a -> FreeS0Obj v -> a
+s0ObjFreeCata subst alg (InFreeM (InTF e)) = case e of
+  Left var => subst var
+  Right S0InitialF => soAlgInitial alg
+  Right S0TerminalF => soAlgTerminal alg
+  Right (S0CoproductF x y) =>
+    soAlgCoproduct alg
+      (s0ObjFreeCata subst alg x)
+      (s0ObjFreeCata subst alg y)
+  Right (S0ProductF x y) =>
+    soAlgProduct alg
+      (s0ObjFreeCata subst alg x)
+      (s0ObjFreeCata subst alg y)
+
+public export
+s0ObjCata : {0 a : Type} -> S0ObjAlg a -> S0Obj -> a
+s0ObjCata {a} = s0ObjFreeCata {a} {v=Void} (voidF a)
+
+public export
+s0ObjDepth : {0 v : Type} -> (v -> Nat) -> FreeS0Obj v -> Nat
+s0ObjDepth subst = s0ObjFreeCata subst $ MkS0ObjAlg Z Z (S .* max) (S .* max)
+
+public export
+s0ObjCard : {0 v : Type} -> (v -> Nat) -> FreeS0Obj v -> Nat
+s0ObjCard subst = s0ObjFreeCata subst $ MkS0ObjAlg Z (S Z) (+) (*)
 
 -------------------------------
 -------------------------------

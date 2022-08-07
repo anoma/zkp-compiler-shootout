@@ -136,7 +136,7 @@ lteSuccEitherEqLte {m} {n} lte with (decEq m (S n))
     Right $ fromLteSucc $ lteTolt lte neq
 
 public export
-voidF : (a : Type) -> Void -> a
+voidF : (0 a : Type) -> Void -> a
 voidF _ x = void x
 
 public export
