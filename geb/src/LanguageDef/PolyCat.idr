@@ -513,8 +513,7 @@ RefinedFMap : {0 f : Type -> Type} -> {isF : Functor f} ->
   RefinedMorphism a b ->
   RefinedMorphism (RefinedF pf a) (RefinedF pf b)
 RefinedFMap
-  {f} {isF} {isRF} pf {a=(Element0 a pa)} {b=(Element0 b pb)}
-  (Element0 m pr) =
+  {f} {isF} {isRF} pf {a=(Element0 a pa)} {b=(Element0 b pb)} (Element0 m pr) =
     (Element0 (map {f} m) $ isRF a b pa pb m pr)
 
 public export
@@ -541,14 +540,22 @@ public export
 PreservesCoeqPred pa pb = PreservesRefinement (coeqNormalized pa) (coeqBase pb)
 
 public export
+0 PreservesNormalization : {a : Type} ->
+  (0 pa : CoeqPred a) -> (a -> a) -> Type
+PreservesNormalization {a} pa =
+  PreservesRefinement (coeqNormalized pa) (coeqNormalized pa)
+
+public export
 0 IsCoequalizedFunctor :
   {0 f : Type -> Type} -> {0 isF : Functor f} ->
   (0 predf : CoeqPredF f) -> Type
 IsCoequalizedFunctor {f} {isF} predf =
-  (0 a, b : Type) -> (0 pa : CoeqPred a) -> (0 pb : CoeqPred b) ->
-  (0 fn : Normalizer pa) ->
-  (0 m : a -> b) -> (0 _ : PreservesCoeqPred pa pb m) ->
-  PreservesCoeqPred (coeqPredF predf pa) (coeqPredF predf pb) (map {f} m)
+  ((0 a, b : Type) -> (0 pa : CoeqPred a) -> (0 pb : CoeqPred b) ->
+   (0 m : a -> b) -> (0 _ : PreservesCoeqPred pa pb m) ->
+    PreservesCoeqPred (coeqPredF predf pa) (coeqPredF predf pb) (map {f} m),
+   (0 a : Type) -> (0 pa : CoeqPred a) ->
+   (0 m : a -> a) -> (0 _ : PreservesNormalization pa m) ->
+    PreservesNormalization (coeqPredF predf pa) (map {f} m))
 
 public export
 CoequalizableFMap : {0 f : Type -> Type} ->
@@ -561,7 +568,7 @@ CoequalizableFMap : {0 f : Type -> Type} ->
   CoequalizableMorphism (CoequalizableF predf a) (CoequalizableF predf b)
 CoequalizableFMap
   {f} {isF} {isCF} predf {a=(Element0 a pa)} {b=(Element0 b pb)} fn m =
-    (Element0 (map {f} (fst0 m)) $ isCF a b pa pb fn (fst0 m) (snd0 m))
+    (Element0 (map {f} (fst0 m)) $ fst isCF a b pa pb (fst0 m) (snd0 m))
 
 public export
 CoequalizedFMap : {0 f : Type -> Type} ->
