@@ -568,13 +568,13 @@ CoequalizedFMap : {0 f : Type -> Type} ->
   {auto isF : Functor f} ->
   {0 predf : CoeqPredF f} ->
   {auto 0 isCF : IsCoequalizedFunctor {f} {isF} predf} ->
-  (0 nf : NormalizerF predf) ->
-  {0 a, b : Coequalized} ->
+  (nf : NormalizerF predf) ->
+  {a, b : Coequalized} ->
   CoequalizedMorphism a b ->
   CoequalizedMorphism (CoequalizedF {predf} nf a) (CoequalizedF {predf} nf b)
 CoequalizedFMap
-  {f} {isF} {isCF} {predf} nf {a=(a ** pa)} {b=(b ** pb)} m =
-    ?CoequalizedFMap_hole
+  {f} {isF} {isCF} {predf} nf {a=(a ** na)} {b=(b ** nb)} =
+    CoequalizableFMap {f} {isF} predf {isCF} {a} {b} na
 
 public export
 CoeqAlg : {f : Type -> Type} -> {pf : CoeqPredF f} ->
