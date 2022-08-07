@@ -111,7 +111,7 @@ MkRefinement x {satisfies} = Element0 x satisfies
 
 public export
 shape : {0 a : Type} -> {0 p : DecPred a} -> Refinement {a} p -> a
-shape = fst
+shape = fst0
 
 public export
 VoidRefinement : DecPred Void
@@ -120,6 +120,14 @@ VoidRefinement = voidF Bool
 public export
 Refined : Type
 Refined = Subset0 Type DecPred
+
+public export
+ErasedType : Refined -> Type
+ErasedType (Element0 a _) = a
+
+public export
+0 RefinedPred : (r : Refined) -> DecPred (ErasedType r)
+RefinedPred (Element0 _ p) = p
 
 --------------------------
 ---- Refined functors ----
@@ -481,8 +489,8 @@ muEitherCata {f} {g} cataf catag x (_, algg) (Right eg) = catag x algg eg
 public export
 0 PreservesRefinement : {a, b : Type} ->
   (0 pa : DecPred a) -> (0 pb : DecPred b) -> (a -> b) -> Type
-PreservesRefinement {a} {b} pa pb f =
-  (e : a) -> (0 satisfies : Satisfies pa e) -> Satisfies pb (f e)
+PreservesRefinement {a} {b} pa pb m =
+  (e : a) -> (0 satisfies : Satisfies pa e) -> Satisfies pb (m e)
 
 public export
 RefinedMorphism : Refined -> Refined -> Type
@@ -505,7 +513,8 @@ RefinedFMap : {0 f : Type -> Type} -> {isF : Functor f} ->
   RefinedMorphism a b ->
   RefinedMorphism (RefinedF pf a) (RefinedF pf b)
 RefinedFMap
-  {f} {isF} {isRF} pf {a=(Element0 a pa)} {b=(Element0 b pb)} (Element0 m pr) =
+  {f} {isF} {isRF} pf {a=(Element0 a pa)} {b=(Element0 b pb)}
+  (Element0 m pr) =
     (Element0 (map {f} m) $ isRF a b pa pb m pr)
 
 public export
@@ -517,27 +526,65 @@ RefinedCoalg : {f : Type -> Type} -> DecPredF f -> Refined -> Type
 RefinedCoalg {f} pf x = RefinedMorphism x (RefinedF pf x)
 
 public export
-CoeqMorphism : Coequalized -> Coequalized -> Type
-CoeqMorphism ((Element0 a apred) ** _) ((Element0 b bpred) ** _) =
+CoequalizableMorphism : Coequalizable -> Coequalizable -> Type
+CoequalizableMorphism (Element0 a apred) (Element0 b bpred) =
   Subset0 (a -> b) (PreservesRefinement (coeqNormalized apred) (coeqBase bpred))
 
 public export
-CoequalizedFMap : {0 f : Type -> Type} -> {0 predf : CoeqPredF f} ->
+CoequalizedMorphism : Coequalized -> Coequalized -> Type
+CoequalizedMorphism (a ** _) (b ** _) = CoequalizableMorphism a b
+
+public export
+0 PreservesCoeqPred : {a, b : Type} ->
+  (0 pa : CoeqPred a) -> (0 pb : CoeqPred b) ->
+  (a -> b) -> Type
+PreservesCoeqPred pa pb = PreservesRefinement (coeqNormalized pa) (coeqBase pb)
+
+public export
+0 IsCoequalizedFunctor :
+  {0 f : Type -> Type} -> {0 isF : Functor f} ->
+  (0 predf : CoeqPredF f) -> Type
+IsCoequalizedFunctor {f} {isF} predf =
+  (0 a, b : Type) -> (0 pa : CoeqPred a) -> (0 pb : CoeqPred b) ->
+  (0 fn : Normalizer pa) ->
+  (0 m : a -> b) -> (0 _ : PreservesCoeqPred pa pb m) ->
+  PreservesCoeqPred (coeqPredF predf pa) (coeqPredF predf pb) (map {f} m)
+
+public export
+CoequalizableFMap : {0 f : Type -> Type} ->
+  {auto isF : Functor f} ->
+  (0 predf : CoeqPredF f) ->
+  {auto 0 isCF : IsCoequalizedFunctor {f} {isF} predf} ->
+  {0 a, b : Coequalizable} ->
+  CoeqNormalizer a ->
+  CoequalizableMorphism a b ->
+  CoequalizableMorphism (CoequalizableF predf a) (CoequalizableF predf b)
+CoequalizableFMap
+  {f} {isF} {isCF} predf {a=(Element0 a pa)} {b=(Element0 b pb)} fn m =
+    (Element0 (map {f} (fst0 m)) $ isCF a b pa pb fn (fst0 m) (snd0 m))
+
+public export
+CoequalizedFMap : {0 f : Type -> Type} ->
+  {auto isF : Functor f} ->
+  {0 predf : CoeqPredF f} ->
+  {auto 0 isCF : IsCoequalizedFunctor {f} {isF} predf} ->
   (0 nf : NormalizerF predf) ->
   {0 a, b : Coequalized} ->
-  CoeqMorphism a b -> CoeqMorphism
-  (CoequalizedF {predf} nf a) (CoequalizedF {predf} nf b)
-CoequalizedFMap {f} {predf} nf {a} {b} m = ?CoequalizedFMap_hole
+  CoequalizedMorphism a b ->
+  CoequalizedMorphism (CoequalizedF {predf} nf a) (CoequalizedF {predf} nf b)
+CoequalizedFMap
+  {f} {isF} {isCF} {predf} nf {a=(a ** pa)} {b=(b ** pb)} m =
+    ?CoequalizedFMap_hole
 
 public export
 CoeqAlg : {f : Type -> Type} -> {pf : CoeqPredF f} ->
   NormalizerF pf -> Coequalized -> Type
-CoeqAlg nf x = CoeqMorphism (CoequalizedF nf x) x
+CoeqAlg nf x = CoequalizedMorphism (CoequalizedF nf x) x
 
 public export
 CoeqCoalg : {f : Type -> Type} -> {pf : CoeqPredF f} ->
   NormalizerF pf -> Coequalized -> Type
-CoeqCoalg nf x = CoeqMorphism x (CoequalizedF nf x)
+CoeqCoalg nf x = CoequalizedMorphism x (CoequalizedF nf x)
 
 -------------------------------------
 ---- Types dependent on algebras ----

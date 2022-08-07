@@ -48,8 +48,8 @@ eitherElim f g (Right e) = g e
 public export
 record Subset0 (type : Type) (0 dep : type -> Type) where
   constructor Element0
-  fst : type
-  0 snd : dep fst
+  fst0 : type
+  0 snd0 : dep fst0
 
 public export
 curry : {0 p : a -> Type} -> (Subset0 a p -> c) -> (x : a) -> (0 _ : p x) -> c
@@ -57,7 +57,7 @@ curry f x y = f $ Element0 x y
 
 public export
 uncurry : {0 p : a -> Type} -> ((x : a) -> (0 _ : p x) -> c) -> Subset0 a p -> c
-uncurry f s = f s.fst s.snd
+uncurry f s = f s.fst0 s.snd0
 
 export
 elementInjectiveFst : Element0 x p = Element0 y q -> x = y
@@ -74,15 +74,15 @@ bimap f g (Element0 x y) = Element0 (f x) (g y)
 
 public export
 Eq type => Eq (Subset0 type dep) where
-  (==) = (==) `on` fst
+  (==) = (==) `on` fst0
 
 public export
 Ord type => Ord (Subset0 type dep) where
-  compare = compare `on` fst
+  compare = compare `on` fst0
 
 public export
 Show type => Show (Subset0 type dep) where
-  show = show . fst
+  show = show . fst0
 
 public export
 DecNonZero : (n : Nat) -> Dec (NonZero n)
