@@ -638,11 +638,16 @@ substOHomObj : SubstObj -> SubstObj -> SubstObj
 substOHomObj (Left ()) _ = SOTerminal
 -- x /= 0 => x -> 0 == 0
 substOHomObj (Right _) (Left ()) = SOInitial
+-- x /= 0, y /= 0
 substOHomObj (Right x) (Right y) = Right $ isubstOHomObj x y
 
----------------------------------------------------------------------------
----- Interpretation of substitution objects as polynomial endofunctors ----
----------------------------------------------------------------------------
+--------------------------------------------
+---- Morphisms in substitution category ----
+--------------------------------------------
+
+--------------------------------------------------------------------
+---- Interpretation of substitution endofunctors as polynomials ----
+--------------------------------------------------------------------
 
 public export
 ISubstEndoFunctorF : Type -> Type
@@ -823,11 +828,20 @@ SOEFId : {0 x : Type} -> FreeSubstEndo x
 SOEFId = Right ISOEFId
 
 public export
-SOEFCompose : SubstEndo -> SubstEndo -> SubstEndo
-SOEFCompose (Left ()) _ = Left ()
-SOEFCompose (Right f) (Left ()) = case isoAppVoid f of
+isoAppVoidSO : ISubstEndo -> SubstEndo
+isoAppVoidSO f = case isoAppVoid f of
   Just f' => Right f'
   Nothing => Left ()
+
+public export
+soAppVoid : SubstEndo -> SubstEndo
+soAppVoid (Left ()) = Left ()
+soAppVoid (Right f) = isoAppVoidSO f
+
+public export
+SOEFCompose : SubstEndo -> SubstEndo -> SubstEndo
+SOEFCompose (Left ()) _ = Left ()
+SOEFCompose (Right f) (Left ()) = isoAppVoidSO f
 SOEFCompose (Right f) (Right g) = Right $ ISOEFCompose f g
 
 public export
