@@ -598,6 +598,29 @@ substODepth = eitherElim (const 1) isubstODepth
 ---- Exponentials in substitution category ----
 -----------------------------------------------
 
+public export
+isubstOHomObjAlg : ISubstODiagAlg MuISubstO
+-- 1 -> x == x
+isubstOHomObjAlg (Left ()) x = InFCom x
+-- (x + y) -> z == (x -> z) * (y -> z)
+isubstOHomObjAlg (Right (Left (x, y))) z = ISOProduct (x z) (y z)
+-- (x * y) -> z == x -> y -> z
+isubstOHomObjAlg (Right (Right (x, y))) z with (y z)
+  isubstOHomObjAlg (Right (Right (x, y))) z | InFreeM (InTF (Left v)) = void v
+  isubstOHomObjAlg (Right (Right (x, y))) z | InFreeM (InTF (Right yz)) = x yz
+
+public export
+isubstOHomObj : MuISubstO -> MuISubstO -> MuISubstO
+isubstOHomObj = isubstODiagCata MuISubstO isubstOHomObjAlg
+
+public export
+substOHomObj : SubstObj -> SubstObj -> SubstObj
+-- 0 -> x == 1
+substOHomObj (Left ()) _ = SOTerminal
+-- x /= 0 => x -> 0 == 0
+substOHomObj (Right _) (Left ()) = SOInitial
+substOHomObj (Right x) (Right y) = Right $ isubstOHomObj x y
+
 ---------------------------------------------------------------------------
 ---- Interpretation of substitution objects as polynomial endofunctors ----
 ---------------------------------------------------------------------------
