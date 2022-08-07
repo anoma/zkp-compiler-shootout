@@ -594,6 +594,25 @@ public export
 substODepth : SubstObj -> Nat
 substODepth = eitherElim (const 1) isubstODepth
 
+-------------------------------------------------
+---- Interpretation of substitution category ----
+-------------------------------------------------
+
+public export
+isubstOToMetaAlg : ISubstOAlg Type
+isubstOToMetaAlg (Left ()) = ()
+isubstOToMetaAlg (Right (Left (x, y))) = Either x y
+isubstOToMetaAlg (Right (Right (x, y))) = Pair x y
+
+public export
+isubstOToMeta : MuISubstO -> Type
+isubstOToMeta = isubstOCata Type isubstOToMetaAlg
+
+public export
+substOToMeta : SubstObj -> Type
+substOToMeta (Left ()) = Void
+substOToMeta (Right t) = isubstOToMeta t
+
 -----------------------------------------------
 ---- Exponentials in substitution category ----
 -----------------------------------------------
