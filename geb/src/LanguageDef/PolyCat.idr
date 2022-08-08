@@ -1550,20 +1550,15 @@ freeS0DepSet alg subst depsubst (InFreeM (InTF (Right S0InitialF))) =
 freeS0DepSet alg subst depsubst (InFreeM (InTF (Right S0TerminalF))) =
   \u => case u of () => fs0unit alg
 freeS0DepSet alg subst depsubst (InFreeM (InTF (Right (S0CoproductF x y)))) =
-  let
-    x' = freeS0DepSet alg subst depsubst x
-    y' = freeS0DepSet alg subst depsubst y
-  in
   \e => case e of
-    Left l => fs0left alg (x' l)
-    Right r => fs0right alg (y' r)
+    Left l => fs0left alg (freeS0DepSet alg subst depsubst x l)
+    Right r => fs0right alg (freeS0DepSet alg subst depsubst y r)
 freeS0DepSet alg subst depsubst (InFreeM (InTF (Right (S0ProductF x y)))) =
-  let
-    x' = freeS0DepSet alg subst depsubst x
-    y' = freeS0DepSet alg subst depsubst y
-  in
   \p => case p of
-    (l, r) => fs0pair alg (x' l) (y' r)
+    (l, r) =>
+      fs0pair alg
+        (freeS0DepSet alg subst depsubst x l)
+        (freeS0DepSet alg subst depsubst y r)
 
 ---------------------
 ---------------------
