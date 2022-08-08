@@ -1465,16 +1465,12 @@ FreeS0Slice v = FreeS0Obj v -> Type
 
 -- The slice category of `(FreeS0Obj v) x (FreeS0Obj v)` within `Type`.
 public export
-FreeS0PairSlice : (0 _ : Type) -> Type
-FreeS0PairSlice v = FreeS0Obj v -> FreeS0Obj v -> Type
+FreeS0PairSlice : (0 _, _ : Type) -> Type
+FreeS0PairSlice v v' = FreeS0Obj v -> FreeS0Obj v' -> Type
 
 public export
 FreeS0SliceAlg : Type
 FreeS0SliceAlg = S0ObjAlg Type
-
-public export
-FreeS0PairSliceAlg : Type
-FreeS0PairSliceAlg = S0ObjDiagAlg Type
 
 public export
 s0ObjFreeCata : {0 v, a : Type} ->
@@ -1519,18 +1515,6 @@ s0ObjDiagCata {a} alg =
 public export
 s0slice : FreeS0SliceAlg -> {0 v : Type} -> (v -> Type) -> FreeS0Slice v
 s0slice alg = s0ObjFreeCata {a=Type} alg
-
--- Generate a type family indexed by the type of pairs of objects of the
--- zeroth-order substitution category.
---
--- Using the term-category interpretation together with currying, we
--- can view this as a functor from the term category of `FreeS0Obj v`
--- to the category of functors from the term category of `FreeS0Obj v`
--- to `Type`.
-public export
-s0pairSlice : FreeS0PairSliceAlg ->
-  {0 v : Type} -> (v -> S0ObjAlg Type) -> (v -> Type) -> FreeS0PairSlice v
-s0pairSlice objalg alg = s0ObjFreeDiagCata {a=Type} objalg alg
 
 public export
 s0ObjDepthAlg : S0ObjAlg Nat
@@ -1587,9 +1571,10 @@ FreeS0DepSet {v} subst x = s0ObjTerm {v} subst x -> Type
 -- category of our interpretation of `(x, y)` is just the term category of
 -- the product of the term categories of our interpretations.
 public export
-FreeS0PairDepSet : {0 v : Type} -> (v -> Type) -> FreeS0PairSlice v
-FreeS0PairDepSet {v} subst x y =
-  s0ObjTerm {v} subst x -> s0ObjTerm {v} subst y -> Type
+FreeS0PairDepSet : {0 v, v' : Type} ->
+  (v -> Type) -> (v' -> Type) -> FreeS0PairSlice v v'
+FreeS0PairDepSet {v} {v'} subst subst' x y =
+  s0ObjTerm {v} subst x -> s0ObjTerm {v=v'} subst' y -> Type
 
 -- An algebra which produces a `FreeS0DepSet` for every object of
 -- the zeroth-order substitution category.
@@ -1640,6 +1625,7 @@ freeS0DepSet alg subst depsubst (InFreeM (InTF (Right (S0ProductF x y)))) =
         (freeS0DepSet alg subst depsubst x l)
         (freeS0DepSet alg subst depsubst y r)
 
+{-
 -- An algebra which produces a `FreeS0PairDepSet` for every pair of
 -- objects of the zeroth-order substitution category.
 --
@@ -1652,16 +1638,44 @@ freeS0DepSet alg subst depsubst (InFreeM (InTF (Right (S0ProductF x y)))) =
 public export
 record FreeS0PairDepAlg where
   constructor MkFreeS0PairDepAlg
+  fs0pairUnit : FreeS0DepAlg
+  fs0pairLeft : Type -> Type
+  fs0pairRight : Type -> Type
+  fs0pairPair : Type -> Type -> Type
 
 -- Returns a `FreeS0PairDepSet (x, y)` for every pair of objects `x` and `y`
 -- of the zeroth-order substitution category.
 public export
-freeS0PairDepSet : FreeS0PairDepAlg ->
-  {0 v : Type} -> (subst : v -> Type) ->
+freeS0PairDepSet :
+  {0 v, v' : Type} ->
+  FreeS0PairDepAlg ->
+  (subst : v -> Type) ->
+  (subst' : v' -> Type) ->
   (depsubst : (var : v) -> subst var -> Type) ->
-  (x : FreeS0Obj v) -> (y : FreeS0Obj v) -> FreeS0PairDepSet subst x y
-freeS0PairDepSet alg {v} subst depsubst =
-  ?freeS0PairDepSet_hole
+  (x : FreeS0Obj v) -> (y : FreeS0Obj v') -> FreeS0PairDepSet subst subst' x y
+freeS0PairDepSet alg subst subst' depsubst (InFreeM (InTF (Left x))) (InFreeM (InTF (Left y))) = ?h1_2
+freeS0PairDepSet alg subst subst' depsubst (InFreeM (InTF (Left x))) (InFreeM (InTF (Right S0InitialF))) = \_, vv => void vv
+freeS0PairDepSet alg subst subst' depsubst (InFreeM (InTF (Left x))) (InFreeM (InTF (Right S0TerminalF))) = \vx, u => case u of () => depsubst x vx
+freeS0PairDepSet alg subst subst' depsubst (InFreeM (InTF (Left x))) (InFreeM (InTF (Right (S0CoproductF y z)))) = ?h1_8
+freeS0PairDepSet alg subst subst' depsubst (InFreeM (InTF (Left x))) (InFreeM (InTF (Right (S0ProductF y z)))) = ?h1_9
+freeS0PairDepSet alg subst subst' depsubst (InFreeM (InTF (Right S0InitialF))) (InFreeM (InTF (Left y))) = ?h1_10
+freeS0PairDepSet alg subst subst' depsubst (InFreeM (InTF (Right S0TerminalF))) (InFreeM (InTF (Left y))) = ?h1_11
+freeS0PairDepSet alg subst subst' depsubst (InFreeM (InTF (Right (S0CoproductF x z)))) (InFreeM (InTF (Left y))) = ?h1_12
+freeS0PairDepSet alg subst subst' depsubst (InFreeM (InTF (Right (S0ProductF x z)))) (InFreeM (InTF (Left y))) = ?h1_13
+freeS0PairDepSet alg subst subst' depsubst (InFreeM (InTF (Right S0InitialF))) (InFreeM (InTF (Right S0InitialF))) = ?h1_18
+freeS0PairDepSet alg subst subst' depsubst (InFreeM (InTF (Right S0InitialF))) (InFreeM (InTF (Right S0TerminalF))) = ?h1_19
+freeS0PairDepSet alg subst subst' depsubst (InFreeM (InTF (Right S0InitialF))) (InFreeM (InTF (Right (S0CoproductF x y)))) = ?h1_20
+freeS0PairDepSet alg subst subst' depsubst (InFreeM (InTF (Right S0InitialF))) (InFreeM (InTF (Right (S0ProductF x y)))) = ?h1_21
+freeS0PairDepSet alg subst subst' depsubst (InFreeM (InTF (Right S0TerminalF))) (InFreeM (InTF (Right S0InitialF))) = ?h1_22
+freeS0PairDepSet alg subst subst' depsubst (InFreeM (InTF (Right S0TerminalF))) (InFreeM (InTF (Right S0TerminalF))) = ?h1_23
+freeS0PairDepSet alg subst subst' depsubst (InFreeM (InTF (Right S0TerminalF))) (InFreeM (InTF (Right (S0CoproductF x y)))) = ?h1_24
+freeS0PairDepSet alg subst subst' depsubst (InFreeM (InTF (Right S0TerminalF))) (InFreeM (InTF (Right (S0ProductF x y)))) = ?h1_25
+freeS0PairDepSet alg subst subst' depsubst (InFreeM (InTF (Right (S0CoproductF x z)))) (InFreeM (InTF (Right S0InitialF))) = ?h1_26
+freeS0PairDepSet alg subst subst' depsubst (InFreeM (InTF (Right (S0CoproductF x z)))) (InFreeM (InTF (Right S0TerminalF))) = ?h1_27
+freeS0PairDepSet alg subst subst' depsubst (InFreeM (InTF (Right (S0CoproductF x z)))) (InFreeM (InTF (Right (S0CoproductF y w)))) = ?h1_28
+freeS0PairDepSet alg subst subst' depsubst (InFreeM (InTF (Right (S0CoproductF x z)))) (InFreeM (InTF (Right (S0ProductF y w)))) = ?h1_29
+freeS0PairDepSet alg subst subst' depsubst (InFreeM (InTF (Right (S0ProductF x z)))) (InFreeM (InTF (Right y))) = ?h1_17
+-}
 
 ---------------------
 ---------------------
