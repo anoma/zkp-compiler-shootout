@@ -1514,6 +1514,31 @@ public export
 s0ObjTerm : {0 v : Type} -> (v -> Type) -> FreeS0Obj v -> Type
 s0ObjTerm = s0ObjFreeCata s0ObjTermAlg
 
+public export
+FreeS0SliceAlg : Type
+FreeS0SliceAlg = S0ObjAlg Type
+
+public export
+FreeS0Slice : (0 _ : Type) -> Type
+FreeS0Slice v = FreeS0Obj v -> Type
+
+public export
+s0slice : FreeS0SliceAlg -> {v : Type} -> (v -> Type) -> FreeS0Slice v
+s0slice alg = s0ObjFreeCata {a=Type} alg
+
+public export
+S0DepSet : {0 v : Type} -> (v -> Type) -> FreeS0Obj v -> Type
+S0DepSet subst x = s0ObjTerm {v} subst x -> Type
+
+public export
+S0DepAlg : Type
+S0DepAlg = ?S0DepAlg_hole
+
+public export
+s0DepSet : S0DepAlg ->
+  {0 v : Type} -> (subst : v -> Type) -> (x : FreeS0Obj v) -> S0DepSet subst x
+s0DepSet alg {v} subst x = ?s0DepSet_hole
+
 ---------------------
 ---------------------
 ---- Polynomials ----
