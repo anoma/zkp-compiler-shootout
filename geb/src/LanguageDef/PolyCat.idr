@@ -1459,6 +1459,14 @@ S0ObjDiagAlg : Type -> Type
 S0ObjDiagAlg a = S0ObjAlg (S0ObjAlg a)
 
 public export
+FreeS0Slice : (0 _ : Type) -> Type
+FreeS0Slice v = FreeS0Obj v -> Type
+
+public export
+FreeS0SliceAlg : Type
+FreeS0SliceAlg = S0ObjAlg Type
+
+public export
 s0ObjFreeCata : {0 v, a : Type} ->
   S0ObjAlg a -> (v -> a) -> FreeS0Obj v -> a
 s0ObjFreeCata alg subst (InFreeM (InTF e)) = case e of
@@ -1491,6 +1499,10 @@ s0ObjDiagCata {a} alg =
   s0ObjFreeDiagCata {a} {v=Void} {algv=Void} alg (voidF (S0ObjAlg a)) (voidF a)
 
 public export
+s0slice : FreeS0SliceAlg -> {0 v : Type} -> (v -> Type) -> FreeS0Slice v
+s0slice alg = s0ObjFreeCata {a=Type} alg
+
+public export
 s0ObjDepthAlg : S0ObjAlg Nat
 s0ObjDepthAlg = MkS0ObjAlg Z Z (S .* max) (S .* max)
 
@@ -1507,28 +1519,16 @@ s0ObjCard : {0 v : Type} -> (v -> Nat) -> FreeS0Obj v -> Nat
 s0ObjCard = s0ObjFreeCata s0ObjCardAlg
 
 public export
-s0ObjTermAlg : S0ObjAlg Type
+s0ObjTermAlg : FreeS0SliceAlg
 s0ObjTermAlg = MkS0ObjAlg Void Unit Either Pair
 
 public export
-s0ObjTerm : {0 v : Type} -> (v -> Type) -> FreeS0Obj v -> Type
-s0ObjTerm = s0ObjFreeCata s0ObjTermAlg
+s0ObjTerm : {0 v : Type} -> (v -> Type) -> FreeS0Slice v
+s0ObjTerm = s0slice s0ObjTermAlg
 
 public export
-FreeS0SliceAlg : Type
-FreeS0SliceAlg = S0ObjAlg Type
-
-public export
-FreeS0Slice : (0 _ : Type) -> Type
-FreeS0Slice v = FreeS0Obj v -> Type
-
-public export
-s0slice : FreeS0SliceAlg -> {v : Type} -> (v -> Type) -> FreeS0Slice v
-s0slice alg = s0ObjFreeCata {a=Type} alg
-
-public export
-FreeS0DepSet : {0 v : Type} -> (v -> Type) -> FreeS0Obj v -> Type
-FreeS0DepSet subst x = s0ObjTerm {v} subst x -> Type
+FreeS0DepSet : {0 v : Type} -> (v -> Type) -> FreeS0Slice v
+FreeS0DepSet {v} subst x = s0ObjTerm {v} subst x -> Type
 
 public export
 FreeS0DepAlg : Type
