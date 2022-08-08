@@ -21,7 +21,7 @@ For our sudoku example, we use a rust package called [criterion](https://github.
 
 
 ## Alucard/VAMP-IR
-todo
+Please see the offical repo [Alucard](https://github.com/anoma/juvix-circuits)
 
 ## Geb
 See the [Geb README](geb/README.md).
