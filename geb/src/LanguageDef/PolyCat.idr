@@ -1531,14 +1531,39 @@ FreeS0DepSet : {0 v : Type} -> (v -> Type) -> FreeS0Slice v
 FreeS0DepSet {v} subst x = s0ObjTerm {v} subst x -> Type
 
 public export
-FreeS0DepAlg : Type
-FreeS0DepAlg = ?FreeS0DepAlg_hole
+record FreeS0DepAlg where
+  constructor MkFreeS0DepAlg
+  fs0unit : Type
+  fs0left : Type -> Type
+  fs0right : Type -> Type
+  fs0pair : Type -> Type -> Type
 
 public export
 freeS0DepSet : FreeS0DepAlg ->
   {0 v : Type} -> (subst : v -> Type) ->
+  (depsubst : (var : v) -> subst var -> Type) ->
   (x : FreeS0Obj v) -> FreeS0DepSet subst x
-freeS0DepSet alg {v} subst x = ?freeS0DepSet_hole
+freeS0DepSet alg subst depsubst (InFreeM (InTF (Left var))) =
+  depsubst var
+freeS0DepSet alg subst depsubst (InFreeM (InTF (Right S0InitialF))) =
+  voidF Type
+freeS0DepSet alg subst depsubst (InFreeM (InTF (Right S0TerminalF))) =
+  \u => case u of () => fs0unit alg
+freeS0DepSet alg subst depsubst (InFreeM (InTF (Right (S0CoproductF x y)))) =
+  let
+    x' = freeS0DepSet alg subst depsubst x
+    y' = freeS0DepSet alg subst depsubst y
+  in
+  \e => case e of
+    Left l => fs0left alg (x' l)
+    Right r => fs0right alg (y' r)
+freeS0DepSet alg subst depsubst (InFreeM (InTF (Right (S0ProductF x y)))) =
+  let
+    x' = freeS0DepSet alg subst depsubst x
+    y' = freeS0DepSet alg subst depsubst y
+  in
+  \p => case p of
+    (l, r) => fs0pair alg (x' l) (y' r)
 
 ---------------------
 ---------------------
