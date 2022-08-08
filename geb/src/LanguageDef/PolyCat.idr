@@ -1463,8 +1463,16 @@ FreeS0Slice : (0 _ : Type) -> Type
 FreeS0Slice v = FreeS0Obj v -> Type
 
 public export
+FreeS0PairSlice : (0 _ : Type) -> Type
+FreeS0PairSlice v = FreeS0Obj v -> FreeS0Obj v -> Type
+
+public export
 FreeS0SliceAlg : Type
 FreeS0SliceAlg = S0ObjAlg Type
+
+public export
+FreeS0PairSliceAlg : Type
+FreeS0PairSliceAlg = S0ObjDiagAlg Type
 
 public export
 s0ObjFreeCata : {0 v, a : Type} ->
@@ -1503,6 +1511,11 @@ s0slice : FreeS0SliceAlg -> {0 v : Type} -> (v -> Type) -> FreeS0Slice v
 s0slice alg = s0ObjFreeCata {a=Type} alg
 
 public export
+s0pairSlice : FreeS0PairSliceAlg ->
+  {0 v : Type} -> (v -> S0ObjAlg Type) -> (v -> Type) -> FreeS0PairSlice v
+s0pairSlice objalg alg = s0ObjFreeDiagCata {a=Type} objalg alg
+
+public export
 s0ObjDepthAlg : S0ObjAlg Nat
 s0ObjDepthAlg = MkS0ObjAlg Z Z (S .* max) (S .* max)
 
@@ -1523,13 +1536,51 @@ s0ObjTermAlg : FreeS0SliceAlg
 s0ObjTermAlg = MkS0ObjAlg Void Unit Either Pair
 
 public export
+s0ObjTermPairAlg : FreeS0PairSliceAlg
+s0ObjTermPairAlg = ?s0ObjPairTermAlg_hole
+
+public export
 s0ObjTerm : {0 v : Type} -> (v -> Type) -> FreeS0Slice v
 s0ObjTerm = s0slice s0ObjTermAlg
 
 public export
+s0ObjTermPair : {0 v : Type} ->
+  (v -> S0ObjAlg Type) -> (v -> Type) -> FreeS0PairSlice v
+s0ObjTermPair = s0pairSlice s0ObjTermPairAlg
+
+-- For any object `x` of the zeroth-order substitution category, a
+-- `FreeS0DepSet x` is a type which depends on `x`.  In dependent
+-- type theory, it's a function which takes terms of `x` to types -- that
+-- is, a term of the type of functions from `x` to `Type`.  In category
+-- theory, it's an object of the slice category of `x` -- category theory
+-- turns the dependent-type view backwards, by viewing the whole type
+-- family as a single object, with a morphism from that object to `x`
+-- which can be viewed as indicating, for each term of the whole type
+-- family, which term of `x` that particular term's type came from.
+public export
 FreeS0DepSet : {0 v : Type} -> (v -> Type) -> FreeS0Slice v
 FreeS0DepSet {v} subst x = s0ObjTerm {v} subst x -> Type
 
+-- For any objects `x` and `y` of the zeroth-order substitution category, a
+-- `FreeS0PairDepSet x y` is a type which depends on `x` and `y`.  In dependent
+-- type theory, it's a function which takes terms of `(x, y)` to types -- that
+-- is, a term of the type of functions from `(x, y)` to `Type`.  In category
+-- theory, it's an object of the slice category of `(x, y)`.
+public export
+FreeS0PairDepSet : {0 v : Type} ->
+  (v -> S0ObjAlg Type) -> (v -> Type) -> FreeS0PairSlice v
+FreeS0PairDepSet {v} algsubst subst x y =
+  s0ObjTermPair {v} algsubst subst x y -> Type
+
+-- An algebra which produces a `FreeS0DepSet` for every object of
+-- the zeroth-order substitution category.
+--
+-- This algebra can therefore be viewed as a generator of a
+-- dependent functor -- a functor which takes each object `x` of
+-- the zero-order substitution category not to an object of just
+-- one other given category but to an object of the slice category
+-- of that particular `x`.  (We will specifically use it to generate
+-- dependent _polynomial_ functors.)
 public export
 record FreeS0DepAlg where
   constructor MkFreeS0DepAlg
@@ -1538,6 +1589,23 @@ record FreeS0DepAlg where
   fs0right : Type -> Type
   fs0pair : Type -> Type -> Type
 
+-- An algebra which produces a `FreeS0PairDepSet` for every pair of
+-- objects of the zeroth-order substitution category.
+--
+-- This algebra can therefore be viewed as a generator of a
+-- dependent functor -- a functor which takes each pair of objects
+-- (`x`, `y`) of the zero-order substitution category not to an object of just
+-- one other given category but to an object of the slice category
+-- of that particular `(x, y)`.  (We will specifically use it to generate
+-- dependent _polynomial_ functors.)
+public export
+record FreeS0PairDepAlg where
+  constructor MkFreeS0PairDepAlg
+
+-- Returns a `FreeDep0Set x` for every object `x` of the zeroth-order
+-- substitution category.
+--
+-- See the comment to `FreeS0DepAlg` for an interpretation of this function.
 public export
 freeS0DepSet : FreeS0DepAlg ->
   {0 v : Type} -> (subst : v -> Type) ->
@@ -1559,6 +1627,20 @@ freeS0DepSet alg subst depsubst (InFreeM (InTF (Right (S0ProductF x y)))) =
       fs0pair alg
         (freeS0DepSet alg subst depsubst x l)
         (freeS0DepSet alg subst depsubst y r)
+
+-- Returns a `FreeS0PairDepSet (x, y)` for every pair of objects `x` and `y`
+-- of the zeroth-order substitution category.
+--
+-- See the comment to `FreeS0PairDepAlg` for an interpretation of this function.
+public export
+freeS0PairDepSet : FreeS0PairDepAlg ->
+  {0 v : Type} -> (algsubst : v -> S0ObjAlg Type) -> (subst : v -> Type) ->
+  -- XXX (depalgsubst : (var : v) -> (algvar : algsubst var) -> S0ObjAlg Type) ->
+  (depalgsubst : Void) ->
+  (depsubst : (var : v) -> subst var -> Type) ->
+  (x : FreeS0Obj v) -> (y : FreeS0Obj v) -> FreeS0PairDepSet algsubst subst x y
+freeS0PairDepSet alg {v} algsubst subst depalgsubst depsubst =
+  ?freeS0PairDepSet_hole
 
 ---------------------
 ---------------------
