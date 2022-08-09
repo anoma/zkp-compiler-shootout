@@ -1436,41 +1436,86 @@ data FinSubstTerm : {0 c, d : Nat} -> FinSubstT c d -> Type where
     {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
     FinSubstTerm x -> FinSubstTerm y -> FinSubstTerm (FinProduct x y)
 
+public export
+record FSTAlg
+    (0 a : (0 c, d : Nat) -> (x : FinSubstT c d) -> FinSubstTerm x -> Type)
+    where
+  constructor MkFSTAlg
+  fstUnit : a 1 0 FinTerminal FinUnit
+  fstLeft : {0 cx, dx, cy, dy : Nat} ->
+    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
+    (t : FinSubstTerm x) ->
+    a cx dx x t ->
+    a (cx + cy) (smax dx dy) (FinCoproduct x y) (FinLeft t)
+  fstRight : {0 cx, dx, cy, dy : Nat} ->
+    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
+    (t : FinSubstTerm y) ->
+    a cy dy y t ->
+    a (cx + cy) (smax dx dy) (FinCoproduct x y) (FinRight t)
+  fstPair : {0 cx, dx, cy, dy : Nat} ->
+    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
+    (t : FinSubstTerm x) -> (t' : FinSubstTerm y) ->
+    a cx dx x t -> a cy dy y t' ->
+    a (cx * cy) (smax dx dy) (FinProduct x y) (FinPair t t')
+
 mutual
   public export
-  interpFinSubstTerm : {0 c, d : Nat} -> {x : FinSubstT c d} ->
-    FinSubstTerm x -> interpFinSubst {c} {d} x
-  interpFinSubstTerm {x=FinInitial} = interpFinInitial
-  interpFinSubstTerm {x=FinTerminal} = interpFinTerminal
-  interpFinSubstTerm {x=(FinCoproduct x y)} = interpFinCoproduct {x} {y}
-  interpFinSubstTerm {x=(FinProduct x y)} = interpFinProduct {x} {y}
+  fstCata :
+    {0 a : (0 c, d : Nat) -> (x : FinSubstT c d) -> FinSubstTerm x -> Type} ->
+    FSTAlg a ->
+    {0 c, d : Nat} -> {x : FinSubstT c d} ->
+    (t : FinSubstTerm x) -> a c d x t
+  fstCata {a} alg {x=FinInitial} = fstCataInitial {a}
+  fstCata {a} alg {x=FinTerminal} = fstCataTerminal {a} alg
+  fstCata {a} alg {x=(FinCoproduct x y)} = fstCataCoproduct {a} alg {x} {y}
+  fstCata {a} alg {x=(FinProduct x y)} = fstCataProduct {a} alg {x} {y}
 
   public export
-  interpFinInitial : FinSubstTerm FinInitial -> interpFinSubst FinInitial
-  interpFinInitial FinUnit impossible
-  interpFinInitial (FinLeft x) impossible
-  interpFinInitial (FinRight x) impossible
-  interpFinInitial (FinPair x y) impossible
+  fstCataInitial :
+    {0 a : (0 c, d : Nat) -> (x : FinSubstT c d) -> FinSubstTerm x -> Type} ->
+    (t : FinSubstTerm FinInitial) -> a _ _ FinInitial t
+  fstCataInitial FinUnit impossible
+  fstCataInitial (FinLeft x) impossible
+  fstCataInitial (FinRight x) impossible
+  fstCataInitial (FinPair x y) impossible
 
   public export
-  interpFinTerminal : FinSubstTerm FinTerminal -> interpFinSubst FinTerminal
-  interpFinTerminal FinUnit = ()
+  fstCataTerminal :
+    {0 a : (0 c, d : Nat) -> (x : FinSubstT c d) -> FinSubstTerm x -> Type} ->
+    FSTAlg a ->
+    (t : FinSubstTerm FinTerminal) -> a _ _ FinTerminal t
+  fstCataTerminal alg FinUnit = alg.fstUnit
 
   public export
-  interpFinCoproduct : {0 cx, dx, cy, dy : Nat} ->
+  fstCataCoproduct :
+    {0 a : (0 c, d : Nat) -> (x : FinSubstT c d) -> FinSubstTerm x -> Type} ->
+    FSTAlg a ->
+    {0 cx, dx, cy, dy : Nat} ->
     {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
-    FinSubstTerm (FinCoproduct x y) ->
-    interpFinSubst (FinCoproduct x y)
-  interpFinCoproduct (FinLeft t) = Left $ interpFinSubstTerm t
-  interpFinCoproduct (FinRight t) = Right $ interpFinSubstTerm t
+    (t : FinSubstTerm (FinCoproduct x y)) ->
+    a _ _ (FinCoproduct x y) t
+  fstCataCoproduct alg (FinLeft t) = alg.fstLeft t $ fstCata alg t
+  fstCataCoproduct alg (FinRight t) = alg.fstRight t $ fstCata alg t
 
   public export
-  interpFinProduct : {0 cx, dx, cy, dy : Nat} ->
+  fstCataProduct :
+    {0 a : (0 c, d : Nat) -> (x : FinSubstT c d) -> FinSubstTerm x -> Type} ->
+    FSTAlg a ->
+    {0 cx, dx, cy, dy : Nat} ->
     {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
-    FinSubstTerm (FinProduct x y) ->
-    interpFinSubst (FinProduct x y)
-  interpFinProduct (FinPair t t') =
-    (interpFinSubstTerm t, interpFinSubstTerm t')
+    (t : FinSubstTerm (FinProduct x y)) ->
+    a _  _ (FinProduct x y) t
+  fstCataProduct alg (FinPair t t') =
+    alg.fstPair t t' (fstCata alg t) (fstCata alg t')
+
+public export
+InterpTermAlg : FSTAlg (\_, _, x, _ => interpFinSubst x)
+InterpTermAlg = MkFSTAlg () (const Left) (const Right) (const $ const MkPair)
+
+public export
+interpFinSubstTerm : {0 c, d : Nat} -> {x : FinSubstT c d} ->
+  FinSubstTerm x -> interpFinSubst {c} {d} x
+interpFinSubstTerm {x} = fstCata InterpTermAlg
 
 public export
 data FinSubstMorph : {0 cx, dx, cy, dy : Nat} ->
