@@ -1457,18 +1457,17 @@ FinSubstHomDepthObj FinInitial x =
 FinSubstHomDepthObj {cy} {dy} FinTerminal x =
   rewrite multOneRightNeutral cy in (Evidence0 dy x)
 -- (x + y) -> z == (x -> z) * (y -> z)
-FinSubstHomDepthObj {cx=(cx + cy)} {cy=cz} (FinCoproduct x y) z with
-  (FinSubstHomDepthObj x z, FinSubstHomDepthObj y z)
-    FinSubstHomDepthObj {cx=(cx + cy)} {cy=cz} (FinCoproduct x y) z |
-      (Evidence0 dxz hxz, Evidence0 dyz hyz) =
+FinSubstHomDepthObj {cx=(cx + cy)} {cy=cz}
+  (FinCoproduct x y) z with (FinSubstHomDepthObj x z, FinSubstHomDepthObj y z)
+    FinSubstHomDepthObj {cx=(cx + cy)} {cy=cz}
+      (FinCoproduct x y) z | (Evidence0 dxz hxz, Evidence0 dyz hyz) =
         rewrite powerOfSum cz cx cy in
         Evidence0 (smax dxz dyz) (FinProduct hxz hyz)
-  -- FinProduct (FinSubstHomDepthObj x z) (FinSubstHomDepthObj y z)
 -- (x * y) -> z == x -> y -> z
-FinSubstHomDepthObj {cx=(cx * cy)} {dx=(smax dx dy)} {cy=cz} {dy=dz} (FinProduct x y) z with
-  (FinSubstHomDepthObj y z)
-    FinSubstHomDepthObj {cx=(cx * cy)} {dx=(smax dx dy)} {cy=cz} {dy=dz} (FinProduct x y) z |
-      (Evidence0 dyz hyz) =
+FinSubstHomDepthObj {cx=(cx * cy)} {dx=(smax dx dy)} {cy=cz} {dy=dz}
+  (FinProduct x y) z with (FinSubstHomDepthObj y z)
+    FinSubstHomDepthObj {cx=(cx * cy)} {dx=(smax dx dy)} {cy=cz} {dy=dz}
+      (FinProduct x y) z | (Evidence0 dyz hyz) =
         rewrite powerOfMulSym cz cx cy in
         FinSubstHomDepthObj {dx} {dy=dyz} x hyz
 
