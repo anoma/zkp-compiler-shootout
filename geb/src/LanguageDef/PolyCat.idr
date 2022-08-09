@@ -1441,6 +1441,14 @@ data FinSubstMorph : {0 cx, dx, cy, dy : Nat} ->
     FinSubstMorph {cx=(cx * cy)} {cy} 0 (FinProduct {cx} {cy} x y) y
 
 public export
+interpFinSubstMorph : {0 cx, dx, cy, dy, depth : Nat} ->
+  {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
+  FinSubstMorph {cx} {dx} {cy} {dy} depth x y ->
+  interpFinSubst {c=cx} {d=dx} x ->
+  interpFinSubst {c=cy} {d=dy} y
+interpFinSubstMorph m = ?interpFinSubstMorph_hole
+
+public export
 0 finSubstHomObjCard : {0 cx, dx, cy, dy : Nat} ->
   FinSubstT cx dx -> FinSubstT cy dy -> Nat
 finSubstHomObjCard {cx} {cy} _ _ = power cy cx
