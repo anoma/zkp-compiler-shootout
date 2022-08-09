@@ -1387,7 +1387,7 @@ natAna coalg nx =
 -- and coproducts, and products, which is indexed by a natural-number size
 -- (which is the cardinality of the set of the type's elements).
 public export
-data FinSubstT : (0 _ : Nat) -> Type where
+data FinSubstT : (0 cardinality : Nat) -> Type where
   FinInitial : FinSubstT 0
   FinTerminal : FinSubstT 1
   FinCoproduct : {0 cx, cy : Nat} ->
@@ -1404,30 +1404,34 @@ interpFinSubst (FinProduct x y) = Pair (interpFinSubst x) (interpFinSubst y)
 
 public export
 data FinSubstMorph : {0 cx, cy : Nat} ->
-    FinSubstT cx -> FinSubstT cy -> Type where
-  FinId : {0 cx : Nat} -> (x : FinSubstT cx) -> FinSubstMorph {cx} {cy=cx} x x
+    (0 depth : Nat) -> FinSubstT cx -> FinSubstT cy -> Type where
+  FinId : {0 cx : Nat} -> (x : FinSubstT cx) -> FinSubstMorph {cx} {cy=cx} 0 x x
+  FinCompose : {0 cx, cy, cz : Nat} -> {0 dg, df : Nat} ->
+    {x : FinSubstT cx} -> {y : FinSubstT cy} -> {z : FinSubstT cz} ->
+    FinSubstMorph dg y z -> FinSubstMorph df x y ->
+    FinSubstMorph (smax dg df) x z
   FinFromInit : {0 cy : Nat} -> (y : FinSubstT cy) ->
-    FinSubstMorph {cx=0} {cy} FinInitial y
+    FinSubstMorph {cx=0} {cy} 0 FinInitial y
   FinToTerminal : {0 cx : Nat} -> (x : FinSubstT cx) ->
-    FinSubstMorph {cx} {cy=1} x FinTerminal
+    FinSubstMorph {cx} {cy=1} 0 x FinTerminal
   FinInjLeft : {0 cx, cy : Nat} -> (x : FinSubstT cx) -> (y : FinSubstT cy) ->
-    FinSubstMorph {cx} {cy=(cx + cy)} x (FinCoproduct {cx} {cy} x y)
+    FinSubstMorph {cx} {cy=(cx + cy)} 0 x (FinCoproduct {cx} {cy} x y)
   FinInjRight : {0 cx, cy : Nat} -> (x : FinSubstT cx) -> (y : FinSubstT cy) ->
-    FinSubstMorph {cx=cy} {cy=(cx + cy)} y (FinCoproduct {cx} {cy} x y)
-  FinCase : {0 cx, cy, cz : Nat} ->
+    FinSubstMorph {cx=cy} {cy=(cx + cy)} 0 y (FinCoproduct {cx} {cy} x y)
+  FinCase : {0 cx, cy, cz : Nat} -> {0 df, dg : Nat} ->
     {x : FinSubstT cx} -> {y : FinSubstT cy} -> {z : FinSubstT cz} ->
-    FinSubstMorph {cx} {cy=cz} x z ->
-    FinSubstMorph {cx=cy} {cy=cz} y z ->
-    FinSubstMorph {cx=(cx + cy)} {cy=cz} (FinCoproduct {cx} {cy} x y) z
-  FinProd : {0 cx, cy, cz : Nat} ->
+    FinSubstMorph {cx} {cy=cz} df x z ->
+    FinSubstMorph {cx=cy} {cy=cz} dg y z ->
+    FinSubstMorph {cx=(cx + cy)} {cy=cz} (smax df dg) (FinCoproduct {cx} {cy} x y) z
+  FinProd : {0 cx, cy, cz : Nat} -> {0 df, dg : Nat} ->
     {x : FinSubstT cx} -> {y : FinSubstT cy} -> {z : FinSubstT cz} ->
-    FinSubstMorph {cx} {cy} x y ->
-    FinSubstMorph {cx} {cy=cz} x z ->
-    FinSubstMorph {cx} {cy=(cy * cz)} x (FinProduct {cx=cy} {cy=cz} y z)
+    FinSubstMorph {cx} {cy} df x y ->
+    FinSubstMorph {cx} {cy=cz} dg x z ->
+    FinSubstMorph {cx} {cy=(cy * cz)} (smax df dg) x (FinProduct {cx=cy} {cy=cz} y z)
   FinProjLeft : {0 cx, cy : Nat} -> (x : FinSubstT cx) -> (y : FinSubstT cy) ->
-    FinSubstMorph {cx=(cx * cy)} {cy=cx} (FinProduct {cx} {cy} x y) x
+    FinSubstMorph {cx=(cx * cy)} {cy=cx} 0 (FinProduct {cx} {cy} x y) x
   FinProjRight : {0 cx, cy : Nat} -> (x : FinSubstT cx) -> (y : FinSubstT cy) ->
-    FinSubstMorph {cx=(cx * cy)} {cy} (FinProduct {cx} {cy} x y) y
+    FinSubstMorph {cx=(cx * cy)} {cy} 0 (FinProduct {cx} {cy} x y) y
 
 public export
 0 finSubstHomObjCard : {0 cx, cy : Nat} ->
@@ -1450,27 +1454,6 @@ FinSubstHomObj {cx=(cx + cy)} {cy=cz} (FinCoproduct x y) z =
 FinSubstHomObj {cx=(cx * cy)} {cy=cz} (FinProduct x y) z =
   rewrite powerOfMulSym cz cx cy in
   FinSubstHomObj x (FinSubstHomObj y z)
-
-public export
-morphToHom : {0 cx, cy : Nat} -> {x : FinSubstT cx} -> {y : FinSubstT cy} ->
-  FinSubstMorph x y -> interpFinSubst (FinSubstHomObj x y)
-morphToHom {x} {y} m = ?morphToHom_hole
-
-public export
-homToMorph : {0 cx, cy : Nat} -> {x : FinSubstT cx} -> {y : FinSubstT cy} ->
-  interpFinSubst (FinSubstHomObj x y) -> FinSubstMorph x y
-homToMorph {x} {y} m = ?homToMorph_hole
-
-public export
-finSubstEval : {0 cx, cy : Nat} -> (x : FinSubstT cx) -> (y : FinSubstT cy) ->
-  FinSubstMorph (FinProduct (FinSubstHomObj x y) x) y
-finSubstEval x y = ?finSubstEval_hole
-
-public export
-finSubstCurry : {0 cx, cy, cz : Nat} ->
-  {x : FinSubstT cx} -> {y : FinSubstT cy} -> {z : FinSubstT cz} ->
-  FinSubstMorph (FinProduct x y) z -> FinSubstMorph x (FinSubstHomObj y z)
-finSubstCurry {x} {y} {z} f = ?finSubstCurry_hole
 
 ------------------------------------------------------
 ------------------------------------------------------

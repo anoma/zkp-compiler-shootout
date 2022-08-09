@@ -136,6 +136,10 @@ lteSuccEitherEqLte {m} {n} lte with (decEq m (S n))
     Right $ fromLteSucc $ lteTolt lte neq
 
 public export
+smax : Nat -> Nat -> Nat
+smax = S .* max
+
+public export
 voidF : (0 a : Type) -> Void -> a
 voidF _ x = void x
 
