@@ -1085,10 +1085,18 @@ NatO1 : {0 x : Type} -> FreeNatO x
 NatO1 = NatOS NatO0
 
 public export
-natOFold : {0 x : Type} -> (x -> x) -> MuNatO -> x -> x
-natOFold {x} op (InFreeM $ InTF $ Left v) e = void v
-natOFold {x} op (InFreeM $ InTF $ Right $ Left ()) e = e
-natOFold {x} op (InFreeM $ InTF $ Right $ Right n) e = natOFold {x} op n (op e)
+natOFoldFree : {0 x, v : Type} ->
+  (v -> x) -> (FreeNatO v -> x -> x) -> x -> FreeNatO v -> x
+natOFoldFree subst op e (InFreeM $ InTF $ Left var) =
+  subst var
+natOFoldFree subst op e (InFreeM $ InTF $ Right $ Left ()) =
+  e
+natOFoldFree subst op e (InFreeM $ InTF $ Right $ Right n) =
+  natOFoldFree subst op (op n e) n
+
+public export
+natOFold : {0 x : Type} -> (MuNatO -> x -> x) -> x -> MuNatO -> x
+natOFold {x} = natOFoldFree {x} {v=Void} (voidF x)
 
 public export
 natOCata : FromInitialFAlg NatOF
