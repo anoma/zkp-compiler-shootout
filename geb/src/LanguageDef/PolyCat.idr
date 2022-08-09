@@ -1085,6 +1085,12 @@ NatO1 : {0 x : Type} -> FreeNatO x
 NatO1 = NatOS NatO0
 
 public export
+natOFold : {0 x : Type} -> (x -> x) -> MuNatO -> x -> x
+natOFold {x} op (InFreeM $ InTF $ Left v) e = void v
+natOFold {x} op (InFreeM $ InTF $ Right $ Left ()) e = e
+natOFold {x} op (InFreeM $ InTF $ Right $ Right n) e = natOFold {x} op n (op e)
+
+public export
 natOCata : FromInitialFAlg NatOF
 natOCata x alg (InFreeM $ InTF $ Left v) = void v
 natOCata x alg (InFreeM $ InTF $ Right c) = alg $ case c of
@@ -1180,23 +1186,23 @@ natSum = natOCataC natSumAlg
 
 public export
 natMulAlg : NatOAlgC (MuNatO -> MuNatO)
-natMulAlg = (const NatO0, \alg, n => natSum (alg n) n)
+natMulAlg = (const NatO0, (\alg, n => natSum (alg n) n))
 
 public export
 natMul : MuNatO -> MuNatO -> MuNatO
 natMul = natOCataC natMulAlg
 
 public export
-natRaiseToAlg : NatOAlgC (MuNatO -> MuNatO)
-natRaiseToAlg = (const NatO1, \alg, n => natMul (alg n) n)
+natHomObjAlg : NatOAlgC (MuNatO -> MuNatO)
+natHomObjAlg = (const NatO1, (\alg, n => natMul (alg n) n))
 
 public export
-natRaiseTo : MuNatO -> MuNatO -> MuNatO
-natRaiseTo = natOCataC natRaiseToAlg
+natHomObj : MuNatO -> MuNatO -> MuNatO
+natHomObj = natOCataC natHomObjAlg
 
 public export
 natPow : MuNatO -> MuNatO -> MuNatO
-natPow = flip natRaiseTo
+natPow = flip natHomObj
 
 --------------------------------------------------------
 ---- Bounded natural numbers from directed colimits ----
@@ -1359,11 +1365,15 @@ natDepAna coalg (n ** x) with (coalg n x)
   natDepAna coalg (n ** x) | Just x' = Delay (natDepAna coalg (S n ** x'))
 
 public export
+NatDepGenAlgebra : NatSliceObj -> Type
+NatDepGenAlgebra p =
+  (p Z, (n : Nat) -> ((m : Nat) -> LTE m n -> p m) -> p (S n))
+
+public export
 natGenIndStrengthened : {0 p : NatSliceObj} ->
-  (p 0) ->
-  ((n : Nat) -> ((m : Nat) -> LTE m n -> p m) -> p (S n)) ->
+  NatDepGenAlgebra p ->
   (x : Nat) -> (y : Nat) -> LTE y x -> p y
-natGenIndStrengthened {p} p0 pS =
+natGenIndStrengthened {p} (p0, pS) =
   natDepCata
     {p=(\x => (y : Nat) -> LTE y x -> p y)}
     (\n, lte => replace {p} (lteZeroIsZero lte) p0,
@@ -1373,10 +1383,9 @@ natGenIndStrengthened {p} p0 pS =
 
 public export
 natGenInd : {0 p : NatSliceObj} ->
-  (p 0) ->
-  ((n : Nat) -> ((m : Nat) -> LTE m n -> p m) -> p (S n)) ->
-  (k : Nat) -> p k
-natGenInd p0 pS k = natGenIndStrengthened p0 pS k k reflexive
+  NatDepGenAlgebra p ->
+  NatPi p
+natGenInd alg k = natGenIndStrengthened alg k k reflexive
 
 -----------------------
 ---- Non-dependent ----

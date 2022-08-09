@@ -685,6 +685,7 @@ polyCatTest = do
   putStrLn "MuNatO"
   putStrLn "------"
   putStrLn $ show (natToMu 10)
+  putStrLn $ show $ muToNat $ natHomObj (natToMu 3) (natToMu 4)
   putStrLn $ show testPre0
   putStrLn $ showPreMeta 1 testPre0
   putStrLn $ show testPre1
