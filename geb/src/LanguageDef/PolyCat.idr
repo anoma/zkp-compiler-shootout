@@ -1396,6 +1396,13 @@ data FinSubstT : (0 cardinality, depth : Nat) -> Type where
     FinSubstT cx dx -> FinSubstT cy dy -> FinSubstT (cx * cy) (smax dx dy)
 
 public export
+interpFinSubst : {0 c, d : Nat} -> FinSubstT c d -> Type
+interpFinSubst FinInitial = Void
+interpFinSubst FinTerminal = Unit
+interpFinSubst (FinCoproduct x y) = Either (interpFinSubst x) (interpFinSubst y)
+interpFinSubst (FinProduct x y) = Pair (interpFinSubst x) (interpFinSubst y)
+
+public export
 data FinSubstTerm : {0 c, d : Nat} -> FinSubstT c d -> Type where
   FinUnit : FinSubstTerm FinTerminal
   FinLeft :
@@ -1410,13 +1417,6 @@ data FinSubstTerm : {0 c, d : Nat} -> FinSubstT c d -> Type where
     {0 cx, dx, cy, dy : Nat} ->
     {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
     FinSubstTerm x -> FinSubstTerm y -> FinSubstTerm (FinProduct x y)
-
-public export
-interpFinSubst : {0 c, d : Nat} -> FinSubstT c d -> Type
-interpFinSubst FinInitial = Void
-interpFinSubst FinTerminal = Unit
-interpFinSubst (FinCoproduct x y) = Either (interpFinSubst x) (interpFinSubst y)
-interpFinSubst (FinProduct x y) = Pair (interpFinSubst x) (interpFinSubst y)
 
 mutual
   public export
