@@ -1387,75 +1387,101 @@ natAna coalg nx =
 -- and coproducts, and products, which is indexed by a natural-number size
 -- (which is the cardinality of the set of the type's elements).
 public export
-data FinSubstT : (0 cardinality : Nat) -> Type where
-  FinInitial : FinSubstT 0
-  FinTerminal : FinSubstT 1
-  FinCoproduct : {0 cx, cy : Nat} ->
-    FinSubstT cx -> FinSubstT cy -> FinSubstT (cx + cy)
-  FinProduct : {0 cx, cy : Nat} ->
-    FinSubstT cx -> FinSubstT cy -> FinSubstT (cx * cy)
+data FinSubstT : (0 cardinality, depth : Nat) -> Type where
+  FinInitial : FinSubstT 0 0
+  FinTerminal : FinSubstT 1 0
+  FinCoproduct : {0 cx, dx, cy, dy : Nat} ->
+    FinSubstT cx dx -> FinSubstT cy dy -> FinSubstT (cx + cy) (smax dx dy)
+  FinProduct : {0 cx, dx, cy, dy : Nat} ->
+    FinSubstT cx dx -> FinSubstT cy dy -> FinSubstT (cx * cy) (smax dx dy)
 
 public export
-interpFinSubst : {0 n : Nat} -> FinSubstT n -> Type
+interpFinSubst : {0 c, d : Nat} -> FinSubstT c d -> Type
 interpFinSubst FinInitial = Void
 interpFinSubst FinTerminal = Unit
 interpFinSubst (FinCoproduct x y) = Either (interpFinSubst x) (interpFinSubst y)
 interpFinSubst (FinProduct x y) = Pair (interpFinSubst x) (interpFinSubst y)
 
 public export
-data FinSubstMorph : {0 cx, cy : Nat} ->
-    (0 depth : Nat) -> FinSubstT cx -> FinSubstT cy -> Type where
-  FinId : {0 cx : Nat} -> (x : FinSubstT cx) -> FinSubstMorph {cx} {cy=cx} 0 x x
-  FinCompose : {0 cx, cy, cz : Nat} -> {0 dg, df : Nat} ->
-    {x : FinSubstT cx} -> {y : FinSubstT cy} -> {z : FinSubstT cz} ->
+data FinSubstMorph : {0 cx, dx, cy, dy : Nat} ->
+    (0 depth : Nat) -> FinSubstT cx dx -> FinSubstT cy dy -> Type where
+  FinId : {0 cx, dx : Nat} ->
+    (x : FinSubstT cx dx) -> FinSubstMorph {cx} {cy=cx} 0 x x
+  FinCompose : {0 cx, dx, cy, dy, cz, dz : Nat} -> {0 dg, df : Nat} ->
+    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} -> {z : FinSubstT cz dz} ->
     FinSubstMorph dg y z -> FinSubstMorph df x y ->
     FinSubstMorph (smax dg df) x z
-  FinFromInit : {0 cy : Nat} -> (y : FinSubstT cy) ->
+  FinFromInit : {0 cy, dy : Nat} -> (y : FinSubstT cy dy) ->
     FinSubstMorph {cx=0} {cy} 0 FinInitial y
-  FinToTerminal : {0 cx : Nat} -> (x : FinSubstT cx) ->
+  FinToTerminal : {0 cx, dx : Nat} -> (x : FinSubstT cx dx) ->
     FinSubstMorph {cx} {cy=1} 0 x FinTerminal
-  FinInjLeft : {0 cx, cy : Nat} -> (x : FinSubstT cx) -> (y : FinSubstT cy) ->
+  FinInjLeft : {0 cx, dx, cy, dy : Nat} ->
+    (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
     FinSubstMorph {cx} {cy=(cx + cy)} 0 x (FinCoproduct {cx} {cy} x y)
-  FinInjRight : {0 cx, cy : Nat} -> (x : FinSubstT cx) -> (y : FinSubstT cy) ->
+  FinInjRight : {0 cx, dx, cy, dy : Nat} ->
+    (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
     FinSubstMorph {cx=cy} {cy=(cx + cy)} 0 y (FinCoproduct {cx} {cy} x y)
-  FinCase : {0 cx, cy, cz : Nat} -> {0 df, dg : Nat} ->
-    {x : FinSubstT cx} -> {y : FinSubstT cy} -> {z : FinSubstT cz} ->
+  FinCase : {0 cx, dx, cy, dy, cz, dz : Nat} -> {0 df, dg : Nat} ->
+    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} -> {z : FinSubstT cz dz} ->
     FinSubstMorph {cx} {cy=cz} df x z ->
     FinSubstMorph {cx=cy} {cy=cz} dg y z ->
     FinSubstMorph {cx=(cx + cy)} {cy=cz}
       (smax df dg) (FinCoproduct {cx} {cy} x y) z
-  FinProd : {0 cx, cy, cz : Nat} -> {0 df, dg : Nat} ->
-    {x : FinSubstT cx} -> {y : FinSubstT cy} -> {z : FinSubstT cz} ->
+  FinProd : {0 cx, dx, cy, dy, cz, dz : Nat} -> {0 df, dg : Nat} ->
+    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} -> {z : FinSubstT cz dz} ->
     FinSubstMorph {cx} {cy} df x y ->
     FinSubstMorph {cx} {cy=cz} dg x z ->
     FinSubstMorph {cx} {cy=(cy * cz)} (smax df dg) x
       (FinProduct {cx=cy} {cy=cz} y z)
-  FinProjLeft : {0 cx, cy : Nat} -> (x : FinSubstT cx) -> (y : FinSubstT cy) ->
+  FinProjLeft : {0 cx, dx, cy, dy : Nat} ->
+    (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
     FinSubstMorph {cx=(cx * cy)} {cy=cx} 0 (FinProduct {cx} {cy} x y) x
-  FinProjRight : {0 cx, cy : Nat} -> (x : FinSubstT cx) -> (y : FinSubstT cy) ->
+  FinProjRight : {0 cx, dx, cy, dy : Nat} ->
+    (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
     FinSubstMorph {cx=(cx * cy)} {cy} 0 (FinProduct {cx} {cy} x y) y
 
 public export
-0 finSubstHomObjCard : {0 cx, cy : Nat} ->
-  FinSubstT cx -> FinSubstT cy -> Nat
+0 finSubstHomObjCard : {0 cx, dx, cy, dy : Nat} ->
+  FinSubstT cx dx -> FinSubstT cy dy -> Nat
 finSubstHomObjCard {cx} {cy} _ _ = power cy cx
 
 -- Compute the exponential object of given finite substitutive type.
 public export
-FinSubstHomObj : {0 cx, cy : Nat} ->
-  (x : FinSubstT cx) -> (y : FinSubstT cy) -> FinSubstT (finSubstHomObjCard x y)
+FinSubstHomDepthObj : {0 cx, dx, cy, dy : Nat} ->
+  (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
+  Exists0 Nat (FinSubstT (finSubstHomObjCard x y))
 -- 0 -> x == 1
-FinSubstHomObj FinInitial x = FinTerminal
+FinSubstHomDepthObj FinInitial x =
+  (Evidence0 0 FinTerminal)
 -- 1 -> x == x
-FinSubstHomObj {cy} FinTerminal x = rewrite multOneRightNeutral cy in x
+FinSubstHomDepthObj {cy} {dy} FinTerminal x =
+  rewrite multOneRightNeutral cy in (Evidence0 dy x)
 -- (x + y) -> z == (x -> z) * (y -> z)
-FinSubstHomObj {cx=(cx + cy)} {cy=cz} (FinCoproduct x y) z =
-  rewrite powerOfSum cz cx cy in
-  FinProduct (FinSubstHomObj x z) (FinSubstHomObj y z)
+FinSubstHomDepthObj {cx=(cx + cy)} {cy=cz} (FinCoproduct x y) z with
+  (FinSubstHomDepthObj x z, FinSubstHomDepthObj y z)
+    FinSubstHomDepthObj {cx=(cx + cy)} {cy=cz} (FinCoproduct x y) z |
+      (Evidence0 dxz hxz, Evidence0 dyz hyz) =
+        rewrite powerOfSum cz cx cy in
+        Evidence0 (smax dxz dyz) (FinProduct hxz hyz)
+  -- FinProduct (FinSubstHomDepthObj x z) (FinSubstHomDepthObj y z)
 -- (x * y) -> z == x -> y -> z
-FinSubstHomObj {cx=(cx * cy)} {cy=cz} (FinProduct x y) z =
-  rewrite powerOfMulSym cz cx cy in
-  FinSubstHomObj x (FinSubstHomObj y z)
+FinSubstHomDepthObj {cx=(cx * cy)} {dx=(smax dx dy)} {cy=cz} {dy=dz} (FinProduct x y) z with
+  (FinSubstHomDepthObj y z)
+    FinSubstHomDepthObj {cx=(cx * cy)} {dx=(smax dx dy)} {cy=cz} {dy=dz} (FinProduct x y) z |
+      (Evidence0 dyz hyz) =
+        rewrite powerOfMulSym cz cx cy in
+        FinSubstHomDepthObj {dx} {dy=dyz} x hyz
+
+public export
+0 finSubstHomObjDepth : {0 cx, dx, cy, dy : Nat} ->
+  FinSubstT cx dx -> FinSubstT cy dy -> Nat
+finSubstHomObjDepth x y = fst0 $ FinSubstHomDepthObj x y
+
+public export
+finSubstHomObj : {0 cx, dx, cy, dy : Nat} ->
+  (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
+  FinSubstT (finSubstHomObjCard x y) (finSubstHomObjDepth x y)
+finSubstHomObj x y = snd0 $ FinSubstHomDepthObj x y
 
 ------------------------------------------------------
 ------------------------------------------------------

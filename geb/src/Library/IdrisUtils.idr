@@ -84,6 +84,14 @@ public export
 Show type => Show (Subset0 type dep) where
   show = show . fst0
 
+-- Like Idris's standard `Exists`, but with the `this` dependent type
+-- taking a zero-usage type parameter.
+public export
+record Exists0 (0 type : Type) (this : (0 _ : type) -> Type) where
+  constructor Evidence0
+  0 fst0 : type
+  snd0 : this fst0
+
 public export
 DecNonZero : (n : Nat) -> Dec (NonZero n)
 DecNonZero Z = No $ \nzz => case nzz of SIsNonZero impossible
