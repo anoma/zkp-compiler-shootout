@@ -1418,6 +1418,42 @@ interpFinSubst FinTerminal = Unit
 interpFinSubst (FinCoproduct x y) = Either (interpFinSubst x) (interpFinSubst y)
 interpFinSubst (FinProduct x y) = Pair (interpFinSubst x) (interpFinSubst y)
 
+mutual
+  public export
+  interpFinSubstTerm : {0 c, d : Nat} -> {x : FinSubstT c d} ->
+    FinSubstTerm x -> interpFinSubst {c} {d} x
+  interpFinSubstTerm {x=FinInitial} = interpFinInitial
+  interpFinSubstTerm {x=FinTerminal} = interpFinTerminal
+  interpFinSubstTerm {x=(FinCoproduct x y)} = interpFinCoproduct {x} {y}
+  interpFinSubstTerm {x=(FinProduct x y)} = interpFinProduct {x} {y}
+
+  public export
+  interpFinInitial : FinSubstTerm FinInitial -> interpFinSubst FinInitial
+  interpFinInitial FinUnit impossible
+  interpFinInitial (FinLeft x) impossible
+  interpFinInitial (FinRight x) impossible
+  interpFinInitial (FinPair x y) impossible
+
+  public export
+  interpFinTerminal : FinSubstTerm FinTerminal -> interpFinSubst FinTerminal
+  interpFinTerminal FinUnit = ()
+
+  public export
+  interpFinCoproduct : {0 cx, dx, cy, dy : Nat} ->
+    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
+    FinSubstTerm (FinCoproduct x y) ->
+    interpFinSubst (FinCoproduct x y)
+  interpFinCoproduct (FinLeft t) = Left $ interpFinSubstTerm t
+  interpFinCoproduct (FinRight t) = Right $ interpFinSubstTerm t
+
+  public export
+  interpFinProduct : {0 cx, dx, cy, dy : Nat} ->
+    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
+    FinSubstTerm (FinProduct x y) ->
+    interpFinSubst (FinProduct x y)
+  interpFinProduct (FinPair t t') =
+    (interpFinSubstTerm t, interpFinSubstTerm t')
+
 public export
 data FinSubstMorph : {0 cx, dx, cy, dy : Nat} ->
     (0 depth : Nat) -> FinSubstT cx dx -> FinSubstT cy dy -> Type where
