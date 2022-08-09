@@ -1396,11 +1396,29 @@ data FinSubstT : (0 cardinality, depth : Nat) -> Type where
     FinSubstT cx dx -> FinSubstT cy dy -> FinSubstT (cx * cy) (smax dx dy)
 
 public export
+record FSAlg (0 a : Type) where
+  constructor MkFSAlg
+  fsInitialAlg : a
+  fsTerminalAlg : a
+  fsCoproductAlg : a -> a -> a
+  fsProductAlg : a -> a -> a
+
+public export
+finSubstCata :
+  {0 a : Type} ->
+  FSAlg a ->
+  {0 cardinality, depth : Nat} ->
+  FinSubstT cardinality depth -> a
+finSubstCata alg FinInitial = alg.fsInitialAlg
+finSubstCata alg FinTerminal = alg.fsTerminalAlg
+finSubstCata alg (FinCoproduct x y) =
+  alg.fsCoproductAlg (finSubstCata alg x) (finSubstCata alg y)
+finSubstCata alg (FinProduct x y) =
+  alg.fsProductAlg (finSubstCata alg x) (finSubstCata alg y)
+
+public export
 interpFinSubst : {0 c, d : Nat} -> FinSubstT c d -> Type
-interpFinSubst FinInitial = Void
-interpFinSubst FinTerminal = Unit
-interpFinSubst (FinCoproduct x y) = Either (interpFinSubst x) (interpFinSubst y)
-interpFinSubst (FinProduct x y) = Pair (interpFinSubst x) (interpFinSubst y)
+interpFinSubst = finSubstCata $ MkFSAlg Void Unit Either Pair
 
 public export
 data FinSubstTerm : {0 c, d : Nat} -> FinSubstT c d -> Type where
