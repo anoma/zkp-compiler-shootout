@@ -1085,14 +1085,23 @@ NatO1 : {0 x : Type} -> FreeNatO x
 NatO1 = NatOS NatO0
 
 public export
+natOFoldFreeIdx : {0 x, v : Type} ->
+  (v -> x) -> (FreeNatO v -> x -> x) -> FreeNatO v -> x -> FreeNatO v -> x
+natOFoldFreeIdx subst op idx e (InFreeM $ InTF $ Left var) =
+  subst var
+natOFoldFreeIdx subst op idx e (InFreeM $ InTF $ Right $ Left ()) =
+  e
+natOFoldFreeIdx subst op idx e (InFreeM $ InTF $ Right $ Right n) =
+  natOFoldFreeIdx subst op (NatOS idx) (op idx e) n
+
+public export
 natOFoldFree : {0 x, v : Type} ->
   (v -> x) -> (FreeNatO v -> x -> x) -> x -> FreeNatO v -> x
-natOFoldFree subst op e (InFreeM $ InTF $ Left var) =
-  subst var
-natOFoldFree subst op e (InFreeM $ InTF $ Right $ Left ()) =
-  e
-natOFoldFree subst op e (InFreeM $ InTF $ Right $ Right n) =
-  natOFoldFree subst op (op n e) n
+natOFoldFree subst op = natOFoldFreeIdx subst op NatO0
+
+public export
+natOFoldIdx : {0 x : Type} -> (MuNatO -> x -> x) -> MuNatO -> x -> MuNatO -> x
+natOFoldIdx {x} = natOFoldFreeIdx {x} {v=Void} (voidF x)
 
 public export
 natOFold : {0 x : Type} -> (MuNatO -> x -> x) -> x -> MuNatO -> x
