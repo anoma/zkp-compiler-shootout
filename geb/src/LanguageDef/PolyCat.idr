@@ -1422,12 +1422,14 @@ data FinSubstMorph : {0 cx, cy : Nat} ->
     {x : FinSubstT cx} -> {y : FinSubstT cy} -> {z : FinSubstT cz} ->
     FinSubstMorph {cx} {cy=cz} df x z ->
     FinSubstMorph {cx=cy} {cy=cz} dg y z ->
-    FinSubstMorph {cx=(cx + cy)} {cy=cz} (smax df dg) (FinCoproduct {cx} {cy} x y) z
+    FinSubstMorph {cx=(cx + cy)} {cy=cz}
+      (smax df dg) (FinCoproduct {cx} {cy} x y) z
   FinProd : {0 cx, cy, cz : Nat} -> {0 df, dg : Nat} ->
     {x : FinSubstT cx} -> {y : FinSubstT cy} -> {z : FinSubstT cz} ->
     FinSubstMorph {cx} {cy} df x y ->
     FinSubstMorph {cx} {cy=cz} dg x z ->
-    FinSubstMorph {cx} {cy=(cy * cz)} (smax df dg) x (FinProduct {cx=cy} {cy=cz} y z)
+    FinSubstMorph {cx} {cy=(cy * cz)} (smax df dg) x
+      (FinProduct {cx=cy} {cy=cz} y z)
   FinProjLeft : {0 cx, cy : Nat} -> (x : FinSubstT cx) -> (y : FinSubstT cy) ->
     FinSubstMorph {cx=(cx * cy)} {cy=cx} 0 (FinProduct {cx} {cy} x y) x
   FinProjRight : {0 cx, cy : Nat} -> (x : FinSubstT cx) -> (y : FinSubstT cy) ->
