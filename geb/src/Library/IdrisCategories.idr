@@ -3957,6 +3957,27 @@ depPrefixContraMapFromLists :
 depPrefixContraMapFromLists domDir codDir posMap =
   depPrefixContraMapFromListsRev domDir codDir posMap . reverse
 
+------------------------------------------
+------------------------------------------
+---- Types founded in natural numbers ----
+------------------------------------------
+------------------------------------------
+
+public export
+natFoldIdx : {0 x : Type} -> (Nat -> x -> x) -> x -> Nat -> Nat -> x
+natFoldIdx op acc idx Z = acc
+natFoldIdx op acc idx (S n) = natFoldIdx op (op idx acc) (S idx) n
+
+public export
+record NatFoldAlg (0 x : Type) where
+  constructor MkNatFold
+  nfOp : Nat -> x -> x
+  nfZero : x
+
+public export
+natFold : {0 x : Type} -> NatFoldAlg x -> Nat -> x
+natFold {x} (MkNatFold op z) = natFoldIdx op z Z
+
 --------------------------------
 ---- Dependent endofunctors ----
 --------------------------------

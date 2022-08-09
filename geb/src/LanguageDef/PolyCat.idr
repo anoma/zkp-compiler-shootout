@@ -267,78 +267,6 @@ CoequalizedF :
 CoequalizedF {f} {predf} normalizerf (a ** fn) =
   (CoequalizableF {f} predf a ** normalizerf a fn)
 
------------------------------------------------------------
------------------------------------------------------------
----- Idris representation of substitutive finite topos ----
------------------------------------------------------------
------------------------------------------------------------
-
--- A finite type, generated only from initial and terminal objects
--- and coproducts, and products, which is indexed by a natural-number size
--- (which is the cardinality of the set of the type's elements).
-public export
-data FinSubstT : Nat -> Type where
-  FinInitial : FinSubstT 0
-  FinTerminal : FinSubstT 1
-  FinCoproduct : {0 c, c' : Nat} ->
-    FinSubstT c -> FinSubstT c' -> FinSubstT (c + c')
-  FinProduct : {0 c, c' : Nat} ->
-    FinSubstT c -> FinSubstT c' -> FinSubstT (c * c')
-
-public export
-interpFinSubst : {0 n : Nat} -> FinSubstT n -> Type
-interpFinSubst FinInitial = Void
-interpFinSubst FinTerminal = Unit
-interpFinSubst (FinCoproduct x y) = Either (interpFinSubst x) (interpFinSubst y)
-interpFinSubst (FinProduct x y) = Pair (interpFinSubst x) (interpFinSubst y)
-
-public export
-data FinSubstMorph : {0 cx, cy : Nat} ->
-    FinSubstT cx -> FinSubstT cy -> Type where
-
-public export
-0 finSubstHomObjCard : {0 cx, cy : Nat} ->
-  FinSubstT cx -> FinSubstT cy -> Nat
-finSubstHomObjCard {cx} {cy} _ _ = power cy cx
-
--- Compute the exponential object of given finite substitutive type.
-public export
-FinSubstHomObj : {0 cx, cy : Nat} ->
-  (x : FinSubstT cx) -> (y : FinSubstT cy) -> FinSubstT (finSubstHomObjCard x y)
--- 0 -> x == 1
-FinSubstHomObj FinInitial x = FinTerminal
--- 1 -> x == x
-FinSubstHomObj {cy} FinTerminal x = rewrite multOneRightNeutral cy in x
--- (x + y) -> z == (x -> z) * (y -> z)
-FinSubstHomObj {cx=(cx + cy)} {cy=cz} (FinCoproduct x y) z =
-  rewrite powerOfSum cz cx cy in
-  FinProduct (FinSubstHomObj x z) (FinSubstHomObj y z)
--- (x * y) -> z == x -> y -> z
-FinSubstHomObj {cx=(cx * cy)} {cy=cz} (FinProduct x y) z =
-  rewrite powerOfMulSym cz cx cy in
-  FinSubstHomObj x (FinSubstHomObj y z)
-
-public export
-morphToHom : {0 cx, cy : Nat} -> {x : FinSubstT cx} -> {y : FinSubstT cy} ->
-  FinSubstMorph x y -> interpFinSubst (FinSubstHomObj x y)
-morphToHom {x} {y} m = ?morphToHom_hole
-
-public export
-homToMorph : {0 cx, cy : Nat} -> {x : FinSubstT cx} -> {y : FinSubstT cy} ->
-  interpFinSubst (FinSubstHomObj x y) -> FinSubstMorph x y
-homToMorph {x} {y} m = ?homToMorph_hole
-
-public export
-finSubstEval : {0 cx, cy : Nat} -> (x : FinSubstT cx) -> (y : FinSubstT cy) ->
-  FinSubstMorph (FinProduct (FinSubstHomObj x y) x) y
-finSubstEval x y = ?finSubstEval_hole
-
-public export
-finSubstCurry : {0 cx, cy, cz : Nat} ->
-  {x : FinSubstT cx} -> {y : FinSubstT cy} -> {z : FinSubstT cz} ->
-  FinSubstMorph (FinProduct x y) z -> FinSubstMorph x (FinSubstHomObj y z)
-finSubstCurry {x} {y} {z} f = ?finSubstCurry_hole
-
 ------------------------
 ------------------------
 ---- F-(co)algebras ----
@@ -732,6 +660,16 @@ SOProduct (Right t) (Right t') = Right $ ISOProduct t t'
 ---- Properties of substitution category ----
 ---------------------------------------------
 
+public export
+isubstOShowAlg : ISubstOAlg String
+isubstOShowAlg (Left ()) = show 1
+isubstOShowAlg (Right (Left (m, n))) = "(" ++ m ++ " + " ++ n ++ ")"
+isubstOShowAlg (Right (Right (m, n))) = "(" ++ m ++ " * " ++ n ++ ")"
+
+public export
+Show MuISubstO where
+  show = isubstOCata String isubstOShowAlg
+
 -- Depths of inhabited types begin at 1 -- depth 0 is the initial
 -- object, before any iterations of SubstObjF have been applied,
 -- and the initial object is uninhabited (it's Void).
@@ -748,6 +686,20 @@ isubstODepth = isubstOCata Nat isubstODepthAlg
 public export
 substODepth : SubstObj -> Nat
 substODepth = eitherElim (const 1) isubstODepth
+
+public export
+isubstOCardAlg : ISubstOAlg Nat
+isubstOCardAlg (Left ()) = 1
+isubstOCardAlg (Right (Left (m, n))) = m + n
+isubstOCardAlg (Right (Right (m, n))) = m * n
+
+public export
+isubstOCard : MuISubstO -> Nat
+isubstOCard = isubstOCata Nat isubstOCardAlg
+
+public export
+substOCard : SubstObj -> Nat
+substOCard = eitherElim (const 0) isubstOCard
 
 -------------------------------------------------
 ---- Interpretation of substitution category ----
@@ -1424,6 +1376,101 @@ public export
 natAna : {0 a : Type} -> NatCoalgebra a -> (Nat, a) -> Inf (Maybe (Nat, a))
 natAna coalg nx =
   map {f=Maybe} SigmaToPair $ natDepAna {p=(const a)} coalg $ PairToSigma nx
+
+-----------------------------------------------------------
+-----------------------------------------------------------
+---- Idris representation of substitutive finite topos ----
+-----------------------------------------------------------
+-----------------------------------------------------------
+
+-- A finite type, generated only from initial and terminal objects
+-- and coproducts, and products, which is indexed by a natural-number size
+-- (which is the cardinality of the set of the type's elements).
+public export
+data FinSubstT : (0 _ : Nat) -> Type where
+  FinInitial : FinSubstT 0
+  FinTerminal : FinSubstT 1
+  FinCoproduct : {0 cx, cy : Nat} ->
+    FinSubstT cx -> FinSubstT cy -> FinSubstT (cx + cy)
+  FinProduct : {0 cx, cy : Nat} ->
+    FinSubstT cx -> FinSubstT cy -> FinSubstT (cx * cy)
+
+public export
+interpFinSubst : {0 n : Nat} -> FinSubstT n -> Type
+interpFinSubst FinInitial = Void
+interpFinSubst FinTerminal = Unit
+interpFinSubst (FinCoproduct x y) = Either (interpFinSubst x) (interpFinSubst y)
+interpFinSubst (FinProduct x y) = Pair (interpFinSubst x) (interpFinSubst y)
+
+public export
+data FinSubstMorph : {0 cx, cy : Nat} ->
+    FinSubstT cx -> FinSubstT cy -> Type where
+  FinId : {0 cx : Nat} -> (x : FinSubstT cx) -> FinSubstMorph {cx} {cy=cx} x x
+  FinFromInit : {0 cy : Nat} -> (y : FinSubstT cy) ->
+    FinSubstMorph {cx=0} {cy} FinInitial y
+  FinToTerminal : {0 cx : Nat} -> (x : FinSubstT cx) ->
+    FinSubstMorph {cx} {cy=1} x FinTerminal
+  FinInjLeft : {0 cx, cy : Nat} -> (x : FinSubstT cx) -> (y : FinSubstT cy) ->
+    FinSubstMorph {cx} {cy=(cx + cy)} x (FinCoproduct {cx} {cy} x y)
+  FinInjRight : {0 cx, cy : Nat} -> (x : FinSubstT cx) -> (y : FinSubstT cy) ->
+    FinSubstMorph {cx=cy} {cy=(cx + cy)} y (FinCoproduct {cx} {cy} x y)
+  FinCase : {0 cx, cy, cz : Nat} ->
+    {x : FinSubstT cx} -> {y : FinSubstT cy} -> {z : FinSubstT cz} ->
+    FinSubstMorph {cx} {cy=cz} x z ->
+    FinSubstMorph {cx=cy} {cy=cz} y z ->
+    FinSubstMorph {cx=(cx + cy)} {cy=cz} (FinCoproduct {cx} {cy} x y) z
+  FinProd : {0 cx, cy, cz : Nat} ->
+    {x : FinSubstT cx} -> {y : FinSubstT cy} -> {z : FinSubstT cz} ->
+    FinSubstMorph {cx} {cy} x y ->
+    FinSubstMorph {cx} {cy=cz} x z ->
+    FinSubstMorph {cx} {cy=(cy * cz)} x (FinProduct {cx=cy} {cy=cz} y z)
+  FinProjLeft : {0 cx, cy : Nat} -> (x : FinSubstT cx) -> (y : FinSubstT cy) ->
+    FinSubstMorph {cx=(cx * cy)} {cy=cx} (FinProduct {cx} {cy} x y) x
+  FinProjRight : {0 cx, cy : Nat} -> (x : FinSubstT cx) -> (y : FinSubstT cy) ->
+    FinSubstMorph {cx=(cx * cy)} {cy} (FinProduct {cx} {cy} x y) y
+
+public export
+0 finSubstHomObjCard : {0 cx, cy : Nat} ->
+  FinSubstT cx -> FinSubstT cy -> Nat
+finSubstHomObjCard {cx} {cy} _ _ = power cy cx
+
+-- Compute the exponential object of given finite substitutive type.
+public export
+FinSubstHomObj : {0 cx, cy : Nat} ->
+  (x : FinSubstT cx) -> (y : FinSubstT cy) -> FinSubstT (finSubstHomObjCard x y)
+-- 0 -> x == 1
+FinSubstHomObj FinInitial x = FinTerminal
+-- 1 -> x == x
+FinSubstHomObj {cy} FinTerminal x = rewrite multOneRightNeutral cy in x
+-- (x + y) -> z == (x -> z) * (y -> z)
+FinSubstHomObj {cx=(cx + cy)} {cy=cz} (FinCoproduct x y) z =
+  rewrite powerOfSum cz cx cy in
+  FinProduct (FinSubstHomObj x z) (FinSubstHomObj y z)
+-- (x * y) -> z == x -> y -> z
+FinSubstHomObj {cx=(cx * cy)} {cy=cz} (FinProduct x y) z =
+  rewrite powerOfMulSym cz cx cy in
+  FinSubstHomObj x (FinSubstHomObj y z)
+
+public export
+morphToHom : {0 cx, cy : Nat} -> {x : FinSubstT cx} -> {y : FinSubstT cy} ->
+  FinSubstMorph x y -> interpFinSubst (FinSubstHomObj x y)
+morphToHom {x} {y} m = ?morphToHom_hole
+
+public export
+homToMorph : {0 cx, cy : Nat} -> {x : FinSubstT cx} -> {y : FinSubstT cy} ->
+  interpFinSubst (FinSubstHomObj x y) -> FinSubstMorph x y
+homToMorph {x} {y} m = ?homToMorph_hole
+
+public export
+finSubstEval : {0 cx, cy : Nat} -> (x : FinSubstT cx) -> (y : FinSubstT cy) ->
+  FinSubstMorph (FinProduct (FinSubstHomObj x y) x) y
+finSubstEval x y = ?finSubstEval_hole
+
+public export
+finSubstCurry : {0 cx, cy, cz : Nat} ->
+  {x : FinSubstT cx} -> {y : FinSubstT cy} -> {z : FinSubstT cz} ->
+  FinSubstMorph (FinProduct x y) z -> FinSubstMorph x (FinSubstHomObj y z)
+finSubstCurry {x} {y} {z} f = ?finSubstCurry_hole
 
 ------------------------------------------------------
 ------------------------------------------------------

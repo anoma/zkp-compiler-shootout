@@ -5,6 +5,8 @@ import LanguageDef.PolyCat
 
 %default total
 
+{- XXX
+
 testBN0 : BoundedNat 7
 testBN0 = MkBoundedNat 5
 
@@ -604,6 +606,44 @@ testARNM3 = Right testRNM15
 testARNM3Sig : Assertion
 testARNM3Sig = Assert $
   arnmCheck testARNM3 == Just (Just (4, 8), Just (92, 2764))
+  XXX -}
+
+------------------
+---- SubstObj ----
+------------------
+
+testSO0 : MuISubstO
+testSO0 = ISOCoproduct ISOTerminal ISOTerminal
+
+testSO1 : MuISubstO
+testSO1 = ISOProduct testSO0 testSO0
+
+testSO2 : MuISubstO
+testSO2 = ISOCoproduct testSO0 ISOTerminal
+
+testSO3 : MuISubstO
+testSO3 = isubstOHomObj testSO1 testSO2
+
+testSO4 : MuISubstO
+testSO4 = isubstOHomObj testSO2 testSO1
+
+testSO5 : MuISubstO
+testSO5 = isubstOHomObj testSO0 testSO2
+
+testSO6 : MuISubstO
+testSO6 = isubstOHomObj testSO0 testSO0
+
+testSO7 : MuISubstO
+testSO7 = ISOProduct testSO0 ISOTerminal
+
+testSO8 : MuISubstO
+testSO8 = isubstOHomObj testSO0 testSO7
+
+testSO9 : MuISubstO
+testSO9 = isubstOHomObj testSO2 testSO2
+
+----------------------------------
+----------------------------------
 
 ----------------------------------
 ----------------------------------
@@ -619,6 +659,7 @@ polyCatTest = do
   putStrLn "Begin polyCatTest:"
   putStrLn "------------------"
   putStrLn ""
+  {- XXX
   putStrLn "--------------------"
   putStrLn "---- BoundedNat ----"
   putStrLn $ show testBN0
@@ -718,6 +759,31 @@ polyCatTest = do
   putStrLn $ show $ testARNM2
   putStrLn $ show $ testARNM3
   putStrLn "-----------------------------------"
+  putStrLn ""
+  XXX -}
+  putStrLn "--------"
+  putStrLn "SubstObj"
+  putStrLn "--------"
+  putStrLn $ show $ isubstODepth testSO0
+  putStrLn $ show $ isubstOCard testSO0
+  putStrLn $ show $ isubstODepth testSO1
+  putStrLn $ show $ isubstOCard testSO1
+  putStrLn $ show $ isubstODepth testSO2
+  putStrLn $ show $ isubstOCard testSO2
+  putStrLn $ show $ isubstODepth testSO3
+  putStrLn $ show $ isubstOCard testSO3
+  putStrLn $ show $ isubstODepth testSO4
+  putStrLn $ show $ isubstOCard testSO4
+  putStrLn $ show $ isubstODepth testSO5
+  putStrLn $ show $ isubstOCard testSO5
+  putStrLn $ show testSO5
+  putStrLn $ show $ isubstOCard testSO6
+  putStrLn $ show testSO6
+  putStrLn $ show $ isubstOCard testSO8
+  putStrLn $ show testSO8
+  putStrLn $ show $ isubstOCard testSO9
+  putStrLn $ show testSO9
+  putStrLn "--------"
   putStrLn ""
   putStrLn "----------------"
   putStrLn "End polyCatTest."
