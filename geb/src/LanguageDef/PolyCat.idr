@@ -1396,29 +1396,34 @@ data FinSubstT : (0 cardinality, depth : Nat) -> Type where
     FinSubstT cx dx -> FinSubstT cy dy -> FinSubstT (cx * cy) (smax dx dy)
 
 public export
-record FSAlg (0 a : Type) where
+record FSAlg (0 a : (0 c, d : Nat) -> FinSubstT c d -> Type) where
   constructor MkFSAlg
-  fsInitialAlg : a
-  fsTerminalAlg : a
-  fsCoproductAlg : a -> a -> a
-  fsProductAlg : a -> a -> a
+  fsInitialAlg : a 0 0 FinInitial
+  fsTerminalAlg : a 1 0 FinTerminal
+  fsCoproductAlg : {0 cx, dx, cy, dy : Nat} ->
+    (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
+    a cx dx x -> a cy dy y -> a (cx + cy) (smax dx dy) (FinCoproduct x y)
+  fsProductAlg : {0 cx, dx, cy, dy : Nat} ->
+    (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
+    a cx dx x -> a cy dy y -> a (cx * cy) (smax dx dy) (FinProduct x y)
 
 public export
 finSubstCata :
-  {0 a : Type} ->
+  {0 a : (0 c, d : Nat) -> FinSubstT c d -> Type} ->
   FSAlg a ->
   {0 cardinality, depth : Nat} ->
-  FinSubstT cardinality depth -> a
+  (x : FinSubstT cardinality depth) -> a cardinality depth x
 finSubstCata alg FinInitial = alg.fsInitialAlg
 finSubstCata alg FinTerminal = alg.fsTerminalAlg
 finSubstCata alg (FinCoproduct x y) =
-  alg.fsCoproductAlg (finSubstCata alg x) (finSubstCata alg y)
+  alg.fsCoproductAlg x y (finSubstCata alg x) (finSubstCata alg y)
 finSubstCata alg (FinProduct x y) =
-  alg.fsProductAlg (finSubstCata alg x) (finSubstCata alg y)
+  alg.fsProductAlg x y (finSubstCata alg x) (finSubstCata alg y)
 
 public export
 interpFinSubst : {0 c, d : Nat} -> FinSubstT c d -> Type
-interpFinSubst = finSubstCata $ MkFSAlg Void Unit Either Pair
+interpFinSubst =
+  finSubstCata $ MkFSAlg Void Unit (const $ const Either) (const $ const Pair)
 
 public export
 data FinSubstTerm : {0 c, d : Nat} -> FinSubstT c d -> Type where
@@ -1510,7 +1515,7 @@ mutual
 
 public export
 InterpTermAlg : FSTAlg (\_, _, x, _ => interpFinSubst x)
-InterpTermAlg = MkFSTAlg () (const Left) (const Right) (const $ const MkPair)
+InterpTermAlg = MkFSTAlg () (\_ => Left) (\_ => Right) (\_, _ => MkPair)
 
 public export
 interpFinSubstTerm : {0 c, d : Nat} -> {x : FinSubstT c d} ->
