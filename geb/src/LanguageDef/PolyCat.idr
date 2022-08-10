@@ -1607,13 +1607,8 @@ FinSubstHomDepthObjEval {cx=(cx + cy)} {cy=cz} (FinCoproduct x y) z with
      (FinProduct hxz hyz ** Evidence0
       (S (max (smax hdxz hdyz) 5))
       $
-      let
-        c = FinCase {x=(FinProduct hxz x)} {y=(FinProduct hyz y)} {z}
-          evalxz evalyz
-        d = FinDistrib (FinProduct hxz hyz) x y
-      in
       rewrite powerOfSum cz cx cy in
-      FinCompose c $ FinCompose
+      FinCompose (FinCase evalxz evalyz) $ FinCompose
         (FinCase
           (FinCompose (FinInjLeft _ _)
             (FinProd (FinCompose (FinProjLeft _ _) (FinProjLeft _ _))
@@ -1621,7 +1616,7 @@ FinSubstHomDepthObjEval {cx=(cx + cy)} {cy=cz} (FinCoproduct x y) z with
           (FinCompose (FinInjRight _ _)
             (FinProd (FinCompose (FinProjRight _ _) (FinProjLeft _ _))
               (FinProjRight _ _))))
-        d))
+        (FinDistrib (FinProduct hxz hyz) x y)))
 -- (x * y) -> z == x -> y -> z
 FinSubstHomDepthObjEval {cx=(cx * cy)} {dx=(smax dx dy)} {cy=cz} {dy=dz}
   (FinProduct x y) z with
