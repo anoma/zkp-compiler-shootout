@@ -1605,7 +1605,7 @@ FinSubstHomDepthObjEval {cx=(cx + cy)} {cy=cz} (FinCoproduct x y) z with
     (Evidence0 dyz (hyz ** (Evidence0 hdyz evalyz)))) =
     (Evidence0 (smax dxz dyz) $ rewrite powerOfSum cz cx cy in
      (FinProduct hxz hyz ** Evidence0
-      (S (max (smax hdxz hdyz) (smax (smax (smax 0 (smax (smax 0 0) 0)) (smax 0 (smax (smax 0 0) 0))) 0)))
+      (S (max (smax hdxz hdyz) 5))
       $
       let
         p1 = FinProjLeft (FinProduct hxz hyz) (FinCoproduct x y)
