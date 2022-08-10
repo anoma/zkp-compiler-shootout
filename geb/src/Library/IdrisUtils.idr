@@ -93,6 +93,15 @@ record Exists0 (0 type : Type) (this : (0 _ : type) -> Type) where
   snd0 : this fst0
 
 public export
+const0 : {0 a, b : Type} -> b -> (0 _ : a) -> b
+const0 x _ = x
+
+-- Non-dependent `Exists0`.
+public export
+CExists0 : (0 a: Type) -> Type -> Type
+CExists0 a b = Exists0 a (const0 b)
+
+public export
 DecNonZero : (n : Nat) -> Dec (NonZero n)
 DecNonZero Z = No $ \nzz => case nzz of SIsNonZero impossible
 DecNonZero (S n) = Yes SIsNonZero

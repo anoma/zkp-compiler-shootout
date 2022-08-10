@@ -2856,3 +2856,119 @@ PolyNT p q = Refinement {a=PolyNTShape} (validPNTS p q)
 public export
 pntsComponent : PolyShape -> PolyShape -> PolyNTShape -> AugNatRange -> AugRNM
 pntsComponent p q alpha range = ?pntsComponent_hole
+
+--------------------------------------
+--------------------------------------
+---- Natural-number-indexed types ----
+--------------------------------------
+--------------------------------------
+
+-----------------
+---- Aliases ----
+-----------------
+
+-- Endomorphisms on a given object in the category `Type`.
+public export
+EndoM : Type -> Type
+EndoM a = a -> a
+
+-- Endomorphisms on `Nat` (within the category `Type`).
+public export
+NatEM : Type
+NatEM = EndoM Nat
+
+-- The identity on `Nat`.
+public export
+NatId : NatEM
+NatId = Prelude.id {a=Nat}
+
+-- Endomorphisms on `NatPair` (within the category `Type`).
+public export
+NPEM : Type
+NPEM = EndoM NatPair
+
+-- The identity on `NatPair`.
+public export
+NPId : NPEM
+NPId = Prelude.id {a=NatPair}
+
+--------------------------------------------------
+---- Category of natural-number-indexed types ----
+--------------------------------------------------
+
+-- Objects of the category of natural-number-indexed types.
+-- The index is erased -- it's used only for compiling proofs in
+-- the metalanguage (which in this case is Idris-2).
+public export
+NITObj : Type
+NITObj = CExists0 Nat Type
+
+-- Morphisms of the category of natural-number-indexed types.
+public export
+NITMorph : Type
+NITMorph = EndoM NITObj
+
+-------------------------------------------
+-------------------------------------------
+---- Bounded-natural-number operations ----
+-------------------------------------------
+-------------------------------------------
+
+-- The operations that form single-variable polynomials.
+public export
+data PolyOpF : Type -> Type where
+  PolyIdF : PolyOpF carrier
+  PolyConstF : Nat -> PolyOpF carrier
+  PolyAddF : carrier -> carrier -> PolyOpF carrier
+  PolyMulF : carrier -> carrier -> PolyOpF carrier
+
+public export
+Functor PolyOpF where
+  map m PolyIdF = PolyIdF
+  map m (PolyConstF n) = PolyConstF n
+  map m (PolyAddF p q) = PolyAddF (m p) (m q)
+  map m (PolyMulF p q) = PolyMulF (m p) (m q)
+
+public export
+POShowAlg : Algebra PolyOpF String
+POShowAlg PolyIdF = "id"
+POShowAlg (PolyConstF n) = show n
+POShowAlg (PolyAddF p q) = "(" ++ p ++ ") + (" ++ q ++ ")"
+POShowAlg (PolyMulF p q) = "(" ++ p ++ ") * (" ++ q ++ ")"
+
+public export
+FreePolyOpN : NatObj -> Type -> Type
+FreePolyOpN = OmegaChain PolyOpF
+
+public export
+FreePolyOp : Type -> Type
+FreePolyOp = OmegaColimit PolyOpF
+
+public export
+PolyOp : Type
+PolyOp = InitialColimit PolyOpF
+
+{-
+-- The representable endofunctor represented by a given object -- in the
+-- endofunctor category, that is, by some endofunctor, which implicitly
+-- means that endofunctor applied to the terminal object.
+prefix 11 :>:
+public export
+(:>:) : FreeS0EF v -> FreeS0EF v
+(:>:) a = inFreeComposite $ Subst0EndoCovarRep a
+
+-- The unit-valued constant endofunctor -- represented by the initial object
+-- (Void), and hence in the endofunctor category by the void-valued constant
+-- endofunctor.
+-}
+
+-----------------------------------------------------------------
+-----------------------------------------------------------------
+---- Category of finite types represented by natural numbers ----
+-----------------------------------------------------------------
+-----------------------------------------------------------------
+
+-- A finite type containing a given natural number of elements.
+public export
+FinO : Type
+FinO = Nat

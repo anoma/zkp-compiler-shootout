@@ -512,6 +512,10 @@ Functor Subst0EndoF where
   map m (Subst0EndoCompose g f) = Subst0EndoCompose (m g) (m f)
 
 public export
+S0EisF : Functor Subst0EndoF
+S0EisF = MkFunctor map
+
+public export
 AlgS0EF : Type -> Type
 AlgS0EF = Algebra Subst0EndoF
 
@@ -620,6 +624,10 @@ public export
 interpS0EColimit : ColimitMapAlgF Subst0EndoF (Type -> Type)
 interpS0EColimit = colimitMapAlgF interpS0EFAlg
 
+public export
+interpS0EInitColimit : S0EInitColimit -> (Type -> Type)
+interpS0EInitColimit = colimitCata (Type -> Type) interpS0EFAlg
+
 ---------------------------------------------
 ---- Algebras of polynomial endofunctors ----
 ---------------------------------------------
@@ -627,6 +635,10 @@ interpS0EColimit = colimitMapAlgF interpS0EFAlg
 public export
 FSubst : Type -> Type
 FSubst v = v -> Type -> Type
+
+public export
+VSubst : FSubst Void
+VSubst = voidF (Type -> Type)
 
 public export
 interpS0EColimitMapStep : {0 v : Type} -> (fv : FSubst v) ->
@@ -680,9 +692,18 @@ interpS0EColimitFunctor :
 interpS0EColimitFunctor fv mapv f = MkFunctor (interpS0EColimitMap fv mapv f)
 
 public export
+interpS0EInitColimitFunctor : (f : S0EInitColimit) -> Functor (interpS0EInitColimit f)
+interpS0EInitColimitFunctor =
+  interpS0EColimitFunctor VSubst (\v => void v)
+
+public export
 S0EInterpColimit :
   {v : Type} -> (fv : FSubst v) -> (f : S0EColimit v) -> Type -> Type
 S0EInterpColimit {v} fv f = OmegaColimit (interpS0EColimit v fv f)
+
+public export
+S0EInterpInitColimit : (f : S0EInitColimit) -> Type -> Type
+S0EInterpInitColimit = S0EInterpColimit {v=Void} VSubst
 
 public export
 s0EInterpColimitCata :
@@ -697,6 +718,27 @@ s0EInterpColimitCata :
 s0EInterpColimitCata {v} fv mapv f =
   colimitMapAlg
     {f=(interpS0EColimit v fv f)} {isF=(interpS0EColimitFunctor fv mapv f)}
+
+public export
+s0EInterpInitColimitFreeCata :
+  {v', a : Type} ->
+  (f : S0EInitColimit) ->
+  Algebra (interpS0EInitColimit f) a ->
+  (v' -> a) ->
+  S0EInterpInitColimit f v' ->
+  a
+s0EInterpInitColimitFreeCata =
+  s0EInterpColimitCata {v=Void} (\v => void v) (\v => void v)
+
+public export
+s0EInterpInitColimitCata :
+  {a : Type} ->
+  (f : S0EInitColimit) ->
+  Algebra (interpS0EInitColimit f) a ->
+  S0EInterpInitColimit f Void ->
+  a
+s0EInterpInitColimitCata {a} f alg =
+  s0EInterpInitColimitFreeCata {v'=Void} f alg (voidF a)
 
 ---------------------------------------------------------------------
 ---- Morphisms in endofunctor category (natural transformations) ----

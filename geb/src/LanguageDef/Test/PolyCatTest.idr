@@ -606,7 +606,6 @@ testARNM3 = Right testRNM15
 testARNM3Sig : Assertion
 testARNM3Sig = Assert $
   arnmCheck testARNM3 == Just (Just (4, 8), Just (92, 2764))
-  XXX -}
 
 ------------------
 ---- SubstObj ----
@@ -641,9 +640,13 @@ testSO8 = isubstOHomObj testSO0 testSO7
 
 testSO9 : MuISubstO
 testSO9 = isubstOHomObj testSO2 testSO2
+  XXX -}
 
-----------------------------------
-----------------------------------
+----------------
+----------------
+---- PolyOp ----
+----------------
+----------------
 
 ----------------------------------
 ----------------------------------
@@ -659,6 +662,9 @@ polyCatTest = do
   putStrLn "Begin polyCatTest:"
   putStrLn "------------------"
   putStrLn ""
+  putStrLn "--------------------"
+  putStrLn "---- PolyOp ----"
+  putStrLn "----------------"
   {- XXX
   putStrLn "--------------------"
   putStrLn "---- BoundedNat ----"
@@ -760,7 +766,6 @@ polyCatTest = do
   putStrLn $ show $ testARNM3
   putStrLn "-----------------------------------"
   putStrLn ""
-  XXX -}
   putStrLn "--------"
   putStrLn "SubstObj"
   putStrLn "--------"
@@ -784,6 +789,7 @@ polyCatTest = do
   putStrLn $ show $ isubstOCard testSO9
   putStrLn $ show testSO9
   putStrLn "--------"
+  XXX -}
   putStrLn ""
   putStrLn "----------------"
   putStrLn "End polyCatTest."

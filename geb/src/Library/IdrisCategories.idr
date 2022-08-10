@@ -2317,13 +2317,19 @@ public export
 InitialColimit : (Type -> Type) -> Type
 InitialColimit f = OmegaColimit f Void
 
+-- AKA parameterized catamorphism.
 public export
-ColimitCata : (Type -> Type) -> Type
-ColimitCata f = (x : Type) -> Algebra f x -> InitialColimit f -> x
+InitialColimitMapAlg : (Type -> Type) -> Type -> Type
+InitialColimitMapAlg f x = Algebra f x -> InitialColimit f -> x
 
 public export
-colimitCata : {f : Type -> Type} -> {isF : Functor f} -> ColimitCata f
-colimitCata {f} {isF} x alg = colimitMapAlg {f} {isF} {x} {v=Void} alg (voidF _)
+ColimitCata : (Type -> Type) -> Type
+ColimitCata f = (x : Type) -> InitialColimitMapAlg f x
+
+public export
+colimitCata : {0 f : Type -> Type} -> {isF : Functor f} -> ColimitCata f
+colimitCata {f} {isF} x alg =
+  colimitMapAlg {f} {isF} {x} {v=Void} alg (voidF _)
 
 -----------------------------------
 ---- Product functor iteration ----
@@ -2390,7 +2396,7 @@ public export
 fInitAlgInv : {f : Type -> Type} -> {isF : Functor f} ->
   FInitAlg f -> FInitAlgInv f
 fInitAlgInv {f} {isF} alg =
-  colimitCata {isF} (f (InitialColimit f)) (map {f} alg)
+  colimitCata {f} {isF} (f (InitialColimit f)) (map {f} alg)
 
 public export
 InitAlgCorrect : {f : Type -> Type} -> {isF : Functor f} -> FInitAlg f -> Type
