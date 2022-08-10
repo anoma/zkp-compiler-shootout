@@ -207,6 +207,14 @@ predLen : {0 a : Type} -> List a -> Nat
 predLen = pred . length
 
 public export
+powerZeroOne : (0 n : Nat) -> power n 0 = 1
+powerZeroOne n = Refl
+
+public export
+mulPowerZeroRightNeutral : {0 m, n : Nat} -> m * (power n 0) = m
+mulPowerZeroRightNeutral {m} {n} = rewrite multOneRightNeutral m in Refl
+
+public export
 powerOfSum : (x, y, z : Nat) -> power x (y + z) = power x y * power x z
 powerOfSum x y z = ?powerOfSum_hole
 

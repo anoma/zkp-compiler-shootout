@@ -1377,6 +1377,12 @@ natAna : {0 a : Type} -> NatCoalgebra a -> (Nat, a) -> Inf (Maybe (Nat, a))
 natAna coalg nx =
   map {f=Maybe} SigmaToPair $ natDepAna {p=(const a)} coalg $ PairToSigma nx
 
+----------------------------------------------------
+----------------------------------------------------
+---- Idris representation of polynomial circuit ----
+----------------------------------------------------
+----------------------------------------------------
+
 -----------------------------------------------------------
 -----------------------------------------------------------
 ---- Idris representation of substitutive finite topos ----
@@ -1419,11 +1425,6 @@ finSubstCata alg (FinCoproduct x y) =
   alg.fsCoproductAlg x y (finSubstCata alg x) (finSubstCata alg y)
 finSubstCata alg (FinProduct x y) =
   alg.fsProductAlg x y (finSubstCata alg x) (finSubstCata alg y)
-
-public export
-interpFinSubst : {0 c, d : Nat} -> FinSubstT c d -> Type
-interpFinSubst =
-  finSubstCata $ MkFSAlg Void Unit (const $ const Either) (const $ const Pair)
 
 public export
 data FinSubstTerm : {0 c, d : Nat} -> FinSubstT c d -> Type where
@@ -1514,15 +1515,6 @@ mutual
     alg.fstPair t t' (fstCata alg t) (fstCata alg t')
 
 public export
-InterpTermAlg : FSTAlg (\_, _, x, _ => interpFinSubst x)
-InterpTermAlg = MkFSTAlg () (\_ => Left) (\_ => Right) (\_, _ => MkPair)
-
-public export
-interpFinSubstTerm : {0 c, d : Nat} -> {x : FinSubstT c d} ->
-  FinSubstTerm x -> interpFinSubst {c} {d} x
-interpFinSubstTerm {x} = fstCata InterpTermAlg
-
-public export
 data FinSubstMorph : {0 cx, dx, cy, dy : Nat} ->
     (0 depth : Nat) -> FinSubstT cx dx -> FinSubstT cy dy -> Type where
   FinId : {0 cx, dx : Nat} ->
@@ -1561,54 +1553,112 @@ data FinSubstMorph : {0 cx, dx, cy, dy : Nat} ->
     FinSubstMorph {cx=(cx * cy)} {cy} 0 (FinProduct {cx} {cy} x y) y
 
 public export
+0 finSubstHomObjCard : {0 cx, dx, cy, dy : Nat} ->
+  FinSubstT cx dx -> FinSubstT cy dy -> Nat
+finSubstHomObjCard {cx} {cy} _ _ = power cy cx
+
+public export
+EvalMorphType : {0 cx, dx, cy, dy, dh : Nat} ->
+  (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
+  FinSubstT (finSubstHomObjCard x y) dh -> (0 df : Nat) -> Type
+EvalMorphType x y hxy df = FinSubstMorph df (FinProduct hxy x) y
+
+public export
+HomObjWithEvalMorphType : {0 cx, dx, cy, dy : Nat} ->
+  FinSubstT cx dx -> FinSubstT cy dy -> (0 dh : Nat) -> Type
+HomObjWithEvalMorphType x y dh =
+  (hxy : FinSubstT (finSubstHomObjCard x y) dh **
+   Exists0 Nat (EvalMorphType x y hxy))
+
+-- Compute the exponential object and evaluation morphism of the given finite
+-- substitutive types.
+public export
+FinSubstHomDepthObjEval : {0 cx, dx, cy, dy : Nat} ->
+  (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
+  Exists0 Nat (HomObjWithEvalMorphType x y)
+-- 0 -> x == 1
+FinSubstHomDepthObjEval FinInitial x =
+  (Evidence0 0 (FinTerminal **
+    Evidence0 1 $
+      FinCompose (FinFromInit x) $ FinProjRight FinTerminal FinInitial))
+-- 1 -> x == x
+FinSubstHomDepthObjEval {cy} {dy} FinTerminal x =
+  let eq = mulPowerZeroRightNeutral {m=cy} {n=cy} in
+  (Evidence0 dy $ rewrite eq in (x **
+   Evidence0 0 $ rewrite eq in FinProjLeft x FinTerminal))
+-- (x + y) -> z == (x -> z) * (y -> z)
+FinSubstHomDepthObjEval {cx=(cx + cy)} {cy=cz} (FinCoproduct x y) z with
+ (FinSubstHomDepthObjEval x z, FinSubstHomDepthObjEval y z)
+  FinSubstHomDepthObjEval {cx=(cx + cy)} {cy=cz} (FinCoproduct x y) z |
+   ((Evidence0 dxz (hxz ** (Evidence0 hdxz evalxz))),
+    (Evidence0 dyz (hyz ** (Evidence0 hdyz evalyz)))) =
+    (Evidence0 (smax dxz dyz) $ rewrite powerOfSum cz cx cy in
+     ((FinProduct hxz hyz) ** Evidence0 ?coprodeval_depth_hole $
+      ?coprodeval_compose_hole))
+-- (x * y) -> z == x -> y -> z
+FinSubstHomDepthObjEval {cx=(cx * cy)} {dx=(smax dx dy)} {cy=cz} {dy=dz}
+  (FinProduct x y) z with
+  (FinSubstHomDepthObjEval y z)
+    FinSubstHomDepthObjEval {cx=(cx * cy)} {dx=(smax dx dy)} {cy=cz} {dy=dz}
+      (FinProduct x y) z | (Evidence0 dyz (hyz ** Evidence0 hdyz evalyz)) =
+        let
+          Evidence0 dxyz hexyz = FinSubstHomDepthObjEval {dx} {dy=dyz} x hyz
+          (hxyz ** Evidence0 dexyz evalxyz) = hexyz
+        in
+        Evidence0 dxyz $ rewrite powerOfMulSym cz cx cy in
+          (hxyz ** Evidence0 ?prodEval_depth_hole ?prodEval_compose_hole)
+
+public export
+0 finSubstHomObjDepth : {0 cx, dx, cy, dy : Nat} ->
+  FinSubstT cx dx -> FinSubstT cy dy -> Nat
+finSubstHomObjDepth x y = fst0 $ FinSubstHomDepthObjEval x y
+
+public export
+finSubstHomObj : {0 cx, dx, cy, dy : Nat} ->
+  (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
+  FinSubstT (finSubstHomObjCard x y) (finSubstHomObjDepth x y)
+finSubstHomObj x y = fst $ snd0 $ FinSubstHomDepthObjEval x y
+
+public export
+0 finSubstEvalMorphDepth : {0 cx, dx, cy, dy : Nat} ->
+  (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
+  Nat
+finSubstEvalMorphDepth x y = fst0 (snd (snd0 (FinSubstHomDepthObjEval x y)))
+
+public export
+finSubstEvalMorph : {0 cx, dx, cy, dy : Nat} ->
+  (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
+  EvalMorphType x y (finSubstHomObj x y) (finSubstEvalMorphDepth x y)
+finSubstEvalMorph x y = snd0 $ snd $ snd0 $ FinSubstHomDepthObjEval x y
+
+--------------------------------------
+---- Metalanguage interpretations ----
+--------------------------------------
+
+public export
+InterpFSAlg : FSAlg (\_, _, _ => Type)
+InterpFSAlg = MkFSAlg Void Unit (const $ const Either) (const $ const Pair)
+
+public export
+interpFinSubst : {0 c, d : Nat} -> FinSubstT c d -> Type
+interpFinSubst = finSubstCata InterpFSAlg
+
+public export
+InterpTermAlg : FSTAlg (\_, _, x, _ => interpFinSubst x)
+InterpTermAlg = MkFSTAlg () (\_ => Left) (\_ => Right) (\_, _ => MkPair)
+
+public export
+interpFinSubstTerm : {0 c, d : Nat} -> {x : FinSubstT c d} ->
+  FinSubstTerm x -> interpFinSubst {c} {d} x
+interpFinSubstTerm {x} = fstCata InterpTermAlg
+
+public export
 interpFinSubstMorph : {0 cx, dx, cy, dy, depth : Nat} ->
   {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
   FinSubstMorph {cx} {dx} {cy} {dy} depth x y ->
   interpFinSubst {c=cx} {d=dx} x ->
   interpFinSubst {c=cy} {d=dy} y
 interpFinSubstMorph m = ?interpFinSubstMorph_hole
-
-public export
-0 finSubstHomObjCard : {0 cx, dx, cy, dy : Nat} ->
-  FinSubstT cx dx -> FinSubstT cy dy -> Nat
-finSubstHomObjCard {cx} {cy} _ _ = power cy cx
-
--- Compute the exponential object of given finite substitutive type.
-public export
-FinSubstHomDepthObj : {0 cx, dx, cy, dy : Nat} ->
-  (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
-  Exists0 Nat (FinSubstT (finSubstHomObjCard x y))
--- 0 -> x == 1
-FinSubstHomDepthObj FinInitial x =
-  (Evidence0 0 FinTerminal)
--- 1 -> x == x
-FinSubstHomDepthObj {cy} {dy} FinTerminal x =
-  rewrite multOneRightNeutral cy in (Evidence0 dy x)
--- (x + y) -> z == (x -> z) * (y -> z)
-FinSubstHomDepthObj {cx=(cx + cy)} {cy=cz}
-  (FinCoproduct x y) z with (FinSubstHomDepthObj x z, FinSubstHomDepthObj y z)
-    FinSubstHomDepthObj {cx=(cx + cy)} {cy=cz}
-      (FinCoproduct x y) z | (Evidence0 dxz hxz, Evidence0 dyz hyz) =
-        rewrite powerOfSum cz cx cy in
-        Evidence0 (smax dxz dyz) (FinProduct hxz hyz)
--- (x * y) -> z == x -> y -> z
-FinSubstHomDepthObj {cx=(cx * cy)} {dx=(smax dx dy)} {cy=cz} {dy=dz}
-  (FinProduct x y) z with (FinSubstHomDepthObj y z)
-    FinSubstHomDepthObj {cx=(cx * cy)} {dx=(smax dx dy)} {cy=cz} {dy=dz}
-      (FinProduct x y) z | (Evidence0 dyz hyz) =
-        rewrite powerOfMulSym cz cx cy in
-        FinSubstHomDepthObj {dx} {dy=dyz} x hyz
-
-public export
-0 finSubstHomObjDepth : {0 cx, dx, cy, dy : Nat} ->
-  FinSubstT cx dx -> FinSubstT cy dy -> Nat
-finSubstHomObjDepth x y = fst0 $ FinSubstHomDepthObj x y
-
-public export
-finSubstHomObj : {0 cx, dx, cy, dy : Nat} ->
-  (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
-  FinSubstT (finSubstHomObjCard x y) (finSubstHomObjDepth x y)
-finSubstHomObj x y = snd0 $ FinSubstHomDepthObj x y
 
 ------------------------------------------------------
 ------------------------------------------------------
