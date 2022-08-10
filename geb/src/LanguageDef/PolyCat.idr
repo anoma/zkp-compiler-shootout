@@ -1608,12 +1608,6 @@ FinSubstHomDepthObjEval {cx=(cx + cy)} {cy=cz} (FinCoproduct x y) z with
       (S (max (smax hdxz hdyz) 5))
       $
       let
-        p1 = FinProjLeft (FinProduct hxz hyz) (FinCoproduct x y)
-        p11 = FinCompose (FinProjLeft _ _) p1
-        p12 = FinCompose (FinProjRight _ _) p1
-        p2 = FinProjRight (FinProduct hxz hyz) (FinCoproduct x y)
-        p21 = FinProd p2 p11
-        p22 = FinProd p2 p12
         c = FinCase {x=(FinProduct hxz x)} {y=(FinProduct hyz y)} {z}
           evalxz evalyz
         d = FinDistrib (FinProduct hxz hyz) x y
