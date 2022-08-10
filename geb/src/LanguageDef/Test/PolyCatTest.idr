@@ -705,11 +705,11 @@ polyCatTest = do
   putStrLn $ "bat2: " ++ show bat2
   putStrLn $ "bat2 (long): " ++ baShowLong bat2
   putStrLn $ "but2: " ++ show but2
+  {- XXX
   putStrLn ""
   putStrLn "----------------"
   putStrLn "---- PolyOp ----"
   putStrLn "----------------"
-  {- XXX
   putStrLn "--------------------"
   putStrLn "---- BoundedNat ----"
   putStrLn $ show testBN0
