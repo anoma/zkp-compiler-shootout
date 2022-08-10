@@ -2935,6 +2935,10 @@ BoundedBy : Nat -> DecPred Nat
 BoundedBy = gt
 
 public export
+NotBoundedBy : Nat -> DecPred Nat
+NotBoundedBy = not .* BoundedBy
+
+public export
 IsBoundedBy : Nat -> Nat -> Type
 IsBoundedBy = Satisfies . BoundedBy
 
@@ -2942,6 +2946,15 @@ IsBoundedBy = Satisfies . BoundedBy
 public export
 BANat : (0 _ : Nat) -> Type
 BANat n = Refinement {a=Nat} (BoundedBy n)
+
+public export
+MkBANat : {0 n : Nat} -> (m : Nat) -> {auto 0 satisfies : IsBoundedBy n m} ->
+  BANat n
+MkBANat = MkRefinement
+
+public export
+baLong : {n : Nat} -> BANat n -> String
+baLong {n} m = show m ++ "[<" ++ show n ++ "]"
 
 -- Translate between the two ways of viewing `Nat`.
 
@@ -2957,6 +2970,11 @@ a2u : {n : Nat} -> BANat n -> BUNat n
 a2u {n=Z} (Element0 au Refl) impossible
 a2u {n=(S n)} (Element0 Z lt) = Left ()
 a2u {n=(S n)} (Element0 (S au) lt) = Right $ a2u $ Element0 au lt
+
+public export
+MkBUNat : {n : Nat} -> (m : Nat) -> {auto 0 satisfies : IsBoundedBy n m} ->
+  BUNat n
+MkBUNat m {satisfies} = a2u (MkBANat m {satisfies})
 
 -------------------------------------------
 -------------------------------------------

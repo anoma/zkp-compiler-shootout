@@ -641,6 +641,41 @@ testSO8 = isubstOHomObj testSO0 testSO7
 testSO9 : MuISubstO
 testSO9 = isubstOHomObj testSO2 testSO2
   XXX -}
+-----------------------
+-----------------------
+---- Nat as object ----
+-----------------------
+-----------------------
+
+bbt1 : Assertion
+bbt1 = Assert $ BoundedBy 4 0
+
+bbt2 : Assertion
+bbt2 = Assert $ BoundedBy 4 3
+
+bbt3 : Assertion
+bbt3 = Assert $ NotBoundedBy 4 4
+
+bbt4 : Assertion
+bbt4 = Assert $ NotBoundedBy 4 5
+
+but1 : BUNat 4
+but1 = Left ()
+
+bat1 : BANat 4
+bat1 = u2a but1
+
+bat2 : BANat 4
+bat2 = MkBANat 3
+
+but2 : BUNat 4
+but2 = a2u bat2
+
+tbut21 : Assertion
+tbut21 = Assert $ MkBUNat {n=4} 3 == but2
+
+tbut22 : Assertion
+tbut22 = Assert $ u2a but2 == bat2
 
 ----------------
 ----------------
@@ -662,7 +697,16 @@ polyCatTest = do
   putStrLn "Begin polyCatTest:"
   putStrLn "------------------"
   putStrLn ""
-  putStrLn "--------------------"
+  putStrLn "---------------------------------"
+  putStrLn "---- Bounded natural numbers ----"
+  putStrLn "---------------------------------"
+  putStrLn $ "bat1: " ++ show bat1
+  putStrLn $ "but1: " ++ show but1
+  putStrLn $ "bat2: " ++ show bat2
+  putStrLn $ "bat2 (long): " ++ baLong bat2
+  putStrLn $ "but2: " ++ show but2
+  putStrLn ""
+  putStrLn "----------------"
   putStrLn "---- PolyOp ----"
   putStrLn "----------------"
   {- XXX
