@@ -2908,6 +2908,56 @@ public export
 NITMorph : Type
 NITMorph = EndoM NITObj
 
+------------------------------------
+------------------------------------
+---- Natural numbers as objects ----
+------------------------------------
+------------------------------------
+
+-- Define and translate two ways of interpreting natural numbers.
+
+-- First, as coproducts of Unit.  As such, they are the first non-trivial
+-- objects that can be formed in a category which is inductively defined as
+-- the smallest one containing only (all) finite coproducts and finite products.
+-- In this form, they are unary natural numbers, often suited as indexes.
+
+-- Bounded unary natural numbers.
+public export
+BUNat : Nat -> Type
+BUNat Z = Void
+BUNat (S n) = Either Unit (BUNat n)
+
+-- Second, as bounds, which allow us to do bounded arithmetic,
+-- or arithmetic modulo a given number.
+
+public export
+BoundedBy : Nat -> DecPred Nat
+BoundedBy = gt
+
+public export
+IsBoundedBy : Nat -> Nat -> Type
+IsBoundedBy = Satisfies . BoundedBy
+
+-- Bounded arithmetic natural numbers.
+public export
+BANat : (0 _ : Nat) -> Type
+BANat n = Refinement {a=Nat} (BoundedBy n)
+
+-- Translate between the two ways of viewing `Nat`.
+
+public export
+u2a : {n : Nat} -> BUNat n -> BANat n
+u2a {n=Z} v = void v
+u2a {n=(S n)} (Left ()) = Element0 0 Refl
+u2a {n=(S n)} (Right bu) with (u2a bu)
+  u2a {n=(S n)} (Right bu) | Element0 bu' lt = Element0 (S bu') lt
+
+public export
+a2u : {n : Nat} -> BANat n -> BUNat n
+a2u {n=Z} (Element0 au Refl) impossible
+a2u {n=(S n)} (Element0 Z lt) = Left ()
+a2u {n=(S n)} (Element0 (S au) lt) = Right $ a2u $ Element0 au lt
+
 -------------------------------------------
 -------------------------------------------
 ---- Bounded-natural-number operations ----
