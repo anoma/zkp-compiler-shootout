@@ -2960,24 +2960,31 @@ public export
 PolyOp : Type
 PolyOp = InitialColimit PolyOpF
 
-------------------------------------
-------------------------------------
----- Natural numbers as objects ----
-------------------------------------
-------------------------------------
+-------------------------------------------------------------
+-------------------------------------------------------------
+---- Natural numbers as objects representing finite sets ----
+-------------------------------------------------------------
+-------------------------------------------------------------
 
 -- Define and translate two ways of interpreting natural numbers.
+
+---------------------------------------
+---- Bounded unary natural numbers ----
+---------------------------------------
 
 -- First, as coproducts of Unit.  As such, they are the first non-trivial
 -- objects that can be formed in a category which is inductively defined as
 -- the smallest one containing only (all) finite coproducts and finite products.
 -- In this form, they are unary natural numbers, often suited as indexes.
 
--- Bounded unary natural numbers.
 public export
 BUNat : Nat -> Type
 BUNat Z = Void
 BUNat (S n) = Either Unit (BUNat n)
+
+--------------------------------------------
+---- Bounded arithmetic natural numbers ----
+--------------------------------------------
 
 -- Second, as bounds, which allow us to do bounded arithmetic,
 -- or arithmetic modulo a given number.
@@ -2994,7 +3001,6 @@ public export
 IsBoundedBy : Nat -> Nat -> Type
 IsBoundedBy = Satisfies . BoundedBy
 
--- Bounded arithmetic natural numbers.
 public export
 BANat : (0 _ : Nat) -> Type
 BANat n = Refinement {a=Nat} (BoundedBy n)
@@ -3005,10 +3011,12 @@ MkBANat : {0 n : Nat} -> (m : Nat) -> {auto 0 satisfies : IsBoundedBy n m} ->
 MkBANat = MkRefinement
 
 public export
-baLong : {n : Nat} -> BANat n -> String
-baLong {n} m = show m ++ "[<" ++ show n ++ "]"
+baShowLong : {n : Nat} -> BANat n -> String
+baShowLong {n} m = show m ++ "[<" ++ show n ++ "]"
 
--- Translate between the two ways of viewing `Nat`.
+-------------------------------------------------------------------
+---- Translation between unary and arithmetic bounded naturals ----
+-------------------------------------------------------------------
 
 public export
 u2a : {n : Nat} -> BUNat n -> BANat n
