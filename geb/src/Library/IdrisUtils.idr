@@ -124,6 +124,10 @@ boolToDigit True = I
 boolToDigit False = O
 
 public export
+uip : {0 a : Type} -> {0 x, x' : a} -> {eq, eq' : x = x'} -> eq = eq'
+uip {eq=Refl} {eq'=Refl} = Refl
+
+public export
 lteTolt : {m, n : Nat} -> LTE m n -> Not (m = n) -> LT m n
 lteTolt {m=0} {n=Z} LTEZero neq = void $ neq Refl
 lteTolt {m=0} {n=(S n)} LTEZero neq = LTESucc LTEZero

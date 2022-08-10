@@ -76,6 +76,12 @@ Refinement : {a : Type} -> (0 pred : DecPred a) -> Type
 Refinement {a} p = Subset0 a (Satisfies p)
 
 public export
+refinementFstEq : {0 a : Type} -> {0 pred : DecPred a} ->
+  {r, r' : Refinement pred} -> fst0 r = fst0 r' -> r = r'
+refinementFstEq {r=(Element0 _ s)} {r'=(Element0 _ s')} Refl =
+  rewrite uip {eq=s} {eq'=s'} in Refl
+
+public export
 TrueRefinement : Type -> Type
 TrueRefinement a = Refinement (TruePred a)
 
@@ -2972,12 +2978,26 @@ a2u {n=(S n)} (Element0 Z lt) = Left ()
 a2u {n=(S n)} (Element0 (S ba) lt) = Right $ a2u $ Element0 ba lt
 
 public export
-u2a2u_correct : {0 n : Nat} -> {0 m : BUNat n} -> m = a2u {n} (u2a {n} m)
-u2a2u_correct = ?u2a2u_correct_hole
+u2a2u_correct : {n : Nat} -> {bu : BUNat n} -> bu = a2u {n} (u2a {n} bu)
+u2a2u_correct {n=Z} {bu} = void bu
+u2a2u_correct {n=(S n)} {bu=(Left ())} = Refl
+u2a2u_correct {n=(S n)} {bu=(Right bu)} with (u2a bu) proof eq
+  u2a2u_correct {n=(S n)} {bu=(Right bu)} | Element0 m lt =
+    rewrite (sym eq) in cong Right $ u2a2u_correct {n} {bu}
 
 public export
-a2u2a_correct : {0 n : Nat} -> {0 m : BANat n} -> m = u2a {n} (a2u {n} m)
-a2u2a_correct = ?a2a2u_correct_hole
+a2u2a_fst_correct : {n : Nat} -> {ba : BANat n} ->
+  fst0 ba = fst0 (u2a {n} (a2u {n} ba))
+a2u2a_fst_correct {n=Z} {ba=(Element0 ba Refl)} impossible
+a2u2a_fst_correct {n=(S n)} {ba=(Element0 Z lt)} = Refl
+a2u2a_fst_correct {n=(S n)} {ba=(Element0 (S ba) lt)}
+  with (u2a (a2u (Element0 ba lt))) proof p
+    a2u2a_fst_correct {n=(S n)} {ba=(Element0 (S ba) lt)} | Element0 ba' lt' =
+      cong S $ trans (a2u2a_fst_correct {ba=(Element0 ba lt)}) $ cong fst0 p
+
+public export
+a2u2a_correct : {n : Nat} -> {ba : BANat n} -> ba = u2a {n} (a2u {n} ba)
+a2u2a_correct {n} {ba} = refinementFstEq $ a2u2a_fst_correct {n} {ba}
 
 public export
 MkBUNat : {n : Nat} -> (m : Nat) -> {auto 0 satisfies : IsBoundedBy n m} ->
