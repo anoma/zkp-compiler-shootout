@@ -1606,7 +1606,16 @@ FinSubstHomDepthObjEval {cx=(cx * cy)} {dx=(smax dx dy)} {cy=cz} {dy=dz}
           (hxyz ** Evidence0 dexyz evalxyz) = hexyz
         in
         Evidence0 dxyz $ rewrite powerOfMulSym cz cx cy in
-          (hxyz ** Evidence0 ?prodEval_depth_hole ?prodEval_compose_hole)
+          (hxyz ** Evidence0 (S (max hdyz (smax (smax dexyz 2) 1))) $
+            rewrite powerOfMulSym cz cx cy in
+            FinCompose evalyz $ FinProd
+              (FinCompose evalxyz
+               (FinProd
+                (FinProjLeft hxyz (FinProduct x y))
+                (FinCompose
+                  (FinProjLeft x y) (FinProjRight hxyz (FinProduct x y)))))
+              (FinCompose
+                (FinProjRight x y) (FinProjRight hxyz (FinProduct x y))))
 
 public export
 0 finSubstHomObjDepth : {0 cx, dx, cy, dy : Nat} ->
