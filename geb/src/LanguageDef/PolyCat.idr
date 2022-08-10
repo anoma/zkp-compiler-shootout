@@ -2967,14 +2967,40 @@ u2a {n=(S n)} (Right bu) with (u2a bu)
 
 public export
 a2u : {n : Nat} -> BANat n -> BUNat n
-a2u {n=Z} (Element0 au Refl) impossible
+a2u {n=Z} (Element0 ba Refl) impossible
 a2u {n=(S n)} (Element0 Z lt) = Left ()
-a2u {n=(S n)} (Element0 (S au) lt) = Right $ a2u $ Element0 au lt
+a2u {n=(S n)} (Element0 (S ba) lt) = Right $ a2u $ Element0 ba lt
+
+public export
+u2a2u_correct : {0 n : Nat} -> {0 m : BUNat n} -> m = a2u {n} (u2a {n} m)
+u2a2u_correct = ?u2a2u_correct_hole
+
+public export
+a2u2a_correct : {0 n : Nat} -> {0 m : BANat n} -> m = u2a {n} (a2u {n} m)
+a2u2a_correct = ?a2a2u_correct_hole
 
 public export
 MkBUNat : {n : Nat} -> (m : Nat) -> {auto 0 satisfies : IsBoundedBy n m} ->
   BUNat n
 MkBUNat m {satisfies} = a2u (MkBANat m {satisfies})
+
+public export
+up2a : {n : Nat} -> (BUNat n -> Type) -> BANat n -> Type
+up2a p ba = p (a2u ba)
+
+public export
+ap2u : {n : Nat} -> (BANat n -> Type) -> BUNat n -> Type
+ap2u p bu = p (u2a bu)
+
+public export
+up2a_rewrite : {0 n : Nat} -> {0 p : BUNat n -> Type} ->
+  {0 bu : BUNat n} -> p bu -> up2a {n} p (u2a {n} bu)
+up2a_rewrite {p} t = replace {p} u2a2u_correct t
+
+public export
+ap2u_rewrite : {0 n : Nat} -> {0 p : BANat n -> Type} ->
+  {0 ba : BANat n} -> p ba -> ap2u {n} p (a2u {n} ba)
+ap2u_rewrite {p} t = replace {p} a2u2a_correct t
 
 -------------------------------------------
 -------------------------------------------
