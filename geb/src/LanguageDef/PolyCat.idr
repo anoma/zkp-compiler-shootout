@@ -1593,8 +1593,18 @@ FinSubstHomDepthObjEval {cx=(cx + cy)} {cy=cz} (FinCoproduct x y) z with
    ((Evidence0 dxz (hxz ** (Evidence0 hdxz evalxz))),
     (Evidence0 dyz (hyz ** (Evidence0 hdyz evalyz)))) =
     (Evidence0 (smax dxz dyz) $ rewrite powerOfSum cz cx cy in
-     ((FinProduct hxz hyz) ** Evidence0 ?coprodeval_depth_hole $
-      ?coprodeval_compose_hole))
+     (FinProduct hxz hyz ** Evidence0 ?coprodeval_depth_hole $
+      let
+        p1 = FinProjLeft (FinProduct hxz hyz) (FinCoproduct x y)
+        p11 = FinCompose (FinProjLeft _ _) p1
+        p12 = FinCompose (FinProjRight _ _) p1
+        p2 = FinProjRight (FinProduct hxz hyz) (FinCoproduct x y)
+        p21 = FinProd p2 p11
+        p22 = FinProd p2 p12
+        c = FinCase {x=(FinProduct hxz x)} {y=(FinProduct hyz y)} {z}
+          evalxz evalyz
+      in
+      FinCompose c ?coprodeval_compose_hole))
 -- (x * y) -> z == x -> y -> z
 FinSubstHomDepthObjEval {cx=(cx * cy)} {dx=(smax dx dy)} {cy=cz} {dy=dz}
   (FinProduct x y) z with
@@ -1606,7 +1616,7 @@ FinSubstHomDepthObjEval {cx=(cx * cy)} {dx=(smax dx dy)} {cy=cz} {dy=dz}
           (hxyz ** Evidence0 dexyz evalxyz) = hexyz
         in
         Evidence0 dxyz $ rewrite powerOfMulSym cz cx cy in
-          (hxyz ** Evidence0 (S (max hdyz (smax (smax dexyz 2) 1))) $
+          (hxyz ** Evidence0 (smax hdyz (smax (smax dexyz 2) 1)) $
             rewrite powerOfMulSym cz cx cy in
             FinCompose evalyz $ FinProd
               (FinCompose evalxyz
