@@ -1604,7 +1604,7 @@ FinSubstHomDepthObjEval {cx=(cx + cy)} {cy=cz} (FinCoproduct x y) z with
         c = FinCase {x=(FinProduct hxz x)} {y=(FinProduct hyz y)} {z}
           evalxz evalyz
       in
-      FinCompose c ?coprodeval_compose_hole))
+      ?coprodeval_compose_hoole {- FinCompose c ?coprodeval_compose_hole -}))
 -- (x * y) -> z == x -> y -> z
 FinSubstHomDepthObjEval {cx=(cx * cy)} {dx=(smax dx dy)} {cy=cz} {dy=dz}
   (FinProduct x y) z with
