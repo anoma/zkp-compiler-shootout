@@ -2920,6 +2920,46 @@ public export
 NITMorph : Type
 NITMorph = EndoM NITObj
 
+-------------------------------------------
+-------------------------------------------
+---- Bounded-natural-number operations ----
+-------------------------------------------
+-------------------------------------------
+
+-- The operations that form single-variable polynomials.
+public export
+data PolyOpF : Type -> Type where
+  PolyIdF : PolyOpF carrier
+  PolyConstF : Nat -> PolyOpF carrier
+  PolyAddF : carrier -> carrier -> PolyOpF carrier
+  PolyMulF : carrier -> carrier -> PolyOpF carrier
+
+public export
+Functor PolyOpF where
+  map m PolyIdF = PolyIdF
+  map m (PolyConstF n) = PolyConstF n
+  map m (PolyAddF p q) = PolyAddF (m p) (m q)
+  map m (PolyMulF p q) = PolyMulF (m p) (m q)
+
+public export
+POShowAlg : Algebra PolyOpF String
+POShowAlg PolyIdF = "id"
+POShowAlg (PolyConstF n) = show n
+POShowAlg (PolyAddF p q) = "(" ++ p ++ ") + (" ++ q ++ ")"
+POShowAlg (PolyMulF p q) = "(" ++ p ++ ") * (" ++ q ++ ")"
+
+public export
+FreePolyOpN : NatObj -> Type -> Type
+FreePolyOpN = OmegaChain PolyOpF
+
+public export
+FreePolyOp : Type -> Type
+FreePolyOp = OmegaColimit PolyOpF
+
+public export
+PolyOp : Type
+PolyOp = InitialColimit PolyOpF
+
 ------------------------------------
 ------------------------------------
 ---- Natural numbers as objects ----
@@ -3027,68 +3067,3 @@ public export
 ap2u_rewrite : {0 n : Nat} -> {0 p : BANat n -> Type} ->
   {0 ba : BANat n} -> p ba -> ap2u {n} p (a2u {n} ba)
 ap2u_rewrite {p} t = replace {p} a2u2a_correct t
-
--------------------------------------------
--------------------------------------------
----- Bounded-natural-number operations ----
--------------------------------------------
--------------------------------------------
-
--- The operations that form single-variable polynomials.
-public export
-data PolyOpF : Type -> Type where
-  PolyIdF : PolyOpF carrier
-  PolyConstF : Nat -> PolyOpF carrier
-  PolyAddF : carrier -> carrier -> PolyOpF carrier
-  PolyMulF : carrier -> carrier -> PolyOpF carrier
-
-public export
-Functor PolyOpF where
-  map m PolyIdF = PolyIdF
-  map m (PolyConstF n) = PolyConstF n
-  map m (PolyAddF p q) = PolyAddF (m p) (m q)
-  map m (PolyMulF p q) = PolyMulF (m p) (m q)
-
-public export
-POShowAlg : Algebra PolyOpF String
-POShowAlg PolyIdF = "id"
-POShowAlg (PolyConstF n) = show n
-POShowAlg (PolyAddF p q) = "(" ++ p ++ ") + (" ++ q ++ ")"
-POShowAlg (PolyMulF p q) = "(" ++ p ++ ") * (" ++ q ++ ")"
-
-public export
-FreePolyOpN : NatObj -> Type -> Type
-FreePolyOpN = OmegaChain PolyOpF
-
-public export
-FreePolyOp : Type -> Type
-FreePolyOp = OmegaColimit PolyOpF
-
-public export
-PolyOp : Type
-PolyOp = InitialColimit PolyOpF
-
-{-
--- The representable endofunctor represented by a given object -- in the
--- endofunctor category, that is, by some endofunctor, which implicitly
--- means that endofunctor applied to the terminal object.
-prefix 11 :>:
-public export
-(:>:) : FreeS0EF v -> FreeS0EF v
-(:>:) a = inFreeComposite $ Subst0EndoCovarRep a
-
--- The unit-valued constant endofunctor -- represented by the initial object
--- (Void), and hence in the endofunctor category by the void-valued constant
--- endofunctor.
--}
-
------------------------------------------------------------------
------------------------------------------------------------------
----- Category of finite types represented by natural numbers ----
------------------------------------------------------------------
------------------------------------------------------------------
-
--- A finite type containing a given natural number of elements.
-public export
-FinO : Type
-FinO = Nat
