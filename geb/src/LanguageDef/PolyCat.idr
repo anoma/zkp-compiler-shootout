@@ -1557,6 +1557,11 @@ data FinSubstMorph : {0 cx, dx, cy, dy : Nat} ->
   FinProjRight : {0 cx, dx, cy, dy : Nat} ->
     (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
     FinSubstMorph {cx=(cx * cy)} {cy} 0 (FinProduct {cx} {cy} x y) y
+  FinDistrib : {0 cx, dx, cy, dy, cz, dz : Nat} ->
+    (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) -> (z : FinSubstT cz dz) ->
+    FinSubstMorph 0
+      (FinProduct x (FinCoproduct y z))
+      (FinCoproduct (FinProduct x y) (FinProduct x z))
 
 public export
 0 finSubstHomObjCard : {0 cx, dx, cy, dy : Nat} ->
@@ -1599,7 +1604,9 @@ FinSubstHomDepthObjEval {cx=(cx + cy)} {cy=cz} (FinCoproduct x y) z with
    ((Evidence0 dxz (hxz ** (Evidence0 hdxz evalxz))),
     (Evidence0 dyz (hyz ** (Evidence0 hdyz evalyz)))) =
     (Evidence0 (smax dxz dyz) $ rewrite powerOfSum cz cx cy in
-     (FinProduct hxz hyz ** Evidence0 ?coprodeval_depth_hole $
+     (FinProduct hxz hyz ** Evidence0
+      (S (max (smax hdxz hdyz) (smax (smax (smax 0 (smax (smax 0 0) 0)) (smax 0 (smax (smax 0 0) 0))) 0)))
+      $
       let
         p1 = FinProjLeft (FinProduct hxz hyz) (FinCoproduct x y)
         p11 = FinCompose (FinProjLeft _ _) p1
@@ -1609,8 +1616,18 @@ FinSubstHomDepthObjEval {cx=(cx + cy)} {cy=cz} (FinCoproduct x y) z with
         p22 = FinProd p2 p12
         c = FinCase {x=(FinProduct hxz x)} {y=(FinProduct hyz y)} {z}
           evalxz evalyz
+        d = FinDistrib (FinProduct hxz hyz) x y
       in
-      ?coprodeval_compose_hoole {- FinCompose c ?coprodeval_compose_hole -}))
+      rewrite powerOfSum cz cx cy in
+      FinCompose c $ FinCompose
+        (FinCase
+          (FinCompose (FinInjLeft _ _)
+            (FinProd (FinCompose (FinProjLeft _ _) (FinProjLeft _ _))
+              (FinProjRight _ _)))
+          (FinCompose (FinInjRight _ _)
+            (FinProd (FinCompose (FinProjRight _ _) (FinProjLeft _ _))
+              (FinProjRight _ _))))
+        d))
 -- (x * y) -> z == x -> y -> z
 FinSubstHomDepthObjEval {cx=(cx * cy)} {dx=(smax dx dy)} {cy=cz} {dy=dz}
   (FinProduct x y) z with
