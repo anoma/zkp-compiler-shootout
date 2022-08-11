@@ -738,6 +738,9 @@ bnclmt14 = Assert $ bncLMANN bncvlm0 3 == 0
 bncpm0 : BNCPolyM
 bncpm0 = #| 4 #+ #| 2 #* PI #^ 3 #+ PI #^ 4
 
+bncpm1 : BNCPolyM
+bncpm1 = (PI #+ #| 1) #^ 3
+
 ----------------
 ----------------
 ---- PolyOp ----
@@ -761,13 +764,20 @@ polyCatTest = do
   putStrLn "---------------------------------"
   putStrLn "---- Bounded natural numbers ----"
   putStrLn "---------------------------------"
+  putStrLn ""
   putStrLn $ "bat1: " ++ show bat1
   putStrLn $ "but1: " ++ show but1
   putStrLn $ "bat2: " ++ show bat2
   putStrLn $ "bat2 (long): " ++ baShowLong bat2
   putStrLn $ "but2: " ++ show but2
+  putStrLn ""
+  putStrLn "------------------------------"
+  putStrLn "---- Polynomial morphisms ----"
+  putStrLn "------------------------------"
+  putStrLn ""
   putStrLn $ "bnvlm0 = " ++ show bncvlm0
   putStrLn $ "bncpm0 = " ++ show bncpm0
+  putStrLn $ "bncpm1 = " ++ show bncpm1
   {- XXX
   putStrLn ""
   putStrLn "----------------"

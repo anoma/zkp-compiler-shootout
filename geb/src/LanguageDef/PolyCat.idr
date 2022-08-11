@@ -3207,7 +3207,7 @@ Show BNCPolyM where
   show (#| n) = show n
   show PI = "PI"
   show (p #+ q) = show p ++ " + " ++ show q
-  show (p #* q) = "(" ++ show p ++ " * " ++ show q ++ ")"
+  show (p #* q) = "(" ++ show p ++ ") * (" ++ show q ++ ")"
 
 public export
 P0 : BNCPolyM
