@@ -3099,8 +3099,8 @@ bncInterpU = BUNat
 -- We can also interpreted a `BNCatObj` as an arithmetic Nat-bounded set.
 -- bounded unary representations of Nat.
 public export
-bncInterpA : (0 _ : BNCatObj) -> Type
-bncInterpA = BANat
+bncObjA : (0 _ : BNCatObj) -> Type
+bncObjA = BANat
 
 -- The simplest morphisms of the Nat-bounded-set category are specified
 -- by spelling out, for each term of the domain, which term of the codomain
@@ -3110,7 +3110,7 @@ BNCListMorph : Type
 BNCListMorph = List Nat
 
 -- For a given BNCListMorph, we can check whether it is a valid morphism
--- betwween a given pair of objects.
+-- between a given pair of objects.
 public export
 checkVBNCLM : BNCatObj -> BNCatObj -> DecPred BNCListMorph
 checkVBNCLM Z _ [] = True
@@ -3134,3 +3134,14 @@ public export
 MkVBNCLM : {0 m, n : BNCatObj} -> (l : BNCListMorph) ->
   {auto 0 satisfies : isVBNCLM m n l} -> VBNCLM m n
 MkVBNCLM l {satisfies} = MkRefinement l {satisfies}
+
+-- We can interpret a valid list-specified morphism as a function
+-- of the metalanguage.
+public export
+bncLMA : {m, n : BNCatObj} -> VBNCLM m n -> BANat m -> BANat n
+bncLMA {m=Z} {n} (Element0 [] kvalid) (Element0 p pvalid) = exfalsoFT pvalid
+bncLMA {m=(S _)} {n} (Element0 [] kvalid) vp = exfalsoFT kvalid
+bncLMA {m=(S m)} {n} (Element0 (k :: ks) kvalid) (Element0 Z pvalid) =
+  Element0 k (andLeft kvalid)
+bncLMA {m=(S m)} {n} (Element0 (k :: ks) kvalid) (Element0 (S p) pvalid) =
+  bncLMA {m} {n} (Element0 ks (andRight kvalid)) (Element0 p pvalid)
