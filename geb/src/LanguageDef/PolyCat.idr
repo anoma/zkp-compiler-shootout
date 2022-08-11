@@ -3159,3 +3159,48 @@ public export
 bncLMANN : {m, n : BNCatObj} -> VBNCLM m n -> (k : Nat) ->
   {auto 0 satisfies : IsBoundedBy m k} -> Nat
 bncLMANN l k {satisfies} = fst0 $ bncLMAN l k {satisfies}
+
+-- Another class of morphism in the category of bounded arithmetic
+-- natural numbers is the polynomial functions -- constants, addition,
+-- multiplication.  Because we are so far defining only a "single-variable"
+-- category, we can make all such morphisms valid (as opposed to invalid if
+-- they fail bound checks) by performing the arithmetic modulo the sizes
+-- of the domain and codomain.  To address the special case of a morphism from
+-- BANat 0 to BANat (S n), we can use the constant 0 as the unique morphism
+-- out of BANat 0.
+
+-- Thus we can in particular interpret any metalanguage function on the
+-- natural numbers as a function from any BANat object to any non-empty
+-- BANat object by post-composing with modulus.
+
+public export
+metaToNatToBNC : {n : Nat} -> (Nat -> Nat) -> Nat -> BANat (S n)
+metaToNatToBNC {n} f k =
+  Element0 (modNatNZ k (S n) SIsNonZero) (modLtDivisor k n)
+
+public export
+metaToBNCToBNC : {m, n : Nat} -> (Nat -> Nat) -> BANat m -> BANat (S n)
+metaToBNCToBNC f (Element0 k _) = metaToNatToBNC {n} f k
+
+-- Object-language representation of polynomial morphisms.
+
+prefix 10 #|
+prefix 8 #+
+prefix 9 #*
+
+public export
+data BNCPolyM : Type where
+  -- Constant
+  (#|) : Nat -> BNCPolyM
+
+  -- Add a constant
+  (#+) : Nat -> BNCPolyM
+
+  -- Multiply by a constant
+  (#*) : Nat -> BNCPolyM
+
+public export
+Show BNCPolyM where
+  show (#| n) = "|" ++ show n
+  show (#+ n) = show n ++ " + "
+  show (#* n) = show n ++ " * "

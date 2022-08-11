@@ -248,6 +248,10 @@ powerOfMulSym : (x, y, z : Nat) -> power x (y * z) = power (power x z) y
 powerOfMulSym x y z = rewrite multCommutative y z in powerOfMul x z y
 
 public export
+modLtDivisor : (m, n : Nat) -> IsTrue $ gt (S n) $ modNatNZ m (S n) SIsNonZero
+modLtDivisor = ?mod_lt_divisor_correct
+
+public export
 magmaFromNonEmptyList : {a : Type} -> (a -> a -> a) -> a -> List a -> a
 magmaFromNonEmptyList f x [] = x
 magmaFromNonEmptyList f x (x' :: l) = f x $ magmaFromNonEmptyList f x' l
