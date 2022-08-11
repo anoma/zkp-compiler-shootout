@@ -3075,3 +3075,75 @@ public export
 ap2u_rewrite : {0 n : Nat} -> {0 p : BANat n -> Type} ->
   {0 ba : BANat n} -> p ba -> ap2u {n} p (a2u {n} ba)
 ap2u_rewrite {p} t = replace {p} a2u2a_correct t
+
+----------------------------------------
+---- Bounded-natural-number objects ----
+----------------------------------------
+
+-- The bounded natural numbers can be interpreted as a category whose
+-- objects are simply natural numbers (which give the bounds) and whose
+-- morphisms are the polynomial circuit operations modulo the bounds.
+-- An object is therefore specified simply by a natural number, and
+-- interpreted as a Nat-bounded set.
+
+public export
+BNCatObj : Type
+BNCatObj = Nat
+
+-- We can interpret objects of the natural-number-bounded category as
+-- bounded unary representations of Nat.
+public export
+bncInterpU : BNCatObj -> Type
+bncInterpU = BUNat
+
+-- We can also interpreted a `BNCatObj` as an arithmetic Nat-bounded set.
+-- bounded unary representations of Nat.
+public export
+bncInterpA : (0 _ : BNCatObj) -> Type
+bncInterpA = BANat
+
+-- The simplest morphisms of the Nat-bounded-set category are specified
+-- by spelling out, for each term of the domain, which term of the codomain
+-- it maps to.
+public export
+BNCListMorph : Type
+BNCListMorph = List Nat
+
+-- For a given BNCListMorph, we can check whether it is a valid morphism
+-- betwween a given pair of objects.
+public export
+isVBNCLM : BNCatObj -> BNCatObj -> DecPred BNCListMorph
+isVBNCLM m n l = ?is_valid_BNCLM
+
+-- Given a pair of objects, we can define a type dependent on those
+-- objects representing just those BNCListMorphs which are valid
+-- morphisms between those particular objects.
+
+public export
+VBNCLM : BNCatObj -> BNCatObj -> Type
+VBNCLM m n = Refinement {a=BNCListMorph} $ isVBNCLM m n
+
+------------------------------------------------
+---- Bounded-natural-number product objects ----
+------------------------------------------------
+
+-- A category whose objects are finite products of bounded natural numbers.
+-- An object could be viewed as a context with some number of
+-- bounded-natural-number variables in scope; a circuit might be a morphism
+-- from a context whose variables are input wires to a context whose variables
+-- are output wires, formed from a composition through other contexts
+-- with more wires for performing the computation.
+
+-- This is an extension of the category whose objects are single
+-- bounded-natural-number sets to, in effect, multivariate polynomials.
+
+-- The length of the list is the number of variables in the context, and
+-- each number represents the cardinality of the bound-number set.
+public export
+NatProdObj : Type
+NatProdObj = List Nat
+
+-- Interpret `NatProdObj` into the metalanguage.
+MetaNatProdObj : NatProdObj -> Type
+MetaNatProdObj [] = ()
+MetaNatProdObj (n :: ns) = (BANat n, MetaNatProdObj ns)
