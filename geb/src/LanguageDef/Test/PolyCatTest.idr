@@ -721,7 +721,19 @@ bnclmt9 = Assert $ not $ checkVBNCLM 1 0 bnclm2
 
 bnclmt10 : Assertion
 bnclmt10 = Assert $ not $ checkVBNCLM 1 1 bnclm2
+-- bnclm0 = [ 3, 1, 5, 0 ]
 
+bnclmt11 : Assertion
+bnclmt11 = Assert $ bncLMANN bncvlm0 0 == 3
+
+bnclmt12 : Assertion
+bnclmt12 = Assert $ bncLMANN bncvlm0 1 == 1
+
+bnclmt13 : Assertion
+bnclmt13 = Assert $ bncLMANN bncvlm0 2 == 5
+
+bnclmt14 : Assertion
+bnclmt14 = Assert $ bncLMANN bncvlm0 3 == 0
 
 ----------------
 ----------------

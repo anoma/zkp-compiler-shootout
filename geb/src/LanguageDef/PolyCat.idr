@@ -3145,3 +3145,17 @@ bncLMA {m=(S m)} {n} (Element0 (k :: ks) kvalid) (Element0 Z pvalid) =
   Element0 k (andLeft kvalid)
 bncLMA {m=(S m)} {n} (Element0 (k :: ks) kvalid) (Element0 (S p) pvalid) =
   bncLMA {m} {n} (Element0 ks (andRight kvalid)) (Element0 p pvalid)
+
+-- Utility function for applying a bncLMA to a Nat that can be
+-- validated at compile time as satisfying the bounds.
+public export
+bncLMAN : {m, n : BNCatObj} -> VBNCLM m n -> (k : Nat) ->
+  {auto 0 satisfies : IsBoundedBy m k} -> BANat n
+bncLMAN lm k {satisfies} = bncLMA lm $ MkBANat k {satisfies}
+
+-- Utility function for applying bncLMAN and then forgetting the
+-- constraint on the output.
+public export
+bncLMANN : {m, n : BNCatObj} -> VBNCLM m n -> (k : Nat) ->
+  {auto 0 satisfies : IsBoundedBy m k} -> Nat
+bncLMANN l k {satisfies} = fst0 $ bncLMAN l k {satisfies}
