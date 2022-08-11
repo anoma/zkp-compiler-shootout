@@ -3230,3 +3230,15 @@ infixl 10 #^
 public export
 (#^) : BNCPolyM -> Nat -> BNCPolyM
 (#^) = polyPow
+
+-- Interpret a BNCPolyM into the metalanguage.
+public export
+metaBNCPolyM : BNCPolyM -> Nat -> Nat
+metaBNCPolyM (#| n) _ = n
+metaBNCPolyM PI k = k
+metaBNCPolyM (p #+ q) k = metaBNCPolyM p k + metaBNCPolyM q k
+metaBNCPolyM (p #* q) k = metaBNCPolyM p k * metaBNCPolyM q k
+
+-- Interpret a BNCPolyM as a function between BANat objects.
+baPolyM : {m, n : Nat} -> BNCPolyM -> BANat m -> BANat (S n)
+baPolyM = metaToBNCToBNC . metaBNCPolyM
