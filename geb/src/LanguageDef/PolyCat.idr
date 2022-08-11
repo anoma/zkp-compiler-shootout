@@ -3122,28 +3122,3 @@ isVBNCLM m n l = ?is_valid_BNCLM
 public export
 VBNCLM : BNCatObj -> BNCatObj -> Type
 VBNCLM m n = Refinement {a=BNCListMorph} $ isVBNCLM m n
-
-------------------------------------------------
----- Bounded-natural-number product objects ----
-------------------------------------------------
-
--- A category whose objects are finite products of bounded natural numbers.
--- An object could be viewed as a context with some number of
--- bounded-natural-number variables in scope; a circuit might be a morphism
--- from a context whose variables are input wires to a context whose variables
--- are output wires, formed from a composition through other contexts
--- with more wires for performing the computation.
-
--- This is an extension of the category whose objects are single
--- bounded-natural-number sets to, in effect, multivariate polynomials.
-
--- The length of the list is the number of variables in the context, and
--- each number represents the cardinality of the bound-number set.
-public export
-NatProdObj : Type
-NatProdObj = List Nat
-
--- Interpret `NatProdObj` into the metalanguage.
-MetaNatProdObj : NatProdObj -> Type
-MetaNatProdObj [] = ()
-MetaNatProdObj (n :: ns) = (BANat n, MetaNatProdObj ns)
