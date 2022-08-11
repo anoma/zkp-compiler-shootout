@@ -735,6 +735,9 @@ bnclmt13 = Assert $ bncLMANN bncvlm0 2 == 5
 bnclmt14 : Assertion
 bnclmt14 = Assert $ bncLMANN bncvlm0 3 == 0
 
+bncpm0 : BNCPolyM
+bncpm0 = #| 4 #+ #| 2 #* PI #^ 3 #+ PI #^ 4
+
 ----------------
 ----------------
 ---- PolyOp ----
@@ -764,6 +767,7 @@ polyCatTest = do
   putStrLn $ "bat2 (long): " ++ baShowLong bat2
   putStrLn $ "but2: " ++ show but2
   putStrLn $ "bnvlm0 = " ++ show bncvlm0
+  putStrLn $ "bncpm0 = " ++ show bncpm0
   {- XXX
   putStrLn ""
   putStrLn "----------------"

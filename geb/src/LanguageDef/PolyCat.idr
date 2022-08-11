@@ -3184,23 +3184,49 @@ metaToBNCToBNC f (Element0 k _) = metaToNatToBNC {n} f k
 
 -- Object-language representation of polynomial morphisms.
 
-prefix 10 #|
-prefix 8 #+
-prefix 9 #*
+prefix 11 #|
+infixr 8 #+
+infixr 9 #*
 
 public export
 data BNCPolyM : Type where
   -- Constant
   (#|) : Nat -> BNCPolyM
 
-  -- Add a constant
-  (#+) : Nat -> BNCPolyM
+  -- Identity
+  PI : BNCPolyM
 
-  -- Multiply by a constant
-  (#*) : Nat -> BNCPolyM
+  -- Add
+  (#+) : BNCPolyM -> BNCPolyM -> BNCPolyM
+
+  -- Multiply
+  (#*) : BNCPolyM -> BNCPolyM -> BNCPolyM
 
 public export
 Show BNCPolyM where
-  show (#| n) = "|" ++ show n
-  show (#+ n) = show n ++ " + "
-  show (#* n) = show n ++ " * "
+  show (#| n) = show n
+  show PI = "PI"
+  show (p #+ q) = show p ++ " + " ++ show q
+  show (p #* q) = "(" ++ show p ++ " * " ++ show q ++ ")"
+
+public export
+P0 : BNCPolyM
+P0 = #| 0
+
+public export
+P1 : BNCPolyM
+P1 = #| 1
+
+public export
+powerAcc : BNCPolyM -> Nat -> BNCPolyM -> BNCPolyM
+powerAcc p Z acc = acc
+powerAcc p (S n) acc = powerAcc p n (p #* acc)
+
+public export
+polyPow : BNCPolyM -> Nat -> BNCPolyM
+polyPow p n = powerAcc p n P1
+
+infixl 10 #^
+public export
+(#^) : BNCPolyM -> Nat -> BNCPolyM
+(#^) = polyPow
