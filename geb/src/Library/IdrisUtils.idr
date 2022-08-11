@@ -252,6 +252,14 @@ modLtDivisor : (m, n : Nat) -> IsTrue $ gt (S n) $ modNatNZ m (S n) SIsNonZero
 modLtDivisor = ?mod_lt_divisor_correct
 
 public export
+minusModulo : (modulus, m, n : Nat) -> {auto nz : NonZero modulus} -> Nat
+minusModulo modulus m n {nz} with (m >= n)
+  minusModulo modulus m n {nz} | True = modNatNZ (minus m n) modulus nz
+  minusModulo modulus m n {nz} | False = case modNatNZ (minus n m) modulus nz of
+    Z => Z
+    S m' => {- we want the modulus, not the remainder -} minus modulus (S m')
+
+public export
 magmaFromNonEmptyList : {a : Type} -> (a -> a -> a) -> a -> List a -> a
 magmaFromNonEmptyList f x [] = x
 magmaFromNonEmptyList f x (x' :: l) = f x $ magmaFromNonEmptyList f x' l

@@ -3240,5 +3240,6 @@ metaBNCPolyM (p #+ q) k = metaBNCPolyM p k + metaBNCPolyM q k
 metaBNCPolyM (p #* q) k = metaBNCPolyM p k * metaBNCPolyM q k
 
 -- Interpret a BNCPolyM as a function between BANat objects.
+public export
 baPolyM : {m, n : Nat} -> BNCPolyM -> BANat m -> BANat (S n)
 baPolyM = metaToBNCToBNC . metaBNCPolyM
