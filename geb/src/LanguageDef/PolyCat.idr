@@ -3112,8 +3112,15 @@ BNCListMorph = List Nat
 -- For a given BNCListMorph, we can check whether it is a valid morphism
 -- betwween a given pair of objects.
 public export
-isVBNCLM : BNCatObj -> BNCatObj -> DecPred BNCListMorph
-isVBNCLM m n l = ?is_valid_BNCLM
+checkVBNCLM : BNCatObj -> BNCatObj -> DecPred BNCListMorph
+checkVBNCLM Z _ [] = True
+checkVBNCLM Z _ (_ :: _) = False
+checkVBNCLM (S _) _ [] = False
+checkVBNCLM (S m') n (k :: ks) = BoundedBy n k && checkVBNCLM m' n ks
+
+public export
+isVBNCLM : BNCatObj -> BNCatObj -> BNCListMorph -> Type
+isVBNCLM = Satisfies .* checkVBNCLM
 
 -- Given a pair of objects, we can define a type dependent on those
 -- objects representing just those BNCListMorphs which are valid
@@ -3121,4 +3128,9 @@ isVBNCLM m n l = ?is_valid_BNCLM
 
 public export
 VBNCLM : BNCatObj -> BNCatObj -> Type
-VBNCLM m n = Refinement {a=BNCListMorph} $ isVBNCLM m n
+VBNCLM m n = Refinement {a=BNCListMorph} $ checkVBNCLM m n
+
+public export
+MkVBNCLM : {0 m, n : BNCatObj} -> (l : BNCListMorph) ->
+  {auto 0 satisfies : isVBNCLM m n l} -> VBNCLM m n
+MkVBNCLM l {satisfies} = MkRefinement l {satisfies}

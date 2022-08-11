@@ -677,6 +677,52 @@ tbut21 = Assert $ MkBUNat {n=4} 3 == but2
 tbut22 : Assertion
 tbut22 = Assert $ u2a but2 == bat2
 
+bnclm0 : BNCListMorph
+bnclm0 = [ 3, 1, 5, 0 ]
+
+bnclm1 : BNCListMorph
+bnclm1 = [ 6, 1 ]
+
+bnclm2 : BNCListMorph
+bnclm2 = []
+
+bnclmt0 : Assertion
+bnclmt0 = Assert $ checkVBNCLM 4 6 bnclm0
+
+bncvlm0 : VBNCLM 4 6
+bncvlm0 = MkVBNCLM bnclm0
+
+bnclmt1 : Assertion
+bnclmt1 = Assert $ not $ checkVBNCLM 4 5 bnclm0
+
+bnclmt2 : Assertion
+bnclmt2 = Assert $ checkVBNCLM 4 7 bnclm0
+
+bnclmt3 : Assertion
+bnclmt3 = Assert $ not $ checkVBNCLM 3 6 bnclm0
+
+bnclmt4 : Assertion
+bnclmt4 = Assert $ not $ checkVBNCLM 5 6 bnclm0
+
+bnclmt5 : Assertion
+bnclmt5 = Assert $ not $ checkVBNCLM 2 7 bnclm0
+
+bnclmt6 : Assertion
+bnclmt6 = Assert $ checkVBNCLM 2 7 bnclm1
+
+bnclmt7 : Assertion
+bnclmt7 = Assert $ checkVBNCLM 0 0 bnclm2
+
+bnclmt8 : Assertion
+bnclmt8 = Assert $ checkVBNCLM 0 1 bnclm2
+
+bnclmt9 : Assertion
+bnclmt9 = Assert $ not $ checkVBNCLM 1 0 bnclm2
+
+bnclmt10 : Assertion
+bnclmt10 = Assert $ not $ checkVBNCLM 1 1 bnclm2
+
+
 ----------------
 ----------------
 ---- PolyOp ----
@@ -705,6 +751,7 @@ polyCatTest = do
   putStrLn $ "bat2: " ++ show bat2
   putStrLn $ "bat2 (long): " ++ baShowLong bat2
   putStrLn $ "but2: " ++ show but2
+  putStrLn $ "bnvlm0 = " ++ show bncvlm0
   {- XXX
   putStrLn ""
   putStrLn "----------------"
