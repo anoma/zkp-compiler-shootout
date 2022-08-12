@@ -1396,7 +1396,7 @@ natAna coalg nx =
 -----------------------------------------------------------
 
 -- A finite type, generated only from initial and terminal objects
--- and coproducts, and products, which is indexed by a natural-number size
+-- and coproducts and products, which is indexed by a natural-number size
 -- (which is the cardinality of the set of the type's elements).
 public export
 data FinSubstT : (0 cardinality, depth : Nat) -> Type where
