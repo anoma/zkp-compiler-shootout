@@ -3172,12 +3172,16 @@ bncLMANN l k {satisfies} = fst0 $ bncLMAN l k {satisfies}
 -- BANat object by post-composing with modulus.
 
 public export
-metaToNatToBNC : {n : Nat} -> (Nat -> Nat) -> Nat -> BANat (S n)
+metaToNatToBNC : {n : Nat} -> (Integer -> Integer) -> Nat -> BANat (S n)
 metaToNatToBNC {n} f k =
-  Element0 (modNatNZ (f k) (S n) SIsNonZero) (modLtDivisor (f k) n)
+  let
+    k' = natToInteger k
+    fk = integerToNat $ f k'
+  in
+  Element0 (modNatNZ fk (S n) SIsNonZero) (modLtDivisor fk n)
 
 public export
-metaToBNCToBNC : {m, n : Nat} -> (Nat -> Nat) -> BANat m -> BANat (S n)
+metaToBNCToBNC : {m, n : Nat} -> (Integer -> Integer) -> BANat m -> BANat (S n)
 metaToBNCToBNC f (Element0 k _) = metaToNatToBNC {n} f k
 
 -- Object-language representation of polynomial morphisms.
@@ -3253,23 +3257,24 @@ public export
 
 -- Interpret a BNCPolyM into the metalanguage.
 public export
-metaBNCPolyM : (modpred : Nat) -> BNCPolyM -> Nat -> Nat
-metaBNCPolyM modpred (#| n) _ = n
-metaBNCPolyM modpred PI k = k
+metaBNCPolyM : (modpred : Integer) -> BNCPolyM -> Integer -> Integer
+metaBNCPolyM modpred (#| n) _ = modSucc (natToInteger n) modpred
+metaBNCPolyM modpred PI k = modSucc k modpred
 metaBNCPolyM modpred (p #+ q) k =
+  flip modSucc modpred $
   metaBNCPolyM modpred p k + metaBNCPolyM modpred q k
 metaBNCPolyM modpred (p #* q) k =
+  flip modSucc modpred $
   metaBNCPolyM modpred p k * metaBNCPolyM modpred q k
 metaBNCPolyM modpred (p #- q) k =
-  minusModulo (S modpred) (metaBNCPolyM modpred p k) (metaBNCPolyM modpred q k)
+  minusModulo
+    (modpred + 1)
+    (metaBNCPolyM modpred p k)
+    (metaBNCPolyM modpred q k)
 metaBNCPolyM modpred (p #/ q) k =
-  case divMaybe (metaBNCPolyM modpred p k) (metaBNCPolyM modpred q k) of
-    Just k' => k'
-    Nothing => Z
+  divWithZtoZ (metaBNCPolyM modpred p k) (metaBNCPolyM modpred q k)
 metaBNCPolyM modpred (p #% q) k =
-  case modMaybe (metaBNCPolyM modpred p k) (metaBNCPolyM modpred q k) of
-    Just k' => k'
-    Nothing => Z
+  modWithZtoZ (metaBNCPolyM modpred p k) (metaBNCPolyM modpred q k)
 metaBNCPolyM modpred (IfZero p q r) k =
   if metaBNCPolyM modpred p k == 0 then
     metaBNCPolyM modpred q k
@@ -3279,4 +3284,4 @@ metaBNCPolyM modpred (IfZero p q r) k =
 -- Interpret a BNCPolyM as a function between BANat objects.
 public export
 baPolyM : {m, n : Nat} -> BNCPolyM -> BANat m -> BANat (S n)
-baPolyM {n} p = metaToBNCToBNC (metaBNCPolyM n p)
+baPolyM {n} p = metaToBNCToBNC (metaBNCPolyM (natToInteger n) p)

@@ -119,16 +119,20 @@ modMaybe n m with (DecNonZero m)
   modMaybe n m | No _ = Nothing
 
 public export
-divWithZtoZ : Nat -> Nat -> Nat
-divWithZtoZ n m = case divMaybe n m of
-  Just k => k
-  Nothing => Z
+divWithZtoZ : Integer -> Integer -> Integer
+divWithZtoZ n m = if m == 0 then 0 else div n m
 
 public export
-modWithZtoZ : Nat -> Nat -> Nat
-modWithZtoZ n m = case modMaybe n m of
-  Just k => k
-  Nothing => Z
+modWithZtoZ : Integer -> Integer -> Integer
+modWithZtoZ n m = if m == 0 then 0 else mod n m
+
+public export
+divSucc : Integer -> Integer -> Integer
+divSucc n m = div n (m + 1)
+
+public export
+modSucc : Integer -> Integer -> Integer
+modSucc n m = mod n (m + 1)
 
 public export
 boolToDigit : Bool -> Digit
@@ -264,12 +268,16 @@ modLtDivisor : (m, n : Nat) -> IsTrue $ gt (S n) $ modNatNZ m (S n) SIsNonZero
 modLtDivisor = ?mod_lt_divisor_correct
 
 public export
-minusModulo : (modulus, m, n : Nat) -> {auto nz : NonZero modulus} -> Nat
-minusModulo modulus m n {nz} with (m >= n)
-  minusModulo modulus m n {nz} | True = modNatNZ (minus m n) modulus nz
-  minusModulo modulus m n {nz} | False = case modNatNZ (minus n m) modulus nz of
-    Z => Z
-    S m' => {- we want the modulus, not the remainder -} minus modulus (S m')
+minusModulo : (modulus, m, n : Integer) -> Integer
+minusModulo modulus m n =
+  if modulus == 0 then
+    0
+  else
+    if m >= n then
+      mod (m - n) modulus
+    else
+      let r = mod (n - m) modulus in
+      if r == 0 then 0 else modulus - r
 
 public export
 magmaFromNonEmptyList : {a : Type} -> (a -> a -> a) -> a -> List a -> a

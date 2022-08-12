@@ -5,6 +5,9 @@ import Library.IdrisUtils
 
 %default total
 
+divt0 : Assertion
+divt0 = Assert $ divSucc 7 3 == 1
+
 minmodt0 : Assertion
 minmodt0 = Assert $ minusModulo 3 18 12 == 0
 

@@ -772,7 +772,7 @@ bncpmt7 : Assertion
 bncpmt7 = Assert $ metaBNCPolyM 200 bncpm1 3 == 64
 
 bncpmt8 : Assertion
-bncpmt8 = Assert $ metaBNCPolyM 100 bncpm0 3 == 139
+bncpmt8 = Assert $ metaBNCPolyM 100 bncpm0 3 == 38
 
 bncpmt9 : Assertion
 bncpmt9 = Assert $ fst0 (bncpm0mod200 (MkBANat 3)) == 139
@@ -805,6 +805,14 @@ bncpmt17 = Assert $
 bncpmt18 : Assertion
 bncpmt18 = Assert $
   metaBNCPolyM 200 (IfZero (bncpm1 #/ bncpm0) bncpm0 bncpm1) 3 == 139
+
+bncpmt19 : Assertion
+bncpmt19 = Assert $
+  metaBNCPolyM 100 (IfZero (bncpm0 #/ bncpm1) bncpm0 bncpm1) 3 == 38
+
+bncpmt20 : Assertion
+bncpmt20 = Assert $
+  metaBNCPolyM 100 (IfZero (bncpm1 #/ bncpm0) bncpm0 bncpm1) 3 == 64
 
 ----------------
 ----------------
