@@ -2928,17 +2928,63 @@ data BNCPolyM : Type where
   IfZero : BNCPolyM -> BNCPolyM -> BNCPolyM -> BNCPolyM
 
 public export
+record BNCPolyMAlg (0 a : BNCPolyM -> Type) where
+  constructor MkBNCPolyAlg
+  bncaConst : (n : Nat) -> a (#| n)
+  bncaId : a PI
+  bncaCompose : (q, p : BNCPolyM) -> a q -> a p -> a (q #. p)
+  bncaAdd : (p, q : BNCPolyM) -> a p -> a q -> a (p #+ q)
+  bncaMul : (p, q : BNCPolyM) -> a p -> a q -> a (p #* q)
+  bncaSub : (p, q : BNCPolyM) -> a p -> a q -> a (p #- q)
+  bncaDiv : (p, q : BNCPolyM) -> a p -> a q -> a (p #/ q)
+  bncaMod : (p, q : BNCPolyM) -> a p -> a q -> a (p #% q)
+  bncaIfZ : (p, q, r : BNCPolyM) -> a p -> a q -> a r -> a (IfZero p q r)
+
+public export
+bncPolyMInd : {0 a : BNCPolyM -> Type} -> BNCPolyMAlg a -> (p : BNCPolyM) -> a p
+bncPolyMInd alg (#| k) = bncaConst alg k
+bncPolyMInd alg PI = bncaId alg
+bncPolyMInd alg (q #. p) =
+  bncaCompose alg q p (bncPolyMInd alg q) (bncPolyMInd alg p)
+bncPolyMInd alg (p #+ q) =
+  bncaAdd alg p q (bncPolyMInd alg p) (bncPolyMInd alg q)
+bncPolyMInd alg (p #* q) =
+  bncaMul alg p q (bncPolyMInd alg p) (bncPolyMInd alg q)
+bncPolyMInd alg (p #- q) =
+  bncaSub alg p q (bncPolyMInd alg p) (bncPolyMInd alg q)
+bncPolyMInd alg (p #/ q) =
+  bncaDiv alg p q (bncPolyMInd alg p) (bncPolyMInd alg q)
+bncPolyMInd alg (p #% q) =
+  bncaMod alg p q (bncPolyMInd alg p) (bncPolyMInd alg q)
+bncPolyMInd alg (IfZero p q r) =
+  bncaIfZ alg p q r (bncPolyMInd alg p) (bncPolyMInd alg q) (bncPolyMInd alg r)
+
+public export
+showInfix : (is, ls, rs : String) -> String
+showInfix is ls rs = "(" ++ ls ++ ") " ++ is ++ " (" ++ rs ++ ")"
+
+public export
+const2ShowInfix : {0 a, b : Type} ->
+  (is : String) -> a -> b -> (ls, rs : String) -> String
+const2ShowInfix is _ _ = showInfix is
+
+public export
+BNCPMshowAlg : BNCPolyMAlg (const String)
+BNCPMshowAlg = MkBNCPolyAlg
+  show
+  "PI"
+  (const2ShowInfix ".")
+  (const2ShowInfix "+")
+  (const2ShowInfix "*")
+  (const2ShowInfix "-")
+  (const2ShowInfix "/")
+  (const2ShowInfix "%")
+  (\_, _, _, ps, qs, rs =>
+    "(" ++ ps ++ " == 0 ? " ++ show qs ++ " : " ++ show rs ++ ")")
+
+public export
 Show BNCPolyM where
-  show (#| n) = show n
-  show PI = "PI"
-  show (p #. q) = "(" ++ show p ++ ") . (" ++ show q ++ ")"
-  show (p #+ q) = "(" ++ show p ++ ") + (" ++ show q ++ ")"
-  show (p #* q) = "(" ++ show p ++ ") * (" ++ show q ++ ")"
-  show (p #- q) = "(" ++ show p ++ ") - (" ++ show q ++ ")"
-  show (p #/ q) = "(" ++ show p ++ ") / (" ++ show q ++ ")"
-  show (p #% q) = "(" ++ show p ++ ") % (" ++ show q ++ ")"
-  show (IfZero p q r) =
-    "(" ++ show p ++ " == 0 ? " ++ show q ++ " : " ++ show r ++ ")"
+  show  = bncPolyMInd BNCPMshowAlg
 
 public export
 P0 : BNCPolyM
