@@ -1389,308 +1389,6 @@ natAna coalg nx =
 ----------------------------------------------------
 ----------------------------------------------------
 
------------------------------------------------------------
------------------------------------------------------------
----- Idris representation of substitutive finite topos ----
------------------------------------------------------------
------------------------------------------------------------
-
--- A finite type, generated only from initial and terminal objects
--- and coproducts and products, which is indexed by a natural-number size
--- (which is the cardinality of the set of the type's elements).
-public export
-data FinSubstT : (0 cardinality, depth : Nat) -> Type where
-  FinInitial : FinSubstT 0 0
-  FinTerminal : FinSubstT 1 0
-  FinCoproduct : {0 cx, dx, cy, dy : Nat} ->
-    FinSubstT cx dx -> FinSubstT cy dy -> FinSubstT (cx + cy) (smax dx dy)
-  FinProduct : {0 cx, dx, cy, dy : Nat} ->
-    FinSubstT cx dx -> FinSubstT cy dy -> FinSubstT (cx * cy) (smax dx dy)
-
-public export
-record FSAlg (0 a : (0 c, d : Nat) -> FinSubstT c d -> Type) where
-  constructor MkFSAlg
-  fsInitialAlg : a 0 0 FinInitial
-  fsTerminalAlg : a 1 0 FinTerminal
-  fsCoproductAlg : {0 cx, dx, cy, dy : Nat} ->
-    (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
-    a cx dx x -> a cy dy y -> a (cx + cy) (smax dx dy) (FinCoproduct x y)
-  fsProductAlg : {0 cx, dx, cy, dy : Nat} ->
-    (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
-    a cx dx x -> a cy dy y -> a (cx * cy) (smax dx dy) (FinProduct x y)
-
-public export
-finSubstCata :
-  {0 a : (0 c, d : Nat) -> FinSubstT c d -> Type} ->
-  FSAlg a ->
-  {0 cardinality, depth : Nat} ->
-  (x : FinSubstT cardinality depth) -> a cardinality depth x
-finSubstCata alg FinInitial = alg.fsInitialAlg
-finSubstCata alg FinTerminal = alg.fsTerminalAlg
-finSubstCata alg (FinCoproduct x y) =
-  alg.fsCoproductAlg x y (finSubstCata alg x) (finSubstCata alg y)
-finSubstCata alg (FinProduct x y) =
-  alg.fsProductAlg x y (finSubstCata alg x) (finSubstCata alg y)
-
-public export
-data FinSubstTerm : {0 c, d : Nat} -> FinSubstT c d -> Type where
-  FinUnit : FinSubstTerm FinTerminal
-  FinLeft :
-    {0 cx, dx, cy, dy : Nat} ->
-    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
-    FinSubstTerm x -> FinSubstTerm (FinCoproduct x y)
-  FinRight :
-    {0 cx, dx, cy, dy : Nat} ->
-    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
-    FinSubstTerm y -> FinSubstTerm (FinCoproduct x y)
-  FinPair :
-    {0 cx, dx, cy, dy : Nat} ->
-    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
-    FinSubstTerm x -> FinSubstTerm y -> FinSubstTerm (FinProduct x y)
-
-public export
-record FSTAlg
-    (0 a : (0 c, d : Nat) -> (x : FinSubstT c d) -> FinSubstTerm x -> Type)
-    where
-  constructor MkFSTAlg
-  fstUnit : a 1 0 FinTerminal FinUnit
-  fstLeft : {0 cx, dx, cy, dy : Nat} ->
-    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
-    (t : FinSubstTerm x) ->
-    a cx dx x t ->
-    a (cx + cy) (smax dx dy) (FinCoproduct x y) (FinLeft t)
-  fstRight : {0 cx, dx, cy, dy : Nat} ->
-    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
-    (t : FinSubstTerm y) ->
-    a cy dy y t ->
-    a (cx + cy) (smax dx dy) (FinCoproduct x y) (FinRight t)
-  fstPair : {0 cx, dx, cy, dy : Nat} ->
-    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
-    (t : FinSubstTerm x) -> (t' : FinSubstTerm y) ->
-    a cx dx x t -> a cy dy y t' ->
-    a (cx * cy) (smax dx dy) (FinProduct x y) (FinPair t t')
-
-mutual
-  public export
-  fstCata :
-    {0 a : (0 c, d : Nat) -> (x : FinSubstT c d) -> FinSubstTerm x -> Type} ->
-    FSTAlg a ->
-    {0 c, d : Nat} -> {x : FinSubstT c d} ->
-    (t : FinSubstTerm x) -> a c d x t
-  fstCata {a} alg {x=FinInitial} = fstCataInitial {a}
-  fstCata {a} alg {x=FinTerminal} = fstCataTerminal {a} alg
-  fstCata {a} alg {x=(FinCoproduct x y)} = fstCataCoproduct {a} alg {x} {y}
-  fstCata {a} alg {x=(FinProduct x y)} = fstCataProduct {a} alg {x} {y}
-
-  public export
-  fstCataInitial :
-    {0 a : (0 c, d : Nat) -> (x : FinSubstT c d) -> FinSubstTerm x -> Type} ->
-    (t : FinSubstTerm FinInitial) -> a _ _ FinInitial t
-  fstCataInitial FinUnit impossible
-  fstCataInitial (FinLeft x) impossible
-  fstCataInitial (FinRight x) impossible
-  fstCataInitial (FinPair x y) impossible
-
-  public export
-  fstCataTerminal :
-    {0 a : (0 c, d : Nat) -> (x : FinSubstT c d) -> FinSubstTerm x -> Type} ->
-    FSTAlg a ->
-    (t : FinSubstTerm FinTerminal) -> a _ _ FinTerminal t
-  fstCataTerminal alg FinUnit = alg.fstUnit
-
-  public export
-  fstCataCoproduct :
-    {0 a : (0 c, d : Nat) -> (x : FinSubstT c d) -> FinSubstTerm x -> Type} ->
-    FSTAlg a ->
-    {0 cx, dx, cy, dy : Nat} ->
-    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
-    (t : FinSubstTerm (FinCoproduct x y)) ->
-    a _ _ (FinCoproduct x y) t
-  fstCataCoproduct alg (FinLeft t) = alg.fstLeft t $ fstCata alg t
-  fstCataCoproduct alg (FinRight t) = alg.fstRight t $ fstCata alg t
-
-  public export
-  fstCataProduct :
-    {0 a : (0 c, d : Nat) -> (x : FinSubstT c d) -> FinSubstTerm x -> Type} ->
-    FSTAlg a ->
-    {0 cx, dx, cy, dy : Nat} ->
-    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
-    (t : FinSubstTerm (FinProduct x y)) ->
-    a _  _ (FinProduct x y) t
-  fstCataProduct alg (FinPair t t') =
-    alg.fstPair t t' (fstCata alg t) (fstCata alg t')
-
-public export
-data FinSubstMorph : {0 cx, dx, cy, dy : Nat} ->
-    (0 depth : Nat) -> FinSubstT cx dx -> FinSubstT cy dy -> Type where
-  FinId : {0 cx, dx : Nat} ->
-    (x : FinSubstT cx dx) -> FinSubstMorph {cx} {cy=cx} 0 x x
-  FinCompose : {0 cx, dx, cy, dy, cz, dz : Nat} -> {0 dg, df : Nat} ->
-    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} -> {z : FinSubstT cz dz} ->
-    FinSubstMorph dg y z -> FinSubstMorph df x y ->
-    FinSubstMorph (smax dg df) x z
-  FinFromInit : {0 cy, dy : Nat} -> (y : FinSubstT cy dy) ->
-    FinSubstMorph {cx=0} {cy} 0 FinInitial y
-  FinToTerminal : {0 cx, dx : Nat} -> (x : FinSubstT cx dx) ->
-    FinSubstMorph {cx} {cy=1} 0 x FinTerminal
-  FinInjLeft : {0 cx, dx, cy, dy : Nat} ->
-    (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
-    FinSubstMorph {cx} {cy=(cx + cy)} 0 x (FinCoproduct {cx} {cy} x y)
-  FinInjRight : {0 cx, dx, cy, dy : Nat} ->
-    (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
-    FinSubstMorph {cx=cy} {cy=(cx + cy)} 0 y (FinCoproduct {cx} {cy} x y)
-  FinCase : {0 cx, dx, cy, dy, cz, dz : Nat} -> {0 df, dg : Nat} ->
-    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} -> {z : FinSubstT cz dz} ->
-    FinSubstMorph {cx} {cy=cz} df x z ->
-    FinSubstMorph {cx=cy} {cy=cz} dg y z ->
-    FinSubstMorph {cx=(cx + cy)} {cy=cz}
-      (smax df dg) (FinCoproduct {cx} {cy} x y) z
-  FinProd : {0 cx, dx, cy, dy, cz, dz : Nat} -> {0 df, dg : Nat} ->
-    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} -> {z : FinSubstT cz dz} ->
-    FinSubstMorph {cx} {cy} df x y ->
-    FinSubstMorph {cx} {cy=cz} dg x z ->
-    FinSubstMorph {cx} {cy=(cy * cz)} (smax df dg) x
-      (FinProduct {cx=cy} {cy=cz} y z)
-  FinProjLeft : {0 cx, dx, cy, dy : Nat} ->
-    (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
-    FinSubstMorph {cx=(cx * cy)} {cy=cx} 0 (FinProduct {cx} {cy} x y) x
-  FinProjRight : {0 cx, dx, cy, dy : Nat} ->
-    (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
-    FinSubstMorph {cx=(cx * cy)} {cy} 0 (FinProduct {cx} {cy} x y) y
-  FinDistrib : {0 cx, dx, cy, dy, cz, dz : Nat} ->
-    (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) -> (z : FinSubstT cz dz) ->
-    FinSubstMorph 0
-      (FinProduct x (FinCoproduct y z))
-      (FinCoproduct (FinProduct x y) (FinProduct x z))
-
-public export
-0 finSubstHomObjCard : {0 cx, dx, cy, dy : Nat} ->
-  FinSubstT cx dx -> FinSubstT cy dy -> Nat
-finSubstHomObjCard {cx} {cy} _ _ = power cy cx
-
-public export
-EvalMorphType : {0 cx, dx, cy, dy, dh : Nat} ->
-  (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
-  FinSubstT (finSubstHomObjCard x y) dh -> (0 df : Nat) -> Type
-EvalMorphType x y hxy df = FinSubstMorph df (FinProduct hxy x) y
-
-public export
-HomObjWithEvalMorphType : {0 cx, dx, cy, dy : Nat} ->
-  FinSubstT cx dx -> FinSubstT cy dy -> (0 dh : Nat) -> Type
-HomObjWithEvalMorphType x y dh =
-  (hxy : FinSubstT (finSubstHomObjCard x y) dh **
-   Exists0 Nat (EvalMorphType x y hxy))
-
--- Compute the exponential object and evaluation morphism of the given finite
--- substitutive types.
-public export
-FinSubstHomDepthObjEval : {0 cx, dx, cy, dy : Nat} ->
-  (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
-  Exists0 Nat (HomObjWithEvalMorphType x y)
--- 0 -> x == 1
-FinSubstHomDepthObjEval FinInitial x =
-  (Evidence0 0 (FinTerminal **
-    Evidence0 1 $
-      FinCompose (FinFromInit x) $ FinProjRight FinTerminal FinInitial))
--- 1 -> x == x
-FinSubstHomDepthObjEval {cy} {dy} FinTerminal x =
-  let eq = mulPowerZeroRightNeutral {m=cy} {n=cy} in
-  (Evidence0 dy $ rewrite eq in (x **
-   Evidence0 0 $ rewrite eq in FinProjLeft x FinTerminal))
--- (x + y) -> z == (x -> z) * (y -> z)
-FinSubstHomDepthObjEval {cx=(cx + cy)} {cy=cz} (FinCoproduct x y) z with
- (FinSubstHomDepthObjEval x z, FinSubstHomDepthObjEval y z)
-  FinSubstHomDepthObjEval {cx=(cx + cy)} {cy=cz} (FinCoproduct x y) z |
-   ((Evidence0 dxz (hxz ** (Evidence0 hdxz evalxz))),
-    (Evidence0 dyz (hyz ** (Evidence0 hdyz evalyz)))) =
-    (Evidence0 (smax dxz dyz) $ rewrite powerOfSum cz cx cy in
-     (FinProduct hxz hyz ** Evidence0
-      (S (max (smax hdxz hdyz) 5))
-      $
-      rewrite powerOfSum cz cx cy in
-      FinCompose (FinCase evalxz evalyz) $ FinCompose
-        (FinCase
-          (FinCompose (FinInjLeft _ _)
-            (FinProd (FinCompose (FinProjLeft _ _) (FinProjLeft _ _))
-              (FinProjRight _ _)))
-          (FinCompose (FinInjRight _ _)
-            (FinProd (FinCompose (FinProjRight _ _) (FinProjLeft _ _))
-              (FinProjRight _ _))))
-        (FinDistrib (FinProduct hxz hyz) x y)))
--- (x * y) -> z == x -> y -> z
-FinSubstHomDepthObjEval {cx=(cx * cy)} {dx=(smax dx dy)} {cy=cz} {dy=dz}
-  (FinProduct x y) z with
-  (FinSubstHomDepthObjEval y z)
-    FinSubstHomDepthObjEval {cx=(cx * cy)} {dx=(smax dx dy)} {cy=cz} {dy=dz}
-      (FinProduct x y) z | (Evidence0 dyz (hyz ** Evidence0 hdyz evalyz)) =
-        let
-          Evidence0 dxyz hexyz = FinSubstHomDepthObjEval {dx} {dy=dyz} x hyz
-          (hxyz ** Evidence0 dexyz evalxyz) = hexyz
-        in
-        Evidence0 dxyz $ rewrite powerOfMulSym cz cx cy in
-          (hxyz ** Evidence0 (smax hdyz (smax (smax dexyz 2) 1)) $
-            rewrite powerOfMulSym cz cx cy in
-            FinCompose evalyz $ FinProd
-              (FinCompose evalxyz
-               (FinProd
-                (FinProjLeft hxyz (FinProduct x y))
-                (FinCompose
-                  (FinProjLeft x y) (FinProjRight hxyz (FinProduct x y)))))
-              (FinCompose
-                (FinProjRight x y) (FinProjRight hxyz (FinProduct x y))))
-
-public export
-0 finSubstHomObjDepth : {0 cx, dx, cy, dy : Nat} ->
-  FinSubstT cx dx -> FinSubstT cy dy -> Nat
-finSubstHomObjDepth x y = fst0 $ FinSubstHomDepthObjEval x y
-
-public export
-finSubstHomObj : {0 cx, dx, cy, dy : Nat} ->
-  (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
-  FinSubstT (finSubstHomObjCard x y) (finSubstHomObjDepth x y)
-finSubstHomObj x y = fst $ snd0 $ FinSubstHomDepthObjEval x y
-
-public export
-0 finSubstEvalMorphDepth : {0 cx, dx, cy, dy : Nat} ->
-  (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
-  Nat
-finSubstEvalMorphDepth x y = fst0 (snd (snd0 (FinSubstHomDepthObjEval x y)))
-
-public export
-finSubstEvalMorph : {0 cx, dx, cy, dy : Nat} ->
-  (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
-  EvalMorphType x y (finSubstHomObj x y) (finSubstEvalMorphDepth x y)
-finSubstEvalMorph x y = snd0 $ snd $ snd0 $ FinSubstHomDepthObjEval x y
-
---------------------------------------
----- Metalanguage interpretations ----
---------------------------------------
-
-public export
-InterpFSAlg : FSAlg (\_, _, _ => Type)
-InterpFSAlg = MkFSAlg Void Unit (const $ const Either) (const $ const Pair)
-
-public export
-interpFinSubst : {0 c, d : Nat} -> FinSubstT c d -> Type
-interpFinSubst = finSubstCata InterpFSAlg
-
-public export
-InterpTermAlg : FSTAlg (\_, _, x, _ => interpFinSubst x)
-InterpTermAlg = MkFSTAlg () (\_ => Left) (\_ => Right) (\_, _ => MkPair)
-
-public export
-interpFinSubstTerm : {0 c, d : Nat} -> {x : FinSubstT c d} ->
-  FinSubstTerm x -> interpFinSubst {c} {d} x
-interpFinSubstTerm {x} = fstCata InterpTermAlg
-
-public export
-interpFinSubstMorph : {0 cx, dx, cy, dy, depth : Nat} ->
-  {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
-  FinSubstMorph {cx} {dx} {cy} {dy} depth x y ->
-  interpFinSubst {c=cx} {d=dx} x ->
-  interpFinSubst {c=cy} {d=dy} y
-interpFinSubstMorph m = ?interpFinSubstMorph_hole
-
 ------------------------------------------------------
 ------------------------------------------------------
 ---- Zeroth-order unrefined substitutive category ----
@@ -3292,3 +2990,305 @@ metaBNCPolyM modpred (IfZero p q r) k =
 public export
 baPolyM : {m, n : Nat} -> BNCPolyM -> BANat m -> BANat (S n)
 baPolyM {n} p = metaToBNCToBNC (metaBNCPolyM (natToInteger n) p)
+
+-----------------------------------------------------------
+-----------------------------------------------------------
+---- Idris representation of substitutive finite topos ----
+-----------------------------------------------------------
+-----------------------------------------------------------
+
+-- A finite type, generated only from initial and terminal objects
+-- and coproducts and products, which is indexed by a natural-number size
+-- (which is the cardinality of the set of the type's elements).
+public export
+data FinSubstT : (0 cardinality, depth : Nat) -> Type where
+  FinInitial : FinSubstT 0 0
+  FinTerminal : FinSubstT 1 0
+  FinCoproduct : {0 cx, dx, cy, dy : Nat} ->
+    FinSubstT cx dx -> FinSubstT cy dy -> FinSubstT (cx + cy) (smax dx dy)
+  FinProduct : {0 cx, dx, cy, dy : Nat} ->
+    FinSubstT cx dx -> FinSubstT cy dy -> FinSubstT (cx * cy) (smax dx dy)
+
+public export
+record FSAlg (0 a : (0 c, d : Nat) -> FinSubstT c d -> Type) where
+  constructor MkFSAlg
+  fsInitialAlg : a 0 0 FinInitial
+  fsTerminalAlg : a 1 0 FinTerminal
+  fsCoproductAlg : {0 cx, dx, cy, dy : Nat} ->
+    (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
+    a cx dx x -> a cy dy y -> a (cx + cy) (smax dx dy) (FinCoproduct x y)
+  fsProductAlg : {0 cx, dx, cy, dy : Nat} ->
+    (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
+    a cx dx x -> a cy dy y -> a (cx * cy) (smax dx dy) (FinProduct x y)
+
+public export
+finSubstCata :
+  {0 a : (0 c, d : Nat) -> FinSubstT c d -> Type} ->
+  FSAlg a ->
+  {0 cardinality, depth : Nat} ->
+  (x : FinSubstT cardinality depth) -> a cardinality depth x
+finSubstCata alg FinInitial = alg.fsInitialAlg
+finSubstCata alg FinTerminal = alg.fsTerminalAlg
+finSubstCata alg (FinCoproduct x y) =
+  alg.fsCoproductAlg x y (finSubstCata alg x) (finSubstCata alg y)
+finSubstCata alg (FinProduct x y) =
+  alg.fsProductAlg x y (finSubstCata alg x) (finSubstCata alg y)
+
+public export
+data FinSubstTerm : {0 c, d : Nat} -> FinSubstT c d -> Type where
+  FinUnit : FinSubstTerm FinTerminal
+  FinLeft :
+    {0 cx, dx, cy, dy : Nat} ->
+    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
+    FinSubstTerm x -> FinSubstTerm (FinCoproduct x y)
+  FinRight :
+    {0 cx, dx, cy, dy : Nat} ->
+    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
+    FinSubstTerm y -> FinSubstTerm (FinCoproduct x y)
+  FinPair :
+    {0 cx, dx, cy, dy : Nat} ->
+    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
+    FinSubstTerm x -> FinSubstTerm y -> FinSubstTerm (FinProduct x y)
+
+public export
+record FSTAlg
+    (0 a : (0 c, d : Nat) -> (x : FinSubstT c d) -> FinSubstTerm x -> Type)
+    where
+  constructor MkFSTAlg
+  fstUnit : a 1 0 FinTerminal FinUnit
+  fstLeft : {0 cx, dx, cy, dy : Nat} ->
+    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
+    (t : FinSubstTerm x) ->
+    a cx dx x t ->
+    a (cx + cy) (smax dx dy) (FinCoproduct x y) (FinLeft t)
+  fstRight : {0 cx, dx, cy, dy : Nat} ->
+    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
+    (t : FinSubstTerm y) ->
+    a cy dy y t ->
+    a (cx + cy) (smax dx dy) (FinCoproduct x y) (FinRight t)
+  fstPair : {0 cx, dx, cy, dy : Nat} ->
+    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
+    (t : FinSubstTerm x) -> (t' : FinSubstTerm y) ->
+    a cx dx x t -> a cy dy y t' ->
+    a (cx * cy) (smax dx dy) (FinProduct x y) (FinPair t t')
+
+mutual
+  public export
+  fstCata :
+    {0 a : (0 c, d : Nat) -> (x : FinSubstT c d) -> FinSubstTerm x -> Type} ->
+    FSTAlg a ->
+    {0 c, d : Nat} -> {x : FinSubstT c d} ->
+    (t : FinSubstTerm x) -> a c d x t
+  fstCata {a} alg {x=FinInitial} = fstCataInitial {a}
+  fstCata {a} alg {x=FinTerminal} = fstCataTerminal {a} alg
+  fstCata {a} alg {x=(FinCoproduct x y)} = fstCataCoproduct {a} alg {x} {y}
+  fstCata {a} alg {x=(FinProduct x y)} = fstCataProduct {a} alg {x} {y}
+
+  public export
+  fstCataInitial :
+    {0 a : (0 c, d : Nat) -> (x : FinSubstT c d) -> FinSubstTerm x -> Type} ->
+    (t : FinSubstTerm FinInitial) -> a _ _ FinInitial t
+  fstCataInitial FinUnit impossible
+  fstCataInitial (FinLeft x) impossible
+  fstCataInitial (FinRight x) impossible
+  fstCataInitial (FinPair x y) impossible
+
+  public export
+  fstCataTerminal :
+    {0 a : (0 c, d : Nat) -> (x : FinSubstT c d) -> FinSubstTerm x -> Type} ->
+    FSTAlg a ->
+    (t : FinSubstTerm FinTerminal) -> a _ _ FinTerminal t
+  fstCataTerminal alg FinUnit = alg.fstUnit
+
+  public export
+  fstCataCoproduct :
+    {0 a : (0 c, d : Nat) -> (x : FinSubstT c d) -> FinSubstTerm x -> Type} ->
+    FSTAlg a ->
+    {0 cx, dx, cy, dy : Nat} ->
+    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
+    (t : FinSubstTerm (FinCoproduct x y)) ->
+    a _ _ (FinCoproduct x y) t
+  fstCataCoproduct alg (FinLeft t) = alg.fstLeft t $ fstCata alg t
+  fstCataCoproduct alg (FinRight t) = alg.fstRight t $ fstCata alg t
+
+  public export
+  fstCataProduct :
+    {0 a : (0 c, d : Nat) -> (x : FinSubstT c d) -> FinSubstTerm x -> Type} ->
+    FSTAlg a ->
+    {0 cx, dx, cy, dy : Nat} ->
+    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
+    (t : FinSubstTerm (FinProduct x y)) ->
+    a _  _ (FinProduct x y) t
+  fstCataProduct alg (FinPair t t') =
+    alg.fstPair t t' (fstCata alg t) (fstCata alg t')
+
+public export
+data FinSubstMorph : {0 cx, dx, cy, dy : Nat} ->
+    (0 depth : Nat) -> FinSubstT cx dx -> FinSubstT cy dy -> Type where
+  FinId : {0 cx, dx : Nat} ->
+    (x : FinSubstT cx dx) -> FinSubstMorph {cx} {cy=cx} 0 x x
+  FinCompose : {0 cx, dx, cy, dy, cz, dz : Nat} -> {0 dg, df : Nat} ->
+    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} -> {z : FinSubstT cz dz} ->
+    FinSubstMorph dg y z -> FinSubstMorph df x y ->
+    FinSubstMorph (smax dg df) x z
+  FinFromInit : {0 cy, dy : Nat} -> (y : FinSubstT cy dy) ->
+    FinSubstMorph {cx=0} {cy} 0 FinInitial y
+  FinToTerminal : {0 cx, dx : Nat} -> (x : FinSubstT cx dx) ->
+    FinSubstMorph {cx} {cy=1} 0 x FinTerminal
+  FinInjLeft : {0 cx, dx, cy, dy : Nat} ->
+    (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
+    FinSubstMorph {cx} {cy=(cx + cy)} 0 x (FinCoproduct {cx} {cy} x y)
+  FinInjRight : {0 cx, dx, cy, dy : Nat} ->
+    (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
+    FinSubstMorph {cx=cy} {cy=(cx + cy)} 0 y (FinCoproduct {cx} {cy} x y)
+  FinCase : {0 cx, dx, cy, dy, cz, dz : Nat} -> {0 df, dg : Nat} ->
+    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} -> {z : FinSubstT cz dz} ->
+    FinSubstMorph {cx} {cy=cz} df x z ->
+    FinSubstMorph {cx=cy} {cy=cz} dg y z ->
+    FinSubstMorph {cx=(cx + cy)} {cy=cz}
+      (smax df dg) (FinCoproduct {cx} {cy} x y) z
+  FinProd : {0 cx, dx, cy, dy, cz, dz : Nat} -> {0 df, dg : Nat} ->
+    {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} -> {z : FinSubstT cz dz} ->
+    FinSubstMorph {cx} {cy} df x y ->
+    FinSubstMorph {cx} {cy=cz} dg x z ->
+    FinSubstMorph {cx} {cy=(cy * cz)} (smax df dg) x
+      (FinProduct {cx=cy} {cy=cz} y z)
+  FinProjLeft : {0 cx, dx, cy, dy : Nat} ->
+    (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
+    FinSubstMorph {cx=(cx * cy)} {cy=cx} 0 (FinProduct {cx} {cy} x y) x
+  FinProjRight : {0 cx, dx, cy, dy : Nat} ->
+    (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
+    FinSubstMorph {cx=(cx * cy)} {cy} 0 (FinProduct {cx} {cy} x y) y
+  FinDistrib : {0 cx, dx, cy, dy, cz, dz : Nat} ->
+    (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) -> (z : FinSubstT cz dz) ->
+    FinSubstMorph 0
+      (FinProduct x (FinCoproduct y z))
+      (FinCoproduct (FinProduct x y) (FinProduct x z))
+
+public export
+0 finSubstHomObjCard : {0 cx, dx, cy, dy : Nat} ->
+  FinSubstT cx dx -> FinSubstT cy dy -> Nat
+finSubstHomObjCard {cx} {cy} _ _ = power cy cx
+
+public export
+EvalMorphType : {0 cx, dx, cy, dy, dh : Nat} ->
+  (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
+  FinSubstT (finSubstHomObjCard x y) dh -> (0 df : Nat) -> Type
+EvalMorphType x y hxy df = FinSubstMorph df (FinProduct hxy x) y
+
+public export
+HomObjWithEvalMorphType : {0 cx, dx, cy, dy : Nat} ->
+  FinSubstT cx dx -> FinSubstT cy dy -> (0 dh : Nat) -> Type
+HomObjWithEvalMorphType x y dh =
+  (hxy : FinSubstT (finSubstHomObjCard x y) dh **
+   Exists0 Nat (EvalMorphType x y hxy))
+
+-- Compute the exponential object and evaluation morphism of the given finite
+-- substitutive types.
+public export
+FinSubstHomDepthObjEval : {0 cx, dx, cy, dy : Nat} ->
+  (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
+  Exists0 Nat (HomObjWithEvalMorphType x y)
+-- 0 -> x == 1
+FinSubstHomDepthObjEval FinInitial x =
+  (Evidence0 0 (FinTerminal **
+    Evidence0 1 $
+      FinCompose (FinFromInit x) $ FinProjRight FinTerminal FinInitial))
+-- 1 -> x == x
+FinSubstHomDepthObjEval {cy} {dy} FinTerminal x =
+  let eq = mulPowerZeroRightNeutral {m=cy} {n=cy} in
+  (Evidence0 dy $ rewrite eq in (x **
+   Evidence0 0 $ rewrite eq in FinProjLeft x FinTerminal))
+-- (x + y) -> z == (x -> z) * (y -> z)
+FinSubstHomDepthObjEval {cx=(cx + cy)} {cy=cz} (FinCoproduct x y) z with
+ (FinSubstHomDepthObjEval x z, FinSubstHomDepthObjEval y z)
+  FinSubstHomDepthObjEval {cx=(cx + cy)} {cy=cz} (FinCoproduct x y) z |
+   ((Evidence0 dxz (hxz ** (Evidence0 hdxz evalxz))),
+    (Evidence0 dyz (hyz ** (Evidence0 hdyz evalyz)))) =
+    (Evidence0 (smax dxz dyz) $ rewrite powerOfSum cz cx cy in
+     (FinProduct hxz hyz ** Evidence0
+      (S (max (smax hdxz hdyz) 5))
+      $
+      rewrite powerOfSum cz cx cy in
+      FinCompose (FinCase evalxz evalyz) $ FinCompose
+        (FinCase
+          (FinCompose (FinInjLeft _ _)
+            (FinProd (FinCompose (FinProjLeft _ _) (FinProjLeft _ _))
+              (FinProjRight _ _)))
+          (FinCompose (FinInjRight _ _)
+            (FinProd (FinCompose (FinProjRight _ _) (FinProjLeft _ _))
+              (FinProjRight _ _))))
+        (FinDistrib (FinProduct hxz hyz) x y)))
+-- (x * y) -> z == x -> y -> z
+FinSubstHomDepthObjEval {cx=(cx * cy)} {dx=(smax dx dy)} {cy=cz} {dy=dz}
+  (FinProduct x y) z with
+  (FinSubstHomDepthObjEval y z)
+    FinSubstHomDepthObjEval {cx=(cx * cy)} {dx=(smax dx dy)} {cy=cz} {dy=dz}
+      (FinProduct x y) z | (Evidence0 dyz (hyz ** Evidence0 hdyz evalyz)) =
+        let
+          Evidence0 dxyz hexyz = FinSubstHomDepthObjEval {dx} {dy=dyz} x hyz
+          (hxyz ** Evidence0 dexyz evalxyz) = hexyz
+        in
+        Evidence0 dxyz $ rewrite powerOfMulSym cz cx cy in
+          (hxyz ** Evidence0 (smax hdyz (smax (smax dexyz 2) 1)) $
+            rewrite powerOfMulSym cz cx cy in
+            FinCompose evalyz $ FinProd
+              (FinCompose evalxyz
+               (FinProd
+                (FinProjLeft hxyz (FinProduct x y))
+                (FinCompose
+                  (FinProjLeft x y) (FinProjRight hxyz (FinProduct x y)))))
+              (FinCompose
+                (FinProjRight x y) (FinProjRight hxyz (FinProduct x y))))
+
+public export
+0 finSubstHomObjDepth : {0 cx, dx, cy, dy : Nat} ->
+  FinSubstT cx dx -> FinSubstT cy dy -> Nat
+finSubstHomObjDepth x y = fst0 $ FinSubstHomDepthObjEval x y
+
+public export
+finSubstHomObj : {0 cx, dx, cy, dy : Nat} ->
+  (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
+  FinSubstT (finSubstHomObjCard x y) (finSubstHomObjDepth x y)
+finSubstHomObj x y = fst $ snd0 $ FinSubstHomDepthObjEval x y
+
+public export
+0 finSubstEvalMorphDepth : {0 cx, dx, cy, dy : Nat} ->
+  (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
+  Nat
+finSubstEvalMorphDepth x y = fst0 (snd (snd0 (FinSubstHomDepthObjEval x y)))
+
+public export
+finSubstEvalMorph : {0 cx, dx, cy, dy : Nat} ->
+  (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
+  EvalMorphType x y (finSubstHomObj x y) (finSubstEvalMorphDepth x y)
+finSubstEvalMorph x y = snd0 $ snd $ snd0 $ FinSubstHomDepthObjEval x y
+
+--------------------------------------
+---- Metalanguage interpretations ----
+--------------------------------------
+
+public export
+InterpFSAlg : FSAlg (\_, _, _ => Type)
+InterpFSAlg = MkFSAlg Void Unit (const $ const Either) (const $ const Pair)
+
+public export
+interpFinSubst : {0 c, d : Nat} -> FinSubstT c d -> Type
+interpFinSubst = finSubstCata InterpFSAlg
+
+public export
+InterpTermAlg : FSTAlg (\_, _, x, _ => interpFinSubst x)
+InterpTermAlg = MkFSTAlg () (\_ => Left) (\_ => Right) (\_, _ => MkPair)
+
+public export
+interpFinSubstTerm : {0 c, d : Nat} -> {x : FinSubstT c d} ->
+  FinSubstTerm x -> interpFinSubst {c} {d} x
+interpFinSubstTerm {x} = fstCata InterpTermAlg
+
+public export
+interpFinSubstMorph : {0 cx, dx, cy, dy, depth : Nat} ->
+  {x : FinSubstT cx dx} -> {y : FinSubstT cy dy} ->
+  FinSubstMorph {cx} {dx} {cy} {dy} depth x y ->
+  interpFinSubst {c=cx} {d=dx} x ->
+  interpFinSubst {c=cy} {d=dy} y
+interpFinSubstMorph m = ?interpFinSubstMorph_hole
