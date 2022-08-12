@@ -119,6 +119,18 @@ modMaybe n m with (DecNonZero m)
   modMaybe n m | No _ = Nothing
 
 public export
+divWithZtoZ : Nat -> Nat -> Nat
+divWithZtoZ n m = case divMaybe n m of
+  Just k => k
+  Nothing => Z
+
+public export
+modWithZtoZ : Nat -> Nat -> Nat
+modWithZtoZ n m = case modMaybe n m of
+  Just k => k
+  Nothing => Z
+
+public export
 boolToDigit : Bool -> Digit
 boolToDigit True = I
 boolToDigit False = O

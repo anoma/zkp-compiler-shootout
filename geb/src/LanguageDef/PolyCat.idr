@@ -3165,9 +3165,7 @@ bncLMANN l k {satisfies} = fst0 $ bncLMAN l k {satisfies}
 -- multiplication.  Because we are so far defining only a "single-variable"
 -- category, we can make all such morphisms valid (as opposed to invalid if
 -- they fail bound checks) by performing the arithmetic modulo the sizes
--- of the domain and codomain.  To address the special case of a morphism from
--- BANat 0 to BANat (S n), we can use the constant 0 as the unique morphism
--- out of BANat 0.
+-- of the domain and codomain.
 
 -- Thus we can in particular interpret any metalanguage function on the
 -- natural numbers as a function from any BANat object to any non-empty
@@ -3248,14 +3246,10 @@ powerAcc : BNCPolyM -> Nat -> BNCPolyM -> BNCPolyM
 powerAcc p Z acc = acc
 powerAcc p (S n) acc = powerAcc p n (p #* acc)
 
-public export
-polyPow : BNCPolyM -> Nat -> BNCPolyM
-polyPow p n = powerAcc p n P1
-
 infixl 10 #^
 public export
 (#^) : BNCPolyM -> Nat -> BNCPolyM
-(#^) = polyPow
+(#^) p n = powerAcc p n P1
 
 -- Interpret a BNCPolyM into the metalanguage.
 public export
