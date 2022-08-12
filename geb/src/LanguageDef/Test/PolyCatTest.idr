@@ -798,6 +798,14 @@ bncpmt15 = Assert $ metaBNCPolyM 200 (bncpm0 #% bncpm1) 3 == 11
 bncpmt16 : Assertion
 bncpmt16 = Assert $ metaBNCPolyM 200 (bncpm1 #% bncpm0) 3 == 64
 
+bncpmt17 : Assertion
+bncpmt17 = Assert $
+  metaBNCPolyM 200 (IfZero (bncpm0 #/ bncpm1) bncpm0 bncpm1) 3 == 64
+
+bncpmt18 : Assertion
+bncpmt18 = Assert $
+  metaBNCPolyM 200 (IfZero (bncpm1 #/ bncpm0) bncpm0 bncpm1) 3 == 139
+
 ----------------
 ----------------
 ---- PolyOp ----
