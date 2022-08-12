@@ -29,6 +29,9 @@ minmodt6 = Assert $ minusModulo 13 72 18 == 2
 minmodt7 : Assertion
 minmodt7 = Assert $ minusModulo 9 55 77 == 5
 
+minmodt8 : Assertion
+minmodt8 = Assert $ minusModulo 201 64 139 == 126
+
 export
 idrisUtilsTest : IO ()
 idrisUtilsTest = do

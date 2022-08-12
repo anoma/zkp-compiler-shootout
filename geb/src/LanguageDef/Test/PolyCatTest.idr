@@ -780,6 +780,24 @@ bncpmt9 = Assert $ fst0 (bncpm0mod200 (MkBANat 3)) == 139
 bncpmt10 : Assertion
 bncpmt10 = Assert $ fst0 (bncpm0mod100 (MkBANat 3)) == 39
 
+bncpmt11 : Assertion
+bncpmt11 = Assert $ metaBNCPolyM 200 (bncpm0 #- bncpm1) 3 == 75
+
+bncpmt12 : Assertion
+bncpmt12 = Assert $ metaBNCPolyM 200 (bncpm1 #- bncpm0) 3 == 126
+
+bncpmt13 : Assertion
+bncpmt13 = Assert $ metaBNCPolyM 200 (bncpm0 #/ bncpm1) 3 == 2
+
+bncpmt14 : Assertion
+bncpmt14 = Assert $ metaBNCPolyM 200 (bncpm1 #/ bncpm0) 3 == 0
+
+bncpmt15 : Assertion
+bncpmt15 = Assert $ metaBNCPolyM 200 (bncpm0 #% bncpm1) 3 == 11
+
+bncpmt16 : Assertion
+bncpmt16 = Assert $ metaBNCPolyM 200 (bncpm1 #% bncpm0) 3 == 64
+
 ----------------
 ----------------
 ---- PolyOp ----
