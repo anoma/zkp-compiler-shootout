@@ -814,6 +814,9 @@ bncpmt20 : Assertion
 bncpmt20 = Assert $
   metaBNCPolyM 100 (IfZero (bncpm1 #/ bncpm0) bncpm0 bncpm1) 3 == 64
 
+bncpmt21 : Assertion
+bncpmt21 = Assert $ metaBNCPolyM 200 (bncpm1 #. (bncpm0 #/ bncpm1)) 3 == 27
+
 ----------------
 ----------------
 ---- PolyOp ----

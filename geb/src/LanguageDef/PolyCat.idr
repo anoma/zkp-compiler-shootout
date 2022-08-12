@@ -3192,6 +3192,7 @@ infix 8 #-
 infixr 9 #*
 infix 9 #/
 infix 9 #%
+infixr 2 #.
 
 public export
 data BNCPolyM : Type where
@@ -3202,6 +3203,9 @@ data BNCPolyM : Type where
 
   -- Identity
   PI : BNCPolyM
+
+  -- Compose
+  (#.) : BNCPolyM -> BNCPolyM -> BNCPolyM
 
   -- Add
   (#+) : BNCPolyM -> BNCPolyM -> BNCPolyM
@@ -3229,6 +3233,7 @@ public export
 Show BNCPolyM where
   show (#| n) = show n
   show PI = "PI"
+  show (p #. q) = "(" ++ show p ++ ") . (" ++ show q ++ ")"
   show (p #+ q) = "(" ++ show p ++ ") + (" ++ show q ++ ")"
   show (p #* q) = "(" ++ show p ++ ") * (" ++ show q ++ ")"
   show (p #- q) = "(" ++ show p ++ ") - (" ++ show q ++ ")"
@@ -3260,6 +3265,8 @@ public export
 metaBNCPolyM : (modpred : Integer) -> BNCPolyM -> Integer -> Integer
 metaBNCPolyM modpred (#| n) _ = modSucc (natToInteger n) modpred
 metaBNCPolyM modpred PI k = modSucc k modpred
+metaBNCPolyM modpred (q #. p) k =
+  metaBNCPolyM modpred q (metaBNCPolyM modpred p k)
 metaBNCPolyM modpred (p #+ q) k =
   flip modSucc modpred $
   metaBNCPolyM modpred p k + metaBNCPolyM modpred q k
