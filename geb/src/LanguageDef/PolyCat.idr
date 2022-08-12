@@ -3176,7 +3176,7 @@ bncLMANN l k {satisfies} = fst0 $ bncLMAN l k {satisfies}
 public export
 metaToNatToBNC : {n : Nat} -> (Nat -> Nat) -> Nat -> BANat (S n)
 metaToNatToBNC {n} f k =
-  Element0 (modNatNZ k (S n) SIsNonZero) (modLtDivisor k n)
+  Element0 (modNatNZ (f k) (S n) SIsNonZero) (modLtDivisor (f k) n)
 
 public export
 metaToBNCToBNC : {m, n : Nat} -> (Nat -> Nat) -> BANat m -> BANat (S n)
