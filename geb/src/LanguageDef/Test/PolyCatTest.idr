@@ -738,32 +738,47 @@ bnclmt14 = Assert $ bncLMANN bncvlm0 3 == 0
 bncpm0 : BNCPolyM
 bncpm0 = #| 4 #+ #| 2 #* PI #^ 3 #+ PI #^ 4
 
+bncpm0mod200 : BANat 200 -> BANat 200
+bncpm0mod200 = baPolyM bncpm0
+
+bncpm0mod100 : BANat 200 -> BANat 100
+bncpm0mod100 = baPolyM bncpm0
+
 bncpm1 : BNCPolyM
 bncpm1 = (PI #+ #| 1) #^ 3
 
 bncpmt0 : Assertion
-bncpmt0 = Assert $ metaBNCPolyM bncpm0 0 == 4
+bncpmt0 = Assert $ metaBNCPolyM 200 bncpm0 0 == 4
 
 bncpmt1 : Assertion
-bncpmt1 = Assert $ metaBNCPolyM bncpm1 0 == 1
+bncpmt1 = Assert $ metaBNCPolyM 200 bncpm1 0 == 1
 
 bncpmt2 : Assertion
-bncpmt2 = Assert $ metaBNCPolyM bncpm0 1 == 7
+bncpmt2 = Assert $ metaBNCPolyM 200 bncpm0 1 == 7
 
 bncpmt3 : Assertion
-bncpmt3 = Assert $ metaBNCPolyM bncpm1 1 == 8
+bncpmt3 = Assert $ metaBNCPolyM 200 bncpm1 1 == 8
 
 bncpmt4 : Assertion
-bncpmt4 = Assert $ metaBNCPolyM bncpm0 2 == 36
+bncpmt4 = Assert $ metaBNCPolyM 200 bncpm0 2 == 36
 
 bncpmt5 : Assertion
-bncpmt5 = Assert $ metaBNCPolyM bncpm1 2 == 27
+bncpmt5 = Assert $ metaBNCPolyM 200 bncpm1 2 == 27
 
 bncpmt6 : Assertion
-bncpmt6 = Assert $ metaBNCPolyM bncpm0 3 == 139
+bncpmt6 = Assert $ metaBNCPolyM 200 bncpm0 3 == 139
 
 bncpmt7 : Assertion
-bncpmt7 = Assert $ metaBNCPolyM bncpm1 3 == 64
+bncpmt7 = Assert $ metaBNCPolyM 200 bncpm1 3 == 64
+
+bncpmt8 : Assertion
+bncpmt8 = Assert $ metaBNCPolyM 100 bncpm0 3 == 139
+
+bncpmt9 : Assertion
+bncpmt9 = Assert $ fst0 (bncpm0mod200 (MkBANat 3)) == 139
+
+bncpmt10 : Assertion
+bncpmt10 = Assert $ fst0 (bncpm0mod100 (MkBANat 3)) == 39
 
 ----------------
 ----------------
