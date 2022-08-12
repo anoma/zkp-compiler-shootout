@@ -3006,31 +3006,30 @@ public export
 
 -- Interpret a BNCPolyM into the metalanguage.
 public export
+MetaBNCPolyMAlg : BNCPolyMAlg (\_ => (modpred : Integer) -> Integer -> Integer)
+MetaBNCPolyMAlg = MkBNCPolyAlg
+  (\n, modpred, _ => modSucc (natToInteger n) modpred)
+  (\modpred, k => modSucc k modpred)
+  (\q, p, qf, pf, modpred, k => qf modpred (pf modpred k))
+  (\p, q, pf, qf, modpred, k =>
+    flip modSucc modpred $ pf modpred k + qf modpred k)
+  (\p, q, pf, qf, modpred, k =>
+    flip modSucc modpred $ pf modpred k * qf modpred k)
+  (\p, q, pf, qf, modpred, k =>
+    minusModulo (modpred + 1) (pf modpred k) (qf modpred k))
+  (\p, q, pf, qf, modpred, k =>
+    divWithZtoZ (pf modpred k) (qf modpred k))
+  (\p, q, pf, qf, modpred, k =>
+    modWithZtoZ (pf modpred k) (qf modpred k))
+  (\p, q, r, pf, qf, rf, modpred, k =>
+    if pf modpred k == 0 then
+      qf modpred k
+    else
+      rf modpred k)
+
+public export
 metaBNCPolyM : (modpred : Integer) -> BNCPolyM -> Integer -> Integer
-metaBNCPolyM modpred (#| n) _ = modSucc (natToInteger n) modpred
-metaBNCPolyM modpred PI k = modSucc k modpred
-metaBNCPolyM modpred (q #. p) k =
-  metaBNCPolyM modpred q (metaBNCPolyM modpred p k)
-metaBNCPolyM modpred (p #+ q) k =
-  flip modSucc modpred $
-  metaBNCPolyM modpred p k + metaBNCPolyM modpred q k
-metaBNCPolyM modpred (p #* q) k =
-  flip modSucc modpred $
-  metaBNCPolyM modpred p k * metaBNCPolyM modpred q k
-metaBNCPolyM modpred (p #- q) k =
-  minusModulo
-    (modpred + 1)
-    (metaBNCPolyM modpred p k)
-    (metaBNCPolyM modpred q k)
-metaBNCPolyM modpred (p #/ q) k =
-  divWithZtoZ (metaBNCPolyM modpred p k) (metaBNCPolyM modpred q k)
-metaBNCPolyM modpred (p #% q) k =
-  modWithZtoZ (metaBNCPolyM modpred p k) (metaBNCPolyM modpred q k)
-metaBNCPolyM modpred (IfZero p q r) k =
-  if metaBNCPolyM modpred p k == 0 then
-    metaBNCPolyM modpred q k
-  else
-    metaBNCPolyM modpred r k
+metaBNCPolyM modpred p = bncPolyMInd MetaBNCPolyMAlg p modpred
 
 -- Interpret a BNCPolyM as a function between BANat objects.
 public export
