@@ -2707,19 +2707,6 @@ metaPolyCata alg (InP p) = alg $ case p of
   p $$* q => metaPolyCata alg p $$* metaPolyCata alg q
 
 public export
-MetaPolyMetaFAlg : MetaPolyFAlg (Type -> Type)
-MetaPolyMetaFAlg PFI = id
-MetaPolyMetaFAlg (q $$. p) = q . p
-MetaPolyMetaFAlg PF0 = const Void
-MetaPolyMetaFAlg PF1 = const Unit
-MetaPolyMetaFAlg (p $$+ q) = CoproductF p q
-MetaPolyMetaFAlg (p $$* q) = ProductF p q
-
-public export
-MetaPolyFMetaF : Poly -> Type -> Type
-MetaPolyFMetaF = metaPolyCata MetaPolyMetaFAlg
-
-public export
 MetaPolyFNatAlg : MetaPolyFAlg (Nat -> Nat)
 MetaPolyFNatAlg PFI = id
 MetaPolyFNatAlg (q $$. p) = q . p
@@ -2731,6 +2718,19 @@ MetaPolyFNatAlg (p $$* q) = \n => p n * q n
 public export
 MetaPolyFNat : Poly -> Nat -> Nat
 MetaPolyFNat = metaPolyCata MetaPolyFNatAlg
+
+public export
+MetaPolyMetaFAlg : MetaPolyFAlg (Type -> Type)
+MetaPolyMetaFAlg PFI = id
+MetaPolyMetaFAlg (q $$. p) = q . p
+MetaPolyMetaFAlg PF0 = const Void
+MetaPolyMetaFAlg PF1 = const Unit
+MetaPolyMetaFAlg (p $$+ q) = CoproductF p q
+MetaPolyMetaFAlg (p $$* q) = ProductF p q
+
+public export
+MetaPolyFMetaF : Poly -> Type -> Type
+MetaPolyFMetaF = metaPolyCata MetaPolyMetaFAlg
 
 infixr 2 $.
 infixr 8 $+
@@ -2755,6 +2755,14 @@ public export
 public export
 ($*) : Poly -> Poly -> Poly
 ($*) = InP .* ($$*)
+
+public export
+PFApp0 : Poly -> Type
+PFApp0 poly = MetaPolyFMetaF poly Void
+
+public export
+PFApp1 : Poly -> Type
+PFApp1 poly = MetaPolyFMetaF poly Unit
 
 -------------------------------------------------------------
 -------------------------------------------------------------
