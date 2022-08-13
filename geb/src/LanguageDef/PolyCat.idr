@@ -2664,9 +2664,9 @@ PolyOp = InitialColimit PolyOpF
 --------------------------------------------
 --------------------------------------------
 
-infixr 8 $+
-infixr 9 $*
-infixr 2 $.
+infixr 2 $$.
+infixr 8 $$+
+infixr 9 $$*
 
 public export
 data PolyF : Type -> Type where
@@ -2674,7 +2674,7 @@ data PolyF : Type -> Type where
   PFI : PolyF carrier
 
   -- Compose
-  ($.) : carrier -> carrier -> PolyF carrier
+  ($$.) : carrier -> carrier -> PolyF carrier
 
   -- Initial
   PF0 : PolyF carrier
@@ -2683,10 +2683,10 @@ data PolyF : Type -> Type where
   PF1 : PolyF carrier
 
   -- Coproduct
-  ($+) : carrier -> carrier -> PolyF carrier
+  ($$+) : carrier -> carrier -> PolyF carrier
 
   -- Product
-  ($*) : carrier -> carrier -> PolyF carrier
+  ($$*) : carrier -> carrier -> PolyF carrier
 
 public export
 data Poly : Type where
@@ -2700,20 +2700,20 @@ public export
 metaPolyCata : {0 x : Type} -> MetaPolyFAlg x -> Poly -> x
 metaPolyCata alg (InP p) = alg $ case p of
   PFI => PFI
-  q $. p => metaPolyCata alg q $. metaPolyCata alg p
+  q $$. p => metaPolyCata alg q $$. metaPolyCata alg p
   PF0 => PF0
   PF1 => PF1
-  p $+ q => metaPolyCata alg p $+ metaPolyCata alg q
-  p $* q => metaPolyCata alg p $* metaPolyCata alg q
+  p $$+ q => metaPolyCata alg p $$+ metaPolyCata alg q
+  p $$* q => metaPolyCata alg p $$* metaPolyCata alg q
 
 public export
 MetaPolyMetaFAlg : MetaPolyFAlg (Type -> Type)
 MetaPolyMetaFAlg PFI = id
-MetaPolyMetaFAlg (q $. p) = q . p
+MetaPolyMetaFAlg (q $$. p) = q . p
 MetaPolyMetaFAlg PF0 = const Void
 MetaPolyMetaFAlg PF1 = const Unit
-MetaPolyMetaFAlg (p $+ q) = CoproductF p q
-MetaPolyMetaFAlg (p $* q) = ProductF p q
+MetaPolyMetaFAlg (p $$+ q) = CoproductF p q
+MetaPolyMetaFAlg (p $$* q) = ProductF p q
 
 public export
 MetaPolyFMetaF : Poly -> Type -> Type
@@ -2722,15 +2722,39 @@ MetaPolyFMetaF = metaPolyCata MetaPolyMetaFAlg
 public export
 MetaPolyFNatAlg : MetaPolyFAlg (Nat -> Nat)
 MetaPolyFNatAlg PFI = id
-MetaPolyFNatAlg (q $. p) = q . p
+MetaPolyFNatAlg (q $$. p) = q . p
 MetaPolyFNatAlg PF0 = const 0
 MetaPolyFNatAlg PF1 = const 1
-MetaPolyFNatAlg (p $+ q) = \n => p n + q n
-MetaPolyFNatAlg (p $* q) = \n => p n * q n
+MetaPolyFNatAlg (p $$+ q) = \n => p n + q n
+MetaPolyFNatAlg (p $$* q) = \n => p n * q n
 
 public export
 MetaPolyFNat : Poly -> Nat -> Nat
 MetaPolyFNat = metaPolyCata MetaPolyFNatAlg
+
+infixr 2 $.
+infixr 8 $+
+infixr 9 $*
+
+public export
+PolyI : Poly
+PolyI = InP PFI
+
+public export
+Poly1 : Poly
+Poly1 = InP PF1
+
+public export
+($.) : Poly -> Poly -> Poly
+($.) = InP .* ($$.)
+
+public export
+($+) : Poly -> Poly -> Poly
+($+) = InP .* ($$+)
+
+public export
+($*) : Poly -> Poly -> Poly
+($*) = InP .* ($$*)
 
 -------------------------------------------------------------
 -------------------------------------------------------------
