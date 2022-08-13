@@ -2658,6 +2658,67 @@ public export
 PolyOp : Type
 PolyOp = InitialColimit PolyOpF
 
+--------------------------------------------
+--------------------------------------------
+---- Simplest inductive polynomial form ----
+--------------------------------------------
+--------------------------------------------
+
+infixr 8 $+
+infixr 9 $*
+infixr 2 $.
+
+public export
+data PolyF : Type -> Type where
+  -- Identity
+  PFI : PolyF carrier
+
+  -- Initial
+  PF0 : PolyF carrier
+
+  -- Terminal
+  PF1 : PolyF carrier
+
+  -- Compose
+  ($.) : carrier -> carrier -> PolyF carrier
+
+  -- Add
+  ($+) : carrier -> carrier -> PolyF carrier
+
+  -- Multiply
+  ($*) : carrier -> carrier -> PolyF carrier
+
+public export
+data Poly : Type where
+  InP : PolyF Poly -> Poly
+
+public export
+MetaPolyFAlg : Type -> Type
+MetaPolyFAlg x = PolyF x -> x
+
+public export
+metaPolyCata : {0 x : Type} -> MetaPolyFAlg x -> Poly -> x
+metaPolyCata alg (InP p) = alg $ case p of
+  PFI => PFI
+  PF0 => PF0
+  PF1 => PF1
+  q $. p => metaPolyCata alg q $. metaPolyCata alg p
+  p $+ q => metaPolyCata alg p $+ metaPolyCata alg q
+  p $* q => metaPolyCata alg p $* metaPolyCata alg q
+
+public export
+MetaPolyMetaFAlg : MetaPolyFAlg (Type -> Type)
+MetaPolyMetaFAlg PFI = id
+MetaPolyMetaFAlg PF0 = const Void
+MetaPolyMetaFAlg PF1 = const Unit
+MetaPolyMetaFAlg (q $. p) = q . p
+MetaPolyMetaFAlg (p $+ q) = CoproductF p q
+MetaPolyMetaFAlg (p $* q) = ProductF p q
+
+public export
+MetaPolyFMetaF : Poly -> Type -> Type
+MetaPolyFMetaF = metaPolyCata MetaPolyMetaFAlg
+
 -------------------------------------------------------------
 -------------------------------------------------------------
 ---- Natural numbers as objects representing finite sets ----
