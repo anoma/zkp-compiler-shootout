@@ -2673,19 +2673,19 @@ data PolyF : Type -> Type where
   -- Identity
   PFI : PolyF carrier
 
+  -- Compose
+  ($.) : carrier -> carrier -> PolyF carrier
+
   -- Initial
   PF0 : PolyF carrier
 
   -- Terminal
   PF1 : PolyF carrier
 
-  -- Compose
-  ($.) : carrier -> carrier -> PolyF carrier
-
-  -- Add
+  -- Coproduct
   ($+) : carrier -> carrier -> PolyF carrier
 
-  -- Multiply
+  -- Product
   ($*) : carrier -> carrier -> PolyF carrier
 
 public export
@@ -2700,24 +2700,37 @@ public export
 metaPolyCata : {0 x : Type} -> MetaPolyFAlg x -> Poly -> x
 metaPolyCata alg (InP p) = alg $ case p of
   PFI => PFI
+  q $. p => metaPolyCata alg q $. metaPolyCata alg p
   PF0 => PF0
   PF1 => PF1
-  q $. p => metaPolyCata alg q $. metaPolyCata alg p
   p $+ q => metaPolyCata alg p $+ metaPolyCata alg q
   p $* q => metaPolyCata alg p $* metaPolyCata alg q
 
 public export
 MetaPolyMetaFAlg : MetaPolyFAlg (Type -> Type)
 MetaPolyMetaFAlg PFI = id
+MetaPolyMetaFAlg (q $. p) = q . p
 MetaPolyMetaFAlg PF0 = const Void
 MetaPolyMetaFAlg PF1 = const Unit
-MetaPolyMetaFAlg (q $. p) = q . p
 MetaPolyMetaFAlg (p $+ q) = CoproductF p q
 MetaPolyMetaFAlg (p $* q) = ProductF p q
 
 public export
 MetaPolyFMetaF : Poly -> Type -> Type
 MetaPolyFMetaF = metaPolyCata MetaPolyMetaFAlg
+
+public export
+MetaPolyFNatAlg : MetaPolyFAlg (Nat -> Nat)
+MetaPolyFNatAlg PFI = id
+MetaPolyFNatAlg (q $. p) = q . p
+MetaPolyFNatAlg PF0 = const 0
+MetaPolyFNatAlg PF1 = const 1
+MetaPolyFNatAlg (p $+ q) = \n => p n + q n
+MetaPolyFNatAlg (p $* q) = \n => p n * q n
+
+public export
+MetaPolyFNat : Poly -> Nat -> Nat
+MetaPolyFNat = metaPolyCata MetaPolyFNatAlg
 
 -------------------------------------------------------------
 -------------------------------------------------------------
