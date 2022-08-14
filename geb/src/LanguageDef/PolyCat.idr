@@ -2823,15 +2823,16 @@ polyDistribMul (InPCom (p $$* q)) r =
   polyDistribMul p (polyDistribMul q r)
 
 public export
+PolyDistribAlg : MetaPolyAlg PolyMu
+PolyDistribAlg PFI = PolyI
+PolyDistribAlg PF0 = Poly0
+PolyDistribAlg PF1 = Poly1
+PolyDistribAlg (p $$+ q) = p $+ q
+PolyDistribAlg (p $$* q) = polyDistribMul p q
+
+public export
 polyDistrib : PolyMu -> PolyMu
-polyDistrib (InPVar v) = void v
-polyDistrib (InPCom PFI) = PolyI
-polyDistrib (InPCom PF0) = Poly0
-polyDistrib (InPCom PF1) = Poly1
-polyDistrib (InPCom (p $$+ q)) =
-  polyDistrib p $+ polyDistrib q
-polyDistrib (InPCom (p $$* q)) =
-  polyDistribMul (polyDistrib p) (polyDistrib q)
+polyDistrib = metaPolyCata PolyDistribAlg
 
 ------------------------------------------------
 ---- Composition of polynomial endofunctors ----
