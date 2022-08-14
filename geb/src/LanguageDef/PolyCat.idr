@@ -2689,6 +2689,14 @@ data PolyF : Type -> Type where
   ($$*) : carrier -> carrier -> PolyF carrier
 
 public export
+Functor PolyF where
+  map m PFI = PFI
+  map m PF0 = PF0
+  map m PF1 = PF1
+  map m (p $$+ q) = m p $$+ m q
+  map m (p $$* q) = m p $$* m q
+
+public export
 MetaPolyAlg : Type -> Type
 MetaPolyAlg x = PolyF x -> x
 
@@ -2788,6 +2796,22 @@ metaPolyCoeval coalg mula subst t = case coalg t of
 public export
 metaPolyAna : MetaPolyCoalg x -> x -> PolyNu
 metaPolyAna coalg = metaPolyCoeval {a=Unit} coalg (const $ const ()) (const ())
+
+-----------------------------------------------
+---- Utilities for polynomial endofunctors ----
+-----------------------------------------------
+
+public export
+PolyShowAlg : MetaPolyAlg String
+PolyShowAlg PFI = "id"
+PolyShowAlg PF0 = "0"
+PolyShowAlg PF1 = "1"
+PolyShowAlg (x $$+ y) = "(" ++ x ++ ") + (" ++ y ++ ")"
+PolyShowAlg (x $$* y) = "(" ++ x ++ ") * (" ++ y ++ ")"
+
+public export
+Show a => Show (PolyFM a) where
+  show = metaPolyEval PolyShowAlg show
 
 ------------------------------------------------
 ---- Composition of polynomial endofunctors ----
