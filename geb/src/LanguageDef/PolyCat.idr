@@ -2717,7 +2717,6 @@ public export
 PolyMu : Type
 PolyMu = PolyFM Void
 
-infixr 2 $.
 infixr 8 $+
 infixr 9 $*
 
@@ -2732,10 +2731,6 @@ Poly0 = InPCom PF0
 public export
 Poly1 : PolyFM a
 Poly1 = InPCom PF1
-
-public export
-($.) : PolyFM a -> PolyFM a -> PolyFM a
-($.) = InPCom .* ($$.)
 
 public export
 ($+) : PolyFM a -> PolyFM a -> PolyFM a
@@ -2816,9 +2811,10 @@ MetaPolyComposeAlg PF1 q = Poly1
 MetaPolyComposeAlg (p $$+ q) r = InPCom $ p r $$+ q r
 MetaPolyComposeAlg (p $$* q) r = InPCom $ p r $$* q r
 
+infixr 2 $.
 public export
-metaPolyCompose : PolyMu -> PolyMu -> PolyMu
-metaPolyCompose = metaPolyPairCata MetaPolyComposeAlg
+($.) : PolyMu -> PolyMu -> PolyMu
+($.) = metaPolyPairCata MetaPolyComposeAlg
 
 -----------------------------------------------------------------------------
 ---- Interpretation of polynomial functors as natural-number polymomials ----
