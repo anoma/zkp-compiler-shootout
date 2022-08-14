@@ -2783,6 +2783,17 @@ public export
 ($*) : PolyFM a -> PolyFM a -> PolyFM a
 ($*) = InPCom .* ($$*)
 
+public export
+MetaPolyPairAlg : Type -> Type
+MetaPolyPairAlg = MetaPolyAlg . MetaPolyAlg
+
+public export
+metaPolyPairEval :
+  (a -> MetaPolyAlg x) -> (a' -> x) ->
+  MetaPolyPairAlg x -> PolyFM a -> PolyFM a' -> x
+metaPolyPairEval {a} {x} subst subst' alg p =
+  metaPolyEval subst' (metaPolyEval subst alg p)
+
 -----------------------------------------------------------------------------
 ---- Interpretation of polynomial functors as natural-number polymomials ----
 -----------------------------------------------------------------------------
