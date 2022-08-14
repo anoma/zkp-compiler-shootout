@@ -2726,6 +2726,10 @@ PolyI : PolyFM a
 PolyI = InPCom PFI
 
 public export
+Poly0 : PolyFM a
+Poly0 = InPCom PF0
+
+public export
 Poly1 : PolyFM a
 Poly1 = InPCom PF1
 
@@ -2764,6 +2768,11 @@ metaPolyPairEval {a} {x} alg subst subst' p q =
   metaPolyEval (metaPolyEval alg subst p) subst' q
 
 public export
+metaPolyPairCata : MetaPolyPairAlg x -> PolyMu -> PolyMu -> x
+metaPolyPairCata alg =
+  metaPolyPairEval {a=Void} {a'=Void} alg (voidF $ MetaPolyAlg x) (voidF x)
+
+public export
 data PolyCM : Type -> Type where
   InPLabel : a -> Inf (PolyF (PolyCM a)) -> PolyCM a
 
@@ -2793,6 +2802,23 @@ metaPolyCoeval coalg mula subst t = case coalg t of
 public export
 metaPolyAna : MetaPolyCoalg x -> x -> PolyNu
 metaPolyAna coalg = metaPolyCoeval {a=Unit} coalg (const $ const ()) (const ())
+
+------------------------------------------------
+---- Composition of polynomial endofunctors ----
+------------------------------------------------
+
+public export
+MetaPolyComposeAlg : MetaPolyPairAlg PolyMu
+MetaPolyComposeAlg PFI q = InPCom q
+MetaPolyComposeAlg (r $$. q) p = r $ PolyI $$. q p
+MetaPolyComposeAlg PF0 q = Poly0
+MetaPolyComposeAlg PF1 q = Poly1
+MetaPolyComposeAlg (p $$+ q) r = InPCom $ p r $$+ q r
+MetaPolyComposeAlg (p $$* q) r = InPCom $ p r $$* q r
+
+public export
+metaPolyCompose : PolyMu -> PolyMu -> PolyMu
+metaPolyCompose = metaPolyPairCata MetaPolyComposeAlg
 
 -----------------------------------------------------------------------------
 ---- Interpretation of polynomial functors as natural-number polymomials ----
