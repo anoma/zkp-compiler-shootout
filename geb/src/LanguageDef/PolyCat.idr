@@ -2724,6 +2724,41 @@ public export
 metaPolyCata : MetaPolyAlg x -> PolyMu -> x
 metaPolyCata = metaPolyEval {a=Void} (voidF x)
 
+public export
+data PolyCM : Type -> Type where
+  InPLabel : a -> Inf (PolyF (PolyCM a)) -> PolyCM a
+
+public export
+PolyNu : Type
+PolyNu = PolyCM Unit
+
+public export
+MetaPolyCoalg : Type -> Type
+MetaPolyCoalg x = x -> PolyF x
+
+public export
+metaPolyCoeval : (a -> a -> a) -> (x -> a) -> MetaPolyCoalg x -> x -> PolyCM a
+metaPolyCoeval mula subst coalg t = case coalg t of
+  PFI => InPLabel (subst t) PFI
+  q $$. p =>
+    InPLabel (mula (subst p) (subst q)) $
+      (metaPolyCoeval mula subst coalg p) $$.
+      (metaPolyCoeval mula subst coalg q)
+  PF0 => InPLabel (subst t) PF0
+  PF1 => InPLabel (subst t) PF1
+  p $$+ q =>
+    InPLabel (mula (subst p) (subst q)) $
+      (metaPolyCoeval mula subst coalg p) $$+
+      (metaPolyCoeval mula subst coalg q)
+  p $$* q =>
+    InPLabel (mula (subst p) (subst q)) $
+      (metaPolyCoeval mula subst coalg p) $$*
+      (metaPolyCoeval mula subst coalg q)
+
+public export
+metaPolyAna : MetaPolyCoalg x -> x -> PolyNu
+metaPolyAna = metaPolyCoeval {a=Unit} (const $ const ()) (const ())
+
 infixr 2 $.
 infixr 8 $+
 infixr 9 $*
