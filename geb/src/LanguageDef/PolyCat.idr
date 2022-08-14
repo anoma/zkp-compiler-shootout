@@ -2664,6 +2664,10 @@ PolyOp = InitialColimit PolyOpF
 --------------------------------------------
 --------------------------------------------
 
+-----------------------------------------------------
+---- Functor which generates polynomial functors ----
+-----------------------------------------------------
+
 infixr 2 $$.
 infixr 8 $$+
 infixr 9 $$*
@@ -2688,6 +2692,10 @@ data PolyF : Type -> Type where
   -- Product
   ($$*) : carrier -> carrier -> PolyF carrier
 
+-----------------------------------------------------------------------
+---- Polynomial functors as least fixed point of generator functor ----
+-----------------------------------------------------------------------
+
 public export
 data Poly : Type where
   InP : PolyF Poly -> Poly
@@ -2705,32 +2713,6 @@ metaPolyCata alg (InP p) = alg $ case p of
   PF1 => PF1
   p $$+ q => metaPolyCata alg p $$+ metaPolyCata alg q
   p $$* q => metaPolyCata alg p $$* metaPolyCata alg q
-
-public export
-MetaPolyFNatAlg : MetaPolyFAlg (Nat -> Nat)
-MetaPolyFNatAlg PFI = id
-MetaPolyFNatAlg (q $$. p) = q . p
-MetaPolyFNatAlg PF0 = const 0
-MetaPolyFNatAlg PF1 = const 1
-MetaPolyFNatAlg (p $$+ q) = \n => p n + q n
-MetaPolyFNatAlg (p $$* q) = \n => p n * q n
-
-public export
-MetaPolyFNat : Poly -> Nat -> Nat
-MetaPolyFNat = metaPolyCata MetaPolyFNatAlg
-
-public export
-MetaPolyMetaFAlg : MetaPolyFAlg (Type -> Type)
-MetaPolyMetaFAlg PFI = id
-MetaPolyMetaFAlg (q $$. p) = q . p
-MetaPolyMetaFAlg PF0 = const Void
-MetaPolyMetaFAlg PF1 = const Unit
-MetaPolyMetaFAlg (p $$+ q) = CoproductF p q
-MetaPolyMetaFAlg (p $$* q) = ProductF p q
-
-public export
-MetaPolyFMetaF : Poly -> Type -> Type
-MetaPolyFMetaF = metaPolyCata MetaPolyMetaFAlg
 
 infixr 2 $.
 infixr 8 $+
@@ -2756,13 +2738,39 @@ public export
 ($*) : Poly -> Poly -> Poly
 ($*) = InP .* ($$*)
 
-public export
-PFApp0 : Poly -> Type
-PFApp0 poly = MetaPolyFMetaF poly Void
+-----------------------------------------------------------------------------
+---- Interpretation of polynomial functors as natural-number polymomials ----
+-----------------------------------------------------------------------------
 
 public export
-PFApp1 : Poly -> Type
-PFApp1 poly = MetaPolyFMetaF poly Unit
+MetaPolyFNatAlg : MetaPolyFAlg (Nat -> Nat)
+MetaPolyFNatAlg PFI = id
+MetaPolyFNatAlg (q $$. p) = q . p
+MetaPolyFNatAlg PF0 = const 0
+MetaPolyFNatAlg PF1 = const 1
+MetaPolyFNatAlg (p $$+ q) = \n => p n + q n
+MetaPolyFNatAlg (p $$* q) = \n => p n * q n
+
+public export
+MetaPolyFNat : Poly -> Nat -> Nat
+MetaPolyFNat = metaPolyCata MetaPolyFNatAlg
+
+------------------------------------------------------------------------
+---- Interpretation of polynomial functors as metalanguage functors ----
+------------------------------------------------------------------------
+
+public export
+MetaPolyMetaFAlg : MetaPolyFAlg (Type -> Type)
+MetaPolyMetaFAlg PFI = id
+MetaPolyMetaFAlg (q $$. p) = q . p
+MetaPolyMetaFAlg PF0 = const Void
+MetaPolyMetaFAlg PF1 = const Unit
+MetaPolyMetaFAlg (p $$+ q) = CoproductF p q
+MetaPolyMetaFAlg (p $$* q) = ProductF p q
+
+public export
+MetaPolyFMetaF : Poly -> Type -> Type
+MetaPolyFMetaF = metaPolyCata MetaPolyMetaFAlg
 
 -------------------------------------------------------------
 -------------------------------------------------------------
