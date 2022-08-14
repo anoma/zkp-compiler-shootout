@@ -2781,9 +2781,9 @@ public export
 metaPolyAna : MetaPolyCoalg x -> x -> PolyNu
 metaPolyAna coalg = metaPolyCoeval {a=Unit} coalg (const $ const ()) (const ())
 
------------------------------------------------
----- Utilities for polynomial endofunctors ----
------------------------------------------------
+--------------------------------------------
+---- Displaying polynomial endofunctors ----
+--------------------------------------------
 
 public export
 PolyShowAlg : MetaPolyAlg String
@@ -2797,6 +2797,10 @@ public export
 Show a => Show (PolyFM a) where
   show = metaPolyEval PolyShowAlg show
 
+-----------------------------------------------
+---- Arithmetic on polynomial endofunctors ----
+-----------------------------------------------
+
 public export
 polyMulId : PolyMu -> PolyMu
 polyMulId (InPVar v) = void v
@@ -2806,29 +2810,28 @@ polyMulId (InPCom PF1) = PolyI
 polyMulId (InPCom (x $$+ y)) = PolyI $* x $+ PolyI $* y
 polyMulId (InPCom (x $$* y)) = PolyI $* x $* y
 
-mutual
-  public export
-  polyDistribMul : PolyMu -> PolyMu -> PolyMu
-  polyDistribMul (InPVar v) _ = void v
-  polyDistribMul (InPCom _) (InPVar v) = void v
-  polyDistribMul (InPCom PFI) q = polyMulId q
-  polyDistribMul (InPCom PF0) q = Poly0
-  polyDistribMul (InPCom PF1) q = q
-  polyDistribMul (InPCom (p $$+ q)) r =
-    polyDistribMul p r $+ polyDistribMul q r
-  polyDistribMul (InPCom (p $$* q)) r =
-    polyDistribMul p (polyDistribMul q r)
+public export
+polyDistribMul : PolyMu -> PolyMu -> PolyMu
+polyDistribMul (InPVar v) _ = void v
+polyDistribMul (InPCom _) (InPVar v) = void v
+polyDistribMul (InPCom PFI) q = polyMulId q
+polyDistribMul (InPCom PF0) q = Poly0
+polyDistribMul (InPCom PF1) q = q
+polyDistribMul (InPCom (p $$+ q)) r =
+  polyDistribMul p r $+ polyDistribMul q r
+polyDistribMul (InPCom (p $$* q)) r =
+  polyDistribMul p (polyDistribMul q r)
 
-  public export
-  polyDistrib : PolyMu -> PolyMu
-  polyDistrib (InPVar v) = void v
-  polyDistrib (InPCom PFI) = PolyI
-  polyDistrib (InPCom PF0) = Poly0
-  polyDistrib (InPCom PF1) = Poly1
-  polyDistrib (InPCom (p $$+ q)) =
-    polyDistrib p $+ polyDistrib q
-  polyDistrib (InPCom (p $$* q)) =
-    polyDistribMul (polyDistrib p) (polyDistrib q)
+public export
+polyDistrib : PolyMu -> PolyMu
+polyDistrib (InPVar v) = void v
+polyDistrib (InPCom PFI) = PolyI
+polyDistrib (InPCom PF0) = Poly0
+polyDistrib (InPCom PF1) = Poly1
+polyDistrib (InPCom (p $$+ q)) =
+  polyDistrib p $+ polyDistrib q
+polyDistrib (InPCom (p $$* q)) =
+  polyDistribMul (polyDistrib p) (polyDistrib q)
 
 ------------------------------------------------
 ---- Composition of polynomial endofunctors ----
