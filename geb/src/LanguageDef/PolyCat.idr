@@ -2701,10 +2701,6 @@ MetaPolyAlg : Type -> Type
 MetaPolyAlg x = PolyF x -> x
 
 public export
-MetaPolyPairAlg : Type -> Type
-MetaPolyPairAlg = MetaPolyAlg . MetaPolyAlg
-
-public export
 MetaPolyCoalg : Type -> Type
 MetaPolyCoalg x = x -> PolyF x
 
@@ -2759,46 +2755,6 @@ metaPolyCata : MetaPolyAlg x -> PolyMu -> x
 metaPolyCata alg = metaPolyEval {a=Void} alg (voidF x)
 
 public export
-metaPolyPairEval :
-  MetaPolyPairAlg x -> (a -> a' -> x) -> (a -> MetaPolyAlg x) -> (a' -> x) ->
-  PolyFM a -> PolyFM a' -> x
-metaPolyPairEval alg psubst subst subst' (InPVar v) (InPVar v') =
-  psubst v v'
-metaPolyPairEval alg psubst subst subst' (InPVar v) (InPCom p) =
-  metaPolyEval (subst v) subst' (InPCom p)
-metaPolyPairEval alg psubst subst subst' (InPCom p) (InPVar v') = subst' v'
-metaPolyPairEval alg psubst subst subst' (InPCom PFI) (InPCom PFI) = ?metaPolyPairEval_hole_11
-metaPolyPairEval alg psubst subst subst' (InPCom PFI) (InPCom PF0) = ?metaPolyPairEval_hole_12
-metaPolyPairEval alg psubst subst subst' (InPCom PFI) (InPCom PF1) = ?metaPolyPairEval_hole_13
-metaPolyPairEval alg psubst subst subst' (InPCom PFI) (InPCom (y $$+ z)) = ?metaPolyPairEval_hole_14
-metaPolyPairEval alg psubst subst subst' (InPCom PFI) (InPCom (y $$* z)) = ?metaPolyPairEval_hole_15
-metaPolyPairEval alg psubst subst subst' (InPCom PF0) (InPCom PFI) = ?metaPolyPairEval_hole_16
-metaPolyPairEval alg psubst subst subst' (InPCom PF0) (InPCom PF0) = ?metaPolyPairEval_hole_17
-metaPolyPairEval alg psubst subst subst' (InPCom PF0) (InPCom PF1) = ?metaPolyPairEval_hole_18
-metaPolyPairEval alg psubst subst subst' (InPCom PF0) (InPCom (y $$+ z)) = ?metaPolyPairEval_hole_19
-metaPolyPairEval alg psubst subst subst' (InPCom PF0) (InPCom (y $$* z)) = ?metaPolyPairEval_hole_20
-metaPolyPairEval alg psubst subst subst' (InPCom PF1) (InPCom PFI) = ?metaPolyPairEval_hole_21
-metaPolyPairEval alg psubst subst subst' (InPCom PF1) (InPCom PF0) = ?metaPolyPairEval_hole_22
-metaPolyPairEval alg psubst subst subst' (InPCom PF1) (InPCom PF1) = ?metaPolyPairEval_hole_23
-metaPolyPairEval alg psubst subst subst' (InPCom PF1) (InPCom (y $$+ z)) = ?metaPolyPairEval_hole_24
-metaPolyPairEval alg psubst subst subst' (InPCom PF1) (InPCom (y $$* z)) = ?metaPolyPairEval_hole_25
-metaPolyPairEval alg psubst subst subst' (InPCom (y $$+ z)) (InPCom PFI) = ?metaPolyPairEval_hole_26
-metaPolyPairEval alg psubst subst subst' (InPCom (y $$+ z)) (InPCom PF0) = ?metaPolyPairEval_hole_27
-metaPolyPairEval alg psubst subst subst' (InPCom (y $$+ z)) (InPCom PF1) = ?metaPolyPairEval_hole_28
-metaPolyPairEval alg psubst subst subst' (InPCom (y $$+ z)) (InPCom (w $$+ v)) = ?metaPolyPairEval_hole_29
-metaPolyPairEval alg psubst subst subst' (InPCom (y $$+ z)) (InPCom (w $$* v)) = ?metaPolyPairEval_hole_30
-metaPolyPairEval alg psubst subst subst' (InPCom (y $$* z)) (InPCom PFI) = ?metaPolyPairEval_hole_31
-metaPolyPairEval alg psubst subst subst' (InPCom (y $$* z)) (InPCom PF0) = ?metaPolyPairEval_hole_32
-metaPolyPairEval alg psubst subst subst' (InPCom (y $$* z)) (InPCom PF1) = ?metaPolyPairEval_hole_33
-metaPolyPairEval alg psubst subst subst' (InPCom (y $$* z)) (InPCom (w $$+ v)) = ?metaPolyPairEval_hole_34
-metaPolyPairEval alg psubst subst subst' (InPCom (y $$* z)) (InPCom (w $$* v)) = ?metaPolyPairEval_hole_35
-
-public export
-metaPolyPairCata : MetaPolyPairAlg x -> PolyMu -> PolyMu -> x
-metaPolyPairCata alg =
-  metaPolyPairEval {a=Void} {a'=Void} alg (voidF _) (voidF _) (voidF _)
-
-public export
 data PolyCM : Type -> Type where
   InPLabel : a -> Inf (PolyF (PolyCM a)) -> PolyCM a
 
@@ -2842,43 +2798,52 @@ Show a => Show (PolyFM a) where
   show = metaPolyEval PolyShowAlg show
 
 public export
-PolyDistribMulAlg : MetaPolyPairAlg PolyMu
-PolyDistribMulAlg PFI PFI = PolyI $* PolyI
-PolyDistribMulAlg PFI PF0 = Poly0
-PolyDistribMulAlg PFI PF1 = PolyI
-PolyDistribMulAlg PFI (p $$+ q) = PolyI $* p $+ PolyI $* q
-PolyDistribMulAlg PFI (p $$* q) = PolyI $* p $* q
-PolyDistribMulAlg PF0 q = Poly0
-PolyDistribMulAlg PF1 q = InPCom q
-PolyDistribMulAlg (p $$+ q) r = p r $+ q r
-PolyDistribMulAlg (p $$* q) r = p $ case q r of
-  InPVar v => void v
-  InPCom qr => qr
+polyMulId : PolyMu -> PolyMu
+polyMulId (InPVar v) = void v
+polyMulId (InPCom PFI) = PolyI $* PolyI
+polyMulId (InPCom PF0) = Poly0
+polyMulId (InPCom PF1) = PolyI
+polyMulId (InPCom (x $$+ y)) = PolyI $* x $+ PolyI $* y
+polyMulId (InPCom (x $$* y)) = PolyI $* x $* y
 
-public export
-polyDistribMul : PolyMu -> PolyMu -> PolyMu
-polyDistribMul = metaPolyPairCata PolyDistribMulAlg
+mutual
+  public export
+  polyDistribMul : PolyMu -> PolyMu -> PolyMu
+  polyDistribMul (InPVar v) _ = void v
+  polyDistribMul (InPCom _) (InPVar v) = void v
+  polyDistribMul (InPCom PFI) q = polyMulId q
+  polyDistribMul (InPCom PF0) q = Poly0
+  polyDistribMul (InPCom PF1) q = q
+  polyDistribMul (InPCom (p $$+ q)) r =
+    polyDistribMul p r $+ polyDistribMul q r
+  polyDistribMul (InPCom (p $$* q)) r =
+    polyDistribMul p (polyDistribMul q r)
 
-public export
-polyDistrib : PolyMu -> PolyMu
-polyDistrib = polyDistribMul Poly1
+  public export
+  polyDistrib : PolyMu -> PolyMu
+  polyDistrib (InPVar v) = void v
+  polyDistrib (InPCom PFI) = PolyI
+  polyDistrib (InPCom PF0) = Poly0
+  polyDistrib (InPCom PF1) = Poly1
+  polyDistrib (InPCom (p $$+ q)) =
+    polyDistrib p $+ polyDistrib q
+  polyDistrib (InPCom (p $$* q)) =
+    polyDistribMul (polyDistrib p) (polyDistrib q)
 
 ------------------------------------------------
 ---- Composition of polynomial endofunctors ----
 ------------------------------------------------
 
-public export
-MetaPolyComposeAlg : MetaPolyPairAlg PolyMu
-MetaPolyComposeAlg PFI q = InPCom q
-MetaPolyComposeAlg PF0 q = Poly0
-MetaPolyComposeAlg PF1 q = Poly1
-MetaPolyComposeAlg (p $$+ q) r = p r $+ q r
-MetaPolyComposeAlg (p $$* q) r = p r $* q r
-
 infixr 2 $.
 public export
 ($.) : PolyMu -> PolyMu -> PolyMu
-($.) = metaPolyPairCata MetaPolyComposeAlg
+(InPVar v) $. _ = void v
+(InPCom _) $. (InPVar v) = void v
+(InPCom PFI) $. q = q
+(InPCom PF0) $. (InPCom _) = Poly0
+(InPCom PF1) $. (InPCom _) = Poly1
+(InPCom (p $$+ q)) $. r = (p $. r) $+ (q $. r)
+(InPCom (p $$* q)) $. r = (p $. r) $* (q $. r)
 
 ---------------------------------------
 ---- Multiplicative exponentiation ----
