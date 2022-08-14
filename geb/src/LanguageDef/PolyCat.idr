@@ -2862,6 +2862,26 @@ public export
 polyRemoveZero : PolyMu -> PolyMu
 polyRemoveZero = metaPolyCata PolyRemoveZeroAlg
 
+public export
+PolyRemoveOneAlg : MetaPolyAlg PolyMu
+PolyRemoveOneAlg PFI = PolyI
+PolyRemoveOneAlg PF0 = Poly0
+PolyRemoveOneAlg PF1 = Poly1
+PolyRemoveOneAlg (p $$+ q) = p $+ q
+PolyRemoveOneAlg (p $$* q) = case p of
+  InPVar v => void v
+  InPCom p' => case p' of
+    PF1 => q
+    _ => case q of
+      InPVar v' => void v'
+      InPCom q' => case q' of
+        PF1 => p
+        _ => p $* q
+
+public export
+polyRemoveOne : PolyMu -> PolyMu
+polyRemoveOne = metaPolyCata PolyRemoveOneAlg
+
 ------------------------------------------------
 ---- Composition of polynomial endofunctors ----
 ------------------------------------------------
