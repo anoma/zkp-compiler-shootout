@@ -2808,6 +2808,10 @@ MetaPolyFNatAlg (p $$+ q) = \n => p n + q n
 MetaPolyFNatAlg (p $$* q) = \n => p n * q n
 
 public export
+MetaPolyFMNat : (a -> Nat -> Nat) -> PolyFM a -> Nat -> Nat
+MetaPolyFMNat subst = metaPolyEval subst MetaPolyFNatAlg
+
+public export
 MetaPolyFNat : PolyMu -> Nat -> Nat
 MetaPolyFNat = metaPolyCata MetaPolyFNatAlg
 
@@ -2823,6 +2827,10 @@ MetaPolyMetaFAlg PF0 = const Void
 MetaPolyMetaFAlg PF1 = const Unit
 MetaPolyMetaFAlg (p $$+ q) = CoproductF p q
 MetaPolyMetaFAlg (p $$* q) = ProductF p q
+
+public export
+MetaPolyFMMetaF : (a -> Type -> Type) -> PolyFM a -> Type -> Type
+MetaPolyFMMetaF subst = metaPolyEval subst MetaPolyMetaFAlg
 
 public export
 MetaPolyFMetaF : PolyMu -> Type -> Type
