@@ -2813,6 +2813,36 @@ public export
 Show a => Show (PolyFM a) where
   show = metaPolyEval PolyShowAlg show
 
+public export
+PolyDistribMulAlg : MetaPolyPairAlg PolyMu
+PolyDistribMulAlg PFI PFI = PolyI $* PolyI
+PolyDistribMulAlg PFI PF0 = Poly0
+PolyDistribMulAlg PFI PF1 = PolyI
+PolyDistribMulAlg PFI (p $$+ q) = PolyI $* p $+ PolyI $* q
+PolyDistribMulAlg PFI (p $$* q) = PolyI $* p $* q
+PolyDistribMulAlg PF0 q = Poly0
+PolyDistribMulAlg PF1 q = InPCom q
+PolyDistribMulAlg (p $$+ q) r = p r $+ q r
+PolyDistribMulAlg (p $$* q) r = p $ case q r of
+  InPVar v => void v
+  InPCom qr => qr
+
+public export
+polyDistribMul : PolyMu -> PolyMu -> PolyMu
+polyDistribMul = metaPolyPairCata PolyDistribMulAlg
+
+public export
+PolyDistribAlg : MetaPolyAlg PolyMu
+PolyDistribAlg PFI = PolyI
+PolyDistribAlg PF0 = Poly0
+PolyDistribAlg PF1 = Poly1
+PolyDistribAlg (p $$+ q) = p $+ q
+PolyDistribAlg (p $$* q) = polyDistribMul p q
+
+public export
+polyDistrib : PolyMu -> PolyMu
+polyDistrib = metaPolyCata PolyDistribAlg
+
 ------------------------------------------------
 ---- Composition of polynomial endofunctors ----
 ------------------------------------------------
@@ -2822,13 +2852,33 @@ MetaPolyComposeAlg : MetaPolyPairAlg PolyMu
 MetaPolyComposeAlg PFI q = InPCom q
 MetaPolyComposeAlg PF0 q = Poly0
 MetaPolyComposeAlg PF1 q = Poly1
-MetaPolyComposeAlg (p $$+ q) r = InPCom $ p r $$+ q r
-MetaPolyComposeAlg (p $$* q) r = InPCom $ p r $$* q r
+MetaPolyComposeAlg (p $$+ q) r = p r $+ q r
+MetaPolyComposeAlg (p $$* q) r = p r $* q r
 
 infixr 2 $.
 public export
 ($.) : PolyMu -> PolyMu -> PolyMu
 ($.) = metaPolyPairCata MetaPolyComposeAlg
+
+---------------------------------------
+---- Multiplicative exponentiation ----
+---------------------------------------
+
+infix 10 $*^
+public export
+($*^) : PolyMu -> Nat -> PolyMu
+p $*^ Z = Poly1
+p $*^ (S n) = p $* p $*^ n
+
+--------------------------------------
+---- Compositional exponentiation ----
+--------------------------------------
+
+infix 10 $.^
+public export
+($.^) : PolyMu -> Nat -> PolyMu
+p $.^ Z = PolyI
+p $.^ (S n) = p $. p $.^ n
 
 -----------------------------------------------------------------------------
 ---- Interpretation of polynomial functors as natural-number polymomials ----
