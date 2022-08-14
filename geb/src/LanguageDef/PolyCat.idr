@@ -2882,6 +2882,30 @@ public export
 polyRemoveOne : PolyMu -> PolyMu
 polyRemoveOne = metaPolyCata PolyRemoveOneAlg
 
+public export
+CountOnesAlg : MetaPolyAlg Nat
+CountOnesAlg PFI = 0
+CountOnesAlg PF0 = 0
+CountOnesAlg PF1 = 1
+CountOnesAlg (p $$+ q) = p + q
+CountOnesAlg (p $$* q) = p + q
+
+public export
+countOnes : PolyMu -> Nat
+countOnes = metaPolyCata CountOnesAlg
+
+public export
+CountIdsAlg : MetaPolyAlg Nat
+CountIdsAlg PFI = 1
+CountIdsAlg PF0 = 0
+CountIdsAlg PF1 = 0
+CountIdsAlg (p $$+ q) = p + q
+CountIdsAlg (p $$* q) = p + q
+
+public export
+countIds : PolyMu -> Nat
+countIds = metaPolyCata CountIdsAlg
+
 ------------------------------------------------
 ---- Composition of polynomial endofunctors ----
 ------------------------------------------------
