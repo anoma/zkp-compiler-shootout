@@ -2764,25 +2764,6 @@ public export
 PFApp1 : Poly -> Type
 PFApp1 poly = MetaPolyFMetaF poly Unit
 
--- For a given polynomial, the free monad of its metalanguage-functor
--- interpretation.
-public export
-data PolyFreeMF : Algebra PolyF (Type -> Type) where
-  PFMId : {a : Type} -> a -> PolyFreeMF PFI a
-  PFM1 : {a : Type} -> PolyFreeMF PF1 a
-  PFMCompose : {q, p : Type -> Type} -> {a : Type} ->
-    q (p a) -> PolyFreeMF (q $$. p) a
-  PFMLeft : {p, q : Type -> Type} -> {a : Type} ->
-    p a -> PolyFreeMF (p $$+ q) a
-  PFMRight : {p, q : Type -> Type} -> {a : Type} ->
-    q a -> PolyFreeMF (p $$+ q) a
-  PFMPair : {p, q : Type -> Type} -> {a : Type} ->
-    p a -> q a -> PolyFreeMF (p $$* q) a
-
-public export
-PolyFreeM : Poly -> Type -> Type
-PolyFreeM = metaPolyCata {x=(Type -> Type)} PolyFreeMF
-
 -------------------------------------------------------------
 -------------------------------------------------------------
 ---- Natural numbers as objects representing finite sets ----
@@ -3433,6 +3414,18 @@ finSubstEvalMorph : {0 cx, dx, cy, dy : Nat} ->
   (x : FinSubstT cx dx) -> (y : FinSubstT cy dy) ->
   EvalMorphType x y (finSubstHomObj x y) (finSubstEvalMorphDepth x y)
 finSubstEvalMorph x y = snd0 $ snd $ snd0 $ FinSubstHomDepthObjEval x y
+
+------------------------------------
+---- Compilation to polynomials ----
+------------------------------------
+
+public export
+FSToBANatMorph : {0 cx, dx, cy, dy : Nat} ->
+  {0 depth : Nat} -> {dom : FinSubstT cx dx} -> {cod : FinSubstT cy dy} ->
+  FinSubstMorph depth dom cod ->
+  BNCPolyM
+FSToBANatMorph {cx} {dx} {cy} {dy} {depth} {dom} {cod} morph =
+  ?FSToBANatMorph_hole
 
 --------------------------------------
 ---- Metalanguage interpretations ----
