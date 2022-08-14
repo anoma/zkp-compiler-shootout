@@ -2668,7 +2668,6 @@ PolyOp = InitialColimit PolyOpF
 ---- Functor which generates polynomial functors ----
 -----------------------------------------------------
 
-infixr 2 $$.
 infixr 8 $$+
 infixr 9 $$*
 
@@ -2676,9 +2675,6 @@ public export
 data PolyF : Type -> Type where
   -- Identity
   PFI : PolyF carrier
-
-  -- Compose
-  ($$.) : carrier -> carrier -> PolyF carrier
 
   -- Initial
   PF0 : PolyF carrier
@@ -2745,7 +2741,6 @@ metaPolyEval : MetaPolyAlg x -> (a -> x) -> PolyFM a -> x
 metaPolyEval alg subst (InPVar v) = subst v
 metaPolyEval alg subst (InPCom p) = alg $ case p of
   PFI => PFI
-  q $$. p => metaPolyEval alg subst q $$. metaPolyEval alg subst p
   PF0 => PF0
   PF1 => PF1
   p $$+ q => metaPolyEval alg subst p $$+ metaPolyEval alg subst q
@@ -2779,10 +2774,6 @@ public export
 metaPolyCoeval : MetaPolyCoalg x -> (a -> a -> a) -> (x -> a) -> x -> PolyCM a
 metaPolyCoeval coalg mula subst t = case coalg t of
   PFI => InPLabel (subst t) PFI
-  q $$. p =>
-    InPLabel (mula (subst p) (subst q)) $
-      (metaPolyCoeval coalg mula subst p) $$.
-      (metaPolyCoeval coalg mula subst q)
   PF0 => InPLabel (subst t) PF0
   PF1 => InPLabel (subst t) PF1
   p $$+ q =>
@@ -2805,7 +2796,6 @@ metaPolyAna coalg = metaPolyCoeval {a=Unit} coalg (const $ const ()) (const ())
 public export
 MetaPolyComposeAlg : MetaPolyPairAlg PolyMu
 MetaPolyComposeAlg PFI q = InPCom q
-MetaPolyComposeAlg (r $$. q) p = r $ PolyI $$. q p
 MetaPolyComposeAlg PF0 q = Poly0
 MetaPolyComposeAlg PF1 q = Poly1
 MetaPolyComposeAlg (p $$+ q) r = InPCom $ p r $$+ q r
@@ -2823,7 +2813,6 @@ public export
 public export
 MetaPolyFNatAlg : MetaPolyAlg (Nat -> Nat)
 MetaPolyFNatAlg PFI = id
-MetaPolyFNatAlg (q $$. p) = q . p
 MetaPolyFNatAlg PF0 = const 0
 MetaPolyFNatAlg PF1 = const 1
 MetaPolyFNatAlg (p $$+ q) = \n => p n + q n
@@ -2844,7 +2833,6 @@ MetaPolyFNat = metaPolyCata MetaPolyFNatAlg
 public export
 MetaPolyMetaFAlg : MetaPolyAlg (Type -> Type)
 MetaPolyMetaFAlg PFI = id
-MetaPolyMetaFAlg (q $$. p) = q . p
 MetaPolyMetaFAlg PF0 = const Void
 MetaPolyMetaFAlg PF1 = const Unit
 MetaPolyMetaFAlg (p $$+ q) = CoproductF p q
