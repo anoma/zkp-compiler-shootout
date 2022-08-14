@@ -2760,15 +2760,43 @@ metaPolyCata alg = metaPolyEval {a=Void} alg (voidF x)
 
 public export
 metaPolyPairEval :
-  MetaPolyPairAlg x -> (a -> MetaPolyAlg x) -> (a' -> x) ->
+  MetaPolyPairAlg x -> (a -> a' -> x) -> (a -> MetaPolyAlg x) -> (a' -> x) ->
   PolyFM a -> PolyFM a' -> x
-metaPolyPairEval {a} {x} alg subst subst' p q =
-  metaPolyEval (metaPolyEval alg subst p) subst' q
+metaPolyPairEval alg psubst subst subst' (InPVar v) (InPVar v') =
+  psubst v v'
+metaPolyPairEval alg psubst subst subst' (InPVar v) (InPCom p) =
+  metaPolyEval (subst v) subst' (InPCom p)
+metaPolyPairEval alg psubst subst subst' (InPCom p) (InPVar v') = subst' v'
+metaPolyPairEval alg psubst subst subst' (InPCom PFI) (InPCom PFI) = ?metaPolyPairEval_hole_11
+metaPolyPairEval alg psubst subst subst' (InPCom PFI) (InPCom PF0) = ?metaPolyPairEval_hole_12
+metaPolyPairEval alg psubst subst subst' (InPCom PFI) (InPCom PF1) = ?metaPolyPairEval_hole_13
+metaPolyPairEval alg psubst subst subst' (InPCom PFI) (InPCom (y $$+ z)) = ?metaPolyPairEval_hole_14
+metaPolyPairEval alg psubst subst subst' (InPCom PFI) (InPCom (y $$* z)) = ?metaPolyPairEval_hole_15
+metaPolyPairEval alg psubst subst subst' (InPCom PF0) (InPCom PFI) = ?metaPolyPairEval_hole_16
+metaPolyPairEval alg psubst subst subst' (InPCom PF0) (InPCom PF0) = ?metaPolyPairEval_hole_17
+metaPolyPairEval alg psubst subst subst' (InPCom PF0) (InPCom PF1) = ?metaPolyPairEval_hole_18
+metaPolyPairEval alg psubst subst subst' (InPCom PF0) (InPCom (y $$+ z)) = ?metaPolyPairEval_hole_19
+metaPolyPairEval alg psubst subst subst' (InPCom PF0) (InPCom (y $$* z)) = ?metaPolyPairEval_hole_20
+metaPolyPairEval alg psubst subst subst' (InPCom PF1) (InPCom PFI) = ?metaPolyPairEval_hole_21
+metaPolyPairEval alg psubst subst subst' (InPCom PF1) (InPCom PF0) = ?metaPolyPairEval_hole_22
+metaPolyPairEval alg psubst subst subst' (InPCom PF1) (InPCom PF1) = ?metaPolyPairEval_hole_23
+metaPolyPairEval alg psubst subst subst' (InPCom PF1) (InPCom (y $$+ z)) = ?metaPolyPairEval_hole_24
+metaPolyPairEval alg psubst subst subst' (InPCom PF1) (InPCom (y $$* z)) = ?metaPolyPairEval_hole_25
+metaPolyPairEval alg psubst subst subst' (InPCom (y $$+ z)) (InPCom PFI) = ?metaPolyPairEval_hole_26
+metaPolyPairEval alg psubst subst subst' (InPCom (y $$+ z)) (InPCom PF0) = ?metaPolyPairEval_hole_27
+metaPolyPairEval alg psubst subst subst' (InPCom (y $$+ z)) (InPCom PF1) = ?metaPolyPairEval_hole_28
+metaPolyPairEval alg psubst subst subst' (InPCom (y $$+ z)) (InPCom (w $$+ v)) = ?metaPolyPairEval_hole_29
+metaPolyPairEval alg psubst subst subst' (InPCom (y $$+ z)) (InPCom (w $$* v)) = ?metaPolyPairEval_hole_30
+metaPolyPairEval alg psubst subst subst' (InPCom (y $$* z)) (InPCom PFI) = ?metaPolyPairEval_hole_31
+metaPolyPairEval alg psubst subst subst' (InPCom (y $$* z)) (InPCom PF0) = ?metaPolyPairEval_hole_32
+metaPolyPairEval alg psubst subst subst' (InPCom (y $$* z)) (InPCom PF1) = ?metaPolyPairEval_hole_33
+metaPolyPairEval alg psubst subst subst' (InPCom (y $$* z)) (InPCom (w $$+ v)) = ?metaPolyPairEval_hole_34
+metaPolyPairEval alg psubst subst subst' (InPCom (y $$* z)) (InPCom (w $$* v)) = ?metaPolyPairEval_hole_35
 
 public export
 metaPolyPairCata : MetaPolyPairAlg x -> PolyMu -> PolyMu -> x
 metaPolyPairCata alg =
-  metaPolyPairEval {a=Void} {a'=Void} alg (voidF $ MetaPolyAlg x) (voidF x)
+  metaPolyPairEval {a=Void} {a'=Void} alg (voidF _) (voidF _) (voidF _)
 
 public export
 data PolyCM : Type -> Type where
@@ -2807,7 +2835,7 @@ PolyShowAlg PFI = "id"
 PolyShowAlg PF0 = "0"
 PolyShowAlg PF1 = "1"
 PolyShowAlg (x $$+ y) = "(" ++ x ++ ") + (" ++ y ++ ")"
-PolyShowAlg (x $$* y) = "(" ++ x ++ ") * (" ++ y ++ ")"
+PolyShowAlg (x $$* y) = "[" ++ x ++ "] * [" ++ y ++ "]"
 
 public export
 Show a => Show (PolyFM a) where
@@ -2832,16 +2860,8 @@ polyDistribMul : PolyMu -> PolyMu -> PolyMu
 polyDistribMul = metaPolyPairCata PolyDistribMulAlg
 
 public export
-PolyDistribAlg : MetaPolyAlg PolyMu
-PolyDistribAlg PFI = PolyI
-PolyDistribAlg PF0 = Poly0
-PolyDistribAlg PF1 = Poly1
-PolyDistribAlg (p $$+ q) = p $+ q
-PolyDistribAlg (p $$* q) = polyDistribMul p q
-
-public export
 polyDistrib : PolyMu -> PolyMu
-polyDistrib = metaPolyCata PolyDistribAlg
+polyDistrib = polyDistribMul Poly1
 
 ------------------------------------------------
 ---- Composition of polynomial endofunctors ----
@@ -2864,21 +2884,27 @@ public export
 ---- Multiplicative exponentiation ----
 ---------------------------------------
 
+public export
+polyExpMulAcc : PolyMu -> PolyMu -> Nat -> PolyMu
+polyExpMulAcc = foldrNat . const . ($*)
+
 infix 10 $*^
 public export
 ($*^) : PolyMu -> Nat -> PolyMu
-p $*^ Z = Poly1
-p $*^ (S n) = p $* p $*^ n
+p $*^ n = polyExpMulAcc p Poly1 n
 
 --------------------------------------
 ---- Compositional exponentiation ----
 --------------------------------------
 
+public export
+polyCompMulAcc : PolyMu -> PolyMu -> Nat -> PolyMu
+polyCompMulAcc = foldrNat . const . ($.)
+
 infix 10 $.^
 public export
 ($.^) : PolyMu -> Nat -> PolyMu
-p $.^ Z = PolyI
-p $.^ (S n) = p $. p $.^ n
+p $.^ n = polyCompMulAcc p PolyI n
 
 -----------------------------------------------------------------------------
 ---- Interpretation of polynomial functors as natural-number polymomials ----

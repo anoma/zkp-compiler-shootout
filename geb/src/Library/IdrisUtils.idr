@@ -235,6 +235,11 @@ fromIsYes {x=(Yes x)} Refl = x
 fromIsYes {x=(No n)} Refl impossible
 
 public export
+foldrNat : (Nat -> a -> a) -> a -> Nat -> a
+foldrNat f acc Z = acc
+foldrNat f acc (S n) = foldrNat f (f n acc) n
+
+public export
 equalNatCorrect : {m : Nat} -> equalNat m m = True
 equalNatCorrect {m=Z} = Refl
 equalNatCorrect {m=(S m')} = equalNatCorrect {m=m'}
