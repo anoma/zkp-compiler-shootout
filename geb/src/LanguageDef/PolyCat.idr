@@ -2692,6 +2692,18 @@ data PolyF : Type -> Type where
   -- Product
   ($$*) : carrier -> carrier -> PolyF carrier
 
+public export
+MetaPolyAlg : Type -> Type
+MetaPolyAlg x = PolyF x -> x
+
+public export
+MetaPolyPairAlg : Type -> Type
+MetaPolyPairAlg = MetaPolyAlg . MetaPolyAlg
+
+public export
+MetaPolyCoalg : Type -> Type
+MetaPolyCoalg x = x -> PolyF x
+
 -----------------------------------------------------------------------
 ---- Polynomial functors as least fixed point of generator functor ----
 -----------------------------------------------------------------------
@@ -2704,60 +2716,6 @@ data PolyFM : Type -> Type where
 public export
 PolyMu : Type
 PolyMu = PolyFM Void
-
-public export
-MetaPolyAlg : Type -> Type
-MetaPolyAlg x = PolyF x -> x
-
-public export
-metaPolyEval : MetaPolyAlg x -> (a -> x) -> PolyFM a -> x
-metaPolyEval alg subst (InPVar v) = subst v
-metaPolyEval alg subst (InPCom p) = alg $ case p of
-  PFI => PFI
-  q $$. p => metaPolyEval alg subst q $$. metaPolyEval alg subst p
-  PF0 => PF0
-  PF1 => PF1
-  p $$+ q => metaPolyEval alg subst p $$+ metaPolyEval alg subst q
-  p $$* q => metaPolyEval alg subst p $$* metaPolyEval alg subst q
-
-public export
-metaPolyCata : MetaPolyAlg x -> PolyMu -> x
-metaPolyCata alg = metaPolyEval {a=Void} alg (voidF x)
-
-public export
-data PolyCM : Type -> Type where
-  InPLabel : a -> Inf (PolyF (PolyCM a)) -> PolyCM a
-
-public export
-PolyNu : Type
-PolyNu = PolyCM Unit
-
-public export
-MetaPolyCoalg : Type -> Type
-MetaPolyCoalg x = x -> PolyF x
-
-public export
-metaPolyCoeval : MetaPolyCoalg x -> (a -> a -> a) -> (x -> a) -> x -> PolyCM a
-metaPolyCoeval coalg mula subst t = case coalg t of
-  PFI => InPLabel (subst t) PFI
-  q $$. p =>
-    InPLabel (mula (subst p) (subst q)) $
-      (metaPolyCoeval coalg mula subst p) $$.
-      (metaPolyCoeval coalg mula subst q)
-  PF0 => InPLabel (subst t) PF0
-  PF1 => InPLabel (subst t) PF1
-  p $$+ q =>
-    InPLabel (mula (subst p) (subst q)) $
-      (metaPolyCoeval coalg mula subst p) $$+
-      (metaPolyCoeval coalg mula subst q)
-  p $$* q =>
-    InPLabel (mula (subst p) (subst q)) $
-      (metaPolyCoeval coalg mula subst p) $$*
-      (metaPolyCoeval coalg mula subst q)
-
-public export
-metaPolyAna : MetaPolyCoalg x -> x -> PolyNu
-metaPolyAna coalg = metaPolyCoeval {a=Unit} coalg (const $ const ()) (const ())
 
 infixr 2 $.
 infixr 8 $+
@@ -2784,8 +2742,19 @@ public export
 ($*) = InPCom .* ($$*)
 
 public export
-MetaPolyPairAlg : Type -> Type
-MetaPolyPairAlg = MetaPolyAlg . MetaPolyAlg
+metaPolyEval : MetaPolyAlg x -> (a -> x) -> PolyFM a -> x
+metaPolyEval alg subst (InPVar v) = subst v
+metaPolyEval alg subst (InPCom p) = alg $ case p of
+  PFI => PFI
+  q $$. p => metaPolyEval alg subst q $$. metaPolyEval alg subst p
+  PF0 => PF0
+  PF1 => PF1
+  p $$+ q => metaPolyEval alg subst p $$+ metaPolyEval alg subst q
+  p $$* q => metaPolyEval alg subst p $$* metaPolyEval alg subst q
+
+public export
+metaPolyCata : MetaPolyAlg x -> PolyMu -> x
+metaPolyCata alg = metaPolyEval {a=Void} alg (voidF x)
 
 public export
 metaPolyPairEval :
@@ -2793,6 +2762,37 @@ metaPolyPairEval :
   PolyFM a -> PolyFM a' -> x
 metaPolyPairEval {a} {x} alg subst subst' p q =
   metaPolyEval (metaPolyEval alg subst p) subst' q
+
+public export
+data PolyCM : Type -> Type where
+  InPLabel : a -> Inf (PolyF (PolyCM a)) -> PolyCM a
+
+public export
+PolyNu : Type
+PolyNu = PolyCM Unit
+
+public export
+metaPolyCoeval : MetaPolyCoalg x -> (a -> a -> a) -> (x -> a) -> x -> PolyCM a
+metaPolyCoeval coalg mula subst t = case coalg t of
+  PFI => InPLabel (subst t) PFI
+  q $$. p =>
+    InPLabel (mula (subst p) (subst q)) $
+      (metaPolyCoeval coalg mula subst p) $$.
+      (metaPolyCoeval coalg mula subst q)
+  PF0 => InPLabel (subst t) PF0
+  PF1 => InPLabel (subst t) PF1
+  p $$+ q =>
+    InPLabel (mula (subst p) (subst q)) $
+      (metaPolyCoeval coalg mula subst p) $$+
+      (metaPolyCoeval coalg mula subst q)
+  p $$* q =>
+    InPLabel (mula (subst p) (subst q)) $
+      (metaPolyCoeval coalg mula subst p) $$*
+      (metaPolyCoeval coalg mula subst q)
+
+public export
+metaPolyAna : MetaPolyCoalg x -> x -> PolyNu
+metaPolyAna coalg = metaPolyCoeval {a=Unit} coalg (const $ const ()) (const ())
 
 -----------------------------------------------------------------------------
 ---- Interpretation of polynomial functors as natural-number polymomials ----
