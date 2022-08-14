@@ -2710,7 +2710,7 @@ MetaPolyAlg : Type -> Type
 MetaPolyAlg x = PolyF x -> x
 
 public export
-metaPolyEval : {0 a, x : Type} -> (a -> x) -> MetaPolyAlg x -> PolyFM a -> x
+metaPolyEval : (a -> x) -> MetaPolyAlg x -> PolyFM a -> x
 metaPolyEval subst alg (InPVar v) = subst v
 metaPolyEval subst alg (InPCom p) = alg $ case p of
   PFI => PFI
@@ -2721,7 +2721,7 @@ metaPolyEval subst alg (InPCom p) = alg $ case p of
   p $$* q => metaPolyEval subst alg p $$* metaPolyEval subst alg q
 
 public export
-metaPolyCata : {0 x : Type} -> MetaPolyAlg x -> PolyMu -> x
+metaPolyCata : MetaPolyAlg x -> PolyMu -> x
 metaPolyCata = metaPolyEval {a=Void} (voidF x)
 
 infixr 2 $.
