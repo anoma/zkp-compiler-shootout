@@ -2710,19 +2710,19 @@ MetaPolyAlg : Type -> Type
 MetaPolyAlg x = PolyF x -> x
 
 public export
-metaPolyEval : (a -> x) -> MetaPolyAlg x -> PolyFM a -> x
-metaPolyEval subst alg (InPVar v) = subst v
-metaPolyEval subst alg (InPCom p) = alg $ case p of
+metaPolyEval : MetaPolyAlg x -> (a -> x) -> PolyFM a -> x
+metaPolyEval alg subst (InPVar v) = subst v
+metaPolyEval alg subst (InPCom p) = alg $ case p of
   PFI => PFI
-  q $$. p => metaPolyEval subst alg q $$. metaPolyEval subst alg p
+  q $$. p => metaPolyEval alg subst q $$. metaPolyEval alg subst p
   PF0 => PF0
   PF1 => PF1
-  p $$+ q => metaPolyEval subst alg p $$+ metaPolyEval subst alg q
-  p $$* q => metaPolyEval subst alg p $$* metaPolyEval subst alg q
+  p $$+ q => metaPolyEval alg subst p $$+ metaPolyEval alg subst q
+  p $$* q => metaPolyEval alg subst p $$* metaPolyEval alg subst q
 
 public export
 metaPolyCata : MetaPolyAlg x -> PolyMu -> x
-metaPolyCata = metaPolyEval {a=Void} (voidF x)
+metaPolyCata alg = metaPolyEval {a=Void} alg (voidF x)
 
 public export
 data PolyCM : Type -> Type where
@@ -2737,27 +2737,27 @@ MetaPolyCoalg : Type -> Type
 MetaPolyCoalg x = x -> PolyF x
 
 public export
-metaPolyCoeval : (a -> a -> a) -> (x -> a) -> MetaPolyCoalg x -> x -> PolyCM a
-metaPolyCoeval mula subst coalg t = case coalg t of
+metaPolyCoeval : MetaPolyCoalg x -> (a -> a -> a) -> (x -> a) -> x -> PolyCM a
+metaPolyCoeval coalg mula subst t = case coalg t of
   PFI => InPLabel (subst t) PFI
   q $$. p =>
     InPLabel (mula (subst p) (subst q)) $
-      (metaPolyCoeval mula subst coalg p) $$.
-      (metaPolyCoeval mula subst coalg q)
+      (metaPolyCoeval coalg mula subst p) $$.
+      (metaPolyCoeval coalg mula subst q)
   PF0 => InPLabel (subst t) PF0
   PF1 => InPLabel (subst t) PF1
   p $$+ q =>
     InPLabel (mula (subst p) (subst q)) $
-      (metaPolyCoeval mula subst coalg p) $$+
-      (metaPolyCoeval mula subst coalg q)
+      (metaPolyCoeval coalg mula subst p) $$+
+      (metaPolyCoeval coalg mula subst q)
   p $$* q =>
     InPLabel (mula (subst p) (subst q)) $
-      (metaPolyCoeval mula subst coalg p) $$*
-      (metaPolyCoeval mula subst coalg q)
+      (metaPolyCoeval coalg mula subst p) $$*
+      (metaPolyCoeval coalg mula subst q)
 
 public export
 metaPolyAna : MetaPolyCoalg x -> x -> PolyNu
-metaPolyAna = metaPolyCoeval {a=Unit} (const $ const ()) (const ())
+metaPolyAna coalg = metaPolyCoeval {a=Unit} coalg (const $ const ()) (const ())
 
 infixr 2 $.
 infixr 8 $+
@@ -2789,10 +2789,10 @@ MetaPolyPairAlg = MetaPolyAlg . MetaPolyAlg
 
 public export
 metaPolyPairEval :
-  (a -> MetaPolyAlg x) -> (a' -> x) ->
-  MetaPolyPairAlg x -> PolyFM a -> PolyFM a' -> x
-metaPolyPairEval {a} {x} subst subst' alg p =
-  metaPolyEval subst' (metaPolyEval subst alg p)
+  MetaPolyPairAlg x -> (a -> MetaPolyAlg x) -> (a' -> x) ->
+  PolyFM a -> PolyFM a' -> x
+metaPolyPairEval {a} {x} alg subst subst' p q =
+  metaPolyEval (metaPolyEval alg subst p) subst' q
 
 -----------------------------------------------------------------------------
 ---- Interpretation of polynomial functors as natural-number polymomials ----
@@ -2809,7 +2809,7 @@ MetaPolyFNatAlg (p $$* q) = \n => p n * q n
 
 public export
 MetaPolyFMNat : (a -> Nat -> Nat) -> PolyFM a -> Nat -> Nat
-MetaPolyFMNat subst = metaPolyEval subst MetaPolyFNatAlg
+MetaPolyFMNat = metaPolyEval MetaPolyFNatAlg
 
 public export
 MetaPolyFNat : PolyMu -> Nat -> Nat
@@ -2830,7 +2830,7 @@ MetaPolyMetaFAlg (p $$* q) = ProductF p q
 
 public export
 MetaPolyFMMetaF : (a -> Type -> Type) -> PolyFM a -> Type -> Type
-MetaPolyFMMetaF subst = metaPolyEval subst MetaPolyMetaFAlg
+MetaPolyFMMetaF = metaPolyEval MetaPolyMetaFAlg
 
 public export
 MetaPolyFMetaF : PolyMu -> Type -> Type
