@@ -2697,53 +2697,63 @@ data PolyF : Type -> Type where
 -----------------------------------------------------------------------
 
 public export
-data Poly : Type where
-  InP : PolyF Poly -> Poly
+data PolyFM : Type -> Type where
+  InPVar : a -> PolyFM a
+  InPCom : PolyF (PolyFM a) -> PolyFM a
 
 public export
-MetaPolyFAlg : Type -> Type
-MetaPolyFAlg x = PolyF x -> x
+PolyMu : Type
+PolyMu = PolyFM Void
 
 public export
-metaPolyCata : {0 x : Type} -> MetaPolyFAlg x -> Poly -> x
-metaPolyCata alg (InP p) = alg $ case p of
+MetaPolyAlg : Type -> Type
+MetaPolyAlg x = PolyF x -> x
+
+public export
+metaPolyEval : {0 a, x : Type} -> (a -> x) -> MetaPolyAlg x -> PolyFM a -> x
+metaPolyEval subst alg (InPVar v) = subst v
+metaPolyEval subst alg (InPCom p) = alg $ case p of
   PFI => PFI
-  q $$. p => metaPolyCata alg q $$. metaPolyCata alg p
+  q $$. p => metaPolyEval subst alg q $$. metaPolyEval subst alg p
   PF0 => PF0
   PF1 => PF1
-  p $$+ q => metaPolyCata alg p $$+ metaPolyCata alg q
-  p $$* q => metaPolyCata alg p $$* metaPolyCata alg q
+  p $$+ q => metaPolyEval subst alg p $$+ metaPolyEval subst alg q
+  p $$* q => metaPolyEval subst alg p $$* metaPolyEval subst alg q
+
+public export
+metaPolyCata : {0 x : Type} -> MetaPolyAlg x -> PolyMu -> x
+metaPolyCata = metaPolyEval {a=Void} (voidF x)
 
 infixr 2 $.
 infixr 8 $+
 infixr 9 $*
 
 public export
-PolyI : Poly
-PolyI = InP PFI
+PolyI : PolyFM a
+PolyI = InPCom PFI
 
 public export
-Poly1 : Poly
-Poly1 = InP PF1
+Poly1 : PolyFM a
+Poly1 = InPCom PF1
 
 public export
-($.) : Poly -> Poly -> Poly
-($.) = InP .* ($$.)
+($.) : PolyFM a -> PolyFM a -> PolyFM a
+($.) = InPCom .* ($$.)
 
 public export
-($+) : Poly -> Poly -> Poly
-($+) = InP .* ($$+)
+($+) : PolyFM a -> PolyFM a -> PolyFM a
+($+) = InPCom .* ($$+)
 
 public export
-($*) : Poly -> Poly -> Poly
-($*) = InP .* ($$*)
+($*) : PolyFM a -> PolyFM a -> PolyFM a
+($*) = InPCom .* ($$*)
 
 -----------------------------------------------------------------------------
 ---- Interpretation of polynomial functors as natural-number polymomials ----
 -----------------------------------------------------------------------------
 
 public export
-MetaPolyFNatAlg : MetaPolyFAlg (Nat -> Nat)
+MetaPolyFNatAlg : MetaPolyAlg (Nat -> Nat)
 MetaPolyFNatAlg PFI = id
 MetaPolyFNatAlg (q $$. p) = q . p
 MetaPolyFNatAlg PF0 = const 0
@@ -2752,7 +2762,7 @@ MetaPolyFNatAlg (p $$+ q) = \n => p n + q n
 MetaPolyFNatAlg (p $$* q) = \n => p n * q n
 
 public export
-MetaPolyFNat : Poly -> Nat -> Nat
+MetaPolyFNat : PolyMu -> Nat -> Nat
 MetaPolyFNat = metaPolyCata MetaPolyFNatAlg
 
 ------------------------------------------------------------------------
@@ -2760,7 +2770,7 @@ MetaPolyFNat = metaPolyCata MetaPolyFNatAlg
 ------------------------------------------------------------------------
 
 public export
-MetaPolyMetaFAlg : MetaPolyFAlg (Type -> Type)
+MetaPolyMetaFAlg : MetaPolyAlg (Type -> Type)
 MetaPolyMetaFAlg PFI = id
 MetaPolyMetaFAlg (q $$. p) = q . p
 MetaPolyMetaFAlg PF0 = const Void
@@ -2769,7 +2779,7 @@ MetaPolyMetaFAlg (p $$+ q) = CoproductF p q
 MetaPolyMetaFAlg (p $$* q) = ProductF p q
 
 public export
-MetaPolyFMetaF : Poly -> Type -> Type
+MetaPolyFMetaF : PolyMu -> Type -> Type
 MetaPolyFMetaF = metaPolyCata MetaPolyMetaFAlg
 
 -------------------------------------------------------------
