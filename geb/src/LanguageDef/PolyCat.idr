@@ -3120,8 +3120,12 @@ MetaPolyFMetaF : PolyMu -> Type -> Type
 MetaPolyFMetaF = metaPolyCata MetaPolyMetaFAlg
 
 public export
-MetaPolyFMetaT : PolyMu -> Type
-MetaPolyFMetaT p = MetaPolyFMetaF p Void
+MetaPolyT : PolyMu -> Type
+MetaPolyT p = MetaPolyFMetaF p Void
+
+public export
+polyTCard : PolyMu -> Nat
+polyTCard = polyCard 0
 
 ---------------------------------------------------
 ---- The free monad in the polynomial category ----
@@ -3141,6 +3145,7 @@ MetaPolyMu p = MetaPolyFreeM p Void
 ----------------------------------------------------------
 
 -- Compute `p(Void) -> q(Void)`, also known as `q(Void) ^ p(Void)`.
+public export
 PolyHomObj : PolyMu -> PolyMu -> PolyMu
 PolyHomObj (InPVar v) _ = void v
 PolyHomObj _ (InPVar v) = void v
@@ -3160,6 +3165,7 @@ PolyHomObj (InPCom (p $$* q)) (InPCom r) =
   PolyHomObj p (PolyHomObj q (InPCom r))
 
 -- `p(Void) ^ q(Void)`.
+public export
 PolyExp : PolyMu -> PolyMu -> PolyMu
 PolyExp = flip PolyHomObj
 

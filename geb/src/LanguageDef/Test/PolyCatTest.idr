@@ -823,6 +823,9 @@ bncpmt21 = Assert $ metaBNCPolyM 200 (bncpm1 #. (bncpm0 #/ bncpm1)) 3 == 27
 ---------------
 ---------------
 
+polybool : PolyMu
+polybool = Poly1 $+ Poly1
+
 polyfnat : PolyMu
 polyfnat = Poly1 $+ PolyI
 
@@ -845,13 +848,13 @@ Polyf2f : Type -> Type
 Polyf2f = MetaPolyFMetaF polyf2
 
 Polyf0t : Type
-Polyf0t = MetaPolyFMetaT polyf0
+Polyf0t = MetaPolyT polyf0
 
 Polyf1t : Type
-Polyf1t = MetaPolyFMetaT polyf1
+Polyf1t = MetaPolyT polyf1
 
 Polyf2t : Type
-Polyf2t = MetaPolyFMetaT polyf2
+Polyf2t = MetaPolyT polyf2
 
 polyf0i : Polyf0t
 polyf0i = (Left (), Left (), Right (), Left (), Right ())
@@ -899,7 +902,7 @@ polyNatIter : Nat -> PolyMu
 polyNatIter = ($.^) polyfnat
 
 PolyNatIter : Nat -> Type
-PolyNatIter = MetaPolyFMetaT . polyNatIter
+PolyNatIter = MetaPolyT . polyNatIter
 
 pniterT0 : Not $ PolyNatIter 0
 pniterT0 = id
@@ -943,6 +946,13 @@ polyfeqT1 = Assert $ polyfnat == polyNatIter 1
 polyfeqT2 : Assertion
 polyfeqT2 = Assert $ polyfnat /= polyNatIter 2
 
+polyHomBoolF0 : PolyMu
+polyHomBoolF0 = PolyHomObj polybool polyf0
+
+polyCardT0 : Assertion
+polyCardT0 = Assert $
+  polyTCard polyHomBoolF0 == power (polyTCard polyf0) (polyTCard polybool)
+
 ----------------------------------
 ----------------------------------
 ----- Exported test function -----
@@ -985,6 +995,10 @@ polyCatTest = do
   putStrLn $ "poly-list[polyf0] = " ++ show (toPowerCoeffList polyf0)
   putStrLn $ "poly-list[polyf1] = " ++ show (toPowerCoeffList polyf1)
   putStrLn $ "pnitert10 = " ++ show pniterT10
+  putStrLn $ "card[polyf0] = " ++ show (polyTCard polyf0)
+  putStrLn $ "card[polybool] = " ++ show (polyTCard polybool)
+  putStrLn $ "(polybool -> polyf0) = " ++ show polyHomBoolF0
+  putStrLn $ "card[polybool -> polyf0] = " ++ show (polyTCard polyHomBoolF0)
   {- XXX
   putStrLn ""
   putStrLn "----------------"
