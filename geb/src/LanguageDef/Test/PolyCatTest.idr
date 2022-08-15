@@ -827,7 +827,7 @@ polyfnat : PolyMu
 polyfnat = Poly1 $+ PolyI
 
 polyf0 : PolyMu
-polyf0 = polyfnat $*^ 5
+polyf0 = (polyfnat $. Poly1) $*^ 5
 
 polyf1 : PolyMu
 polyf1 = (Poly1 $+ PolyI $*^ 2) $.^ 3
@@ -856,8 +856,8 @@ Polyf2t = MetaPolyFMetaT polyf2
 polyf0i : Polyf0t
 polyf0i = (Left (), Left (), Right (), Left (), Right ())
 
-polyf2i : Polyf2t
-polyf2i = ()
+polyf2i : Not Polyf2t
+polyf2i = id
 
 PolyFreeNat : (0 _ : Type) -> Type
 PolyFreeNat = MetaPolyFreeM polyfnat
@@ -894,6 +894,12 @@ polynatT1 = InFCom $ Right $ InFCom $ Left ()
 
 polynatT2 : PolyNat
 polynatT2 = InFCom $ Right $ InFCom $ Right $ InFCom $ Left ()
+
+PolyNatIter : Nat -> Type
+PolyNatIter n = MetaPolyFMetaT $ polyfnat $.^ n
+
+pniterT0 : Not $ PolyNatIter 0
+pniterT0 = id
 
 ----------------------------------
 ----------------------------------

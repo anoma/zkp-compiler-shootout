@@ -3086,7 +3086,7 @@ MetaPolyFMetaF = metaPolyCata MetaPolyMetaFAlg
 
 public export
 MetaPolyFMetaT : PolyMu -> Type
-MetaPolyFMetaT p = MetaPolyFMetaF p Unit
+MetaPolyFMetaT p = MetaPolyFMetaF p Void
 
 ---------------------------------------------------
 ---- The free monad in the polynomial category ----
@@ -3100,6 +3100,13 @@ MetaPolyFreeM (InPCom p) = FreeM (MetaPolyFMetaF $ InPCom p)
 public export
 MetaPolyMu : PolyMu -> Type
 MetaPolyMu p = MetaPolyFreeM p Void
+
+--------------------------------------------
+---- Morphisms between polynomial types ----
+--------------------------------------------
+
+data PolyMorph : PolyMu -> PolyMu -> Type where
+  PMId : PolyMorph p p
 
 -------------------------------------------------------------
 -------------------------------------------------------------
