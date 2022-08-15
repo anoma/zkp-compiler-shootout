@@ -826,16 +826,8 @@ bncpmt21 = Assert $ metaBNCPolyM 200 (bncpm1 #. (bncpm0 #/ bncpm1)) 3 == 27
 polyf0 : PolyMu
 polyf0 = (Poly1 $+ PolyI) $*^ 5
 
-polyf1l : PolyShape
-polyf1l =
-    [(15, 3), (14, 20), (13, 33), (12, 1), (11, 3), (9, 6), (8, 25),
-     (7, 11), (6, 2), (5, 7), (4, 22), (2, 2)]
-
 polyf1 : PolyMu
-polyf1 = fromPowerCoeffList polyf1l
-
-polyf1l' : PolyShape
-polyf1l' = toPowerCoeffList polyf1
+polyf1 = (Poly1 $+ PolyI $*^ 2) $.^ 3
 
 ----------------------------------
 ----------------------------------
@@ -877,6 +869,7 @@ polyCatTest = do
   putStrLn $ "dist-compress[polyf0] = " ++ show (distributeAndCompress polyf0)
   putStrLn $ "position-list[polyf0] = " ++ show (positionList polyf0)
   putStrLn $ "poly-list[polyf0] = " ++ show (toPowerCoeffList polyf0)
+  putStrLn $ "poly-list[polyf1] = " ++ show (toPowerCoeffList polyf1)
   {- XXX
   putStrLn ""
   putStrLn "----------------"
