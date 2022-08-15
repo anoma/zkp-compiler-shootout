@@ -829,6 +829,33 @@ polyf0 = (Poly1 $+ PolyI) $*^ 5
 polyf1 : PolyMu
 polyf1 = (Poly1 $+ PolyI $*^ 2) $.^ 3
 
+polyf2 : PolyMu
+polyf2 = polyf0 $.^ 0
+
+Polyf0f : Type -> Type
+Polyf0f = MetaPolyFMetaF polyf0
+
+Polyf1f : Type -> Type
+Polyf1f = MetaPolyFMetaF polyf1
+
+Polyf2f : Type -> Type
+Polyf2f = MetaPolyFMetaF polyf2
+
+Polyf0t : Type
+Polyf0t = MetaPolyFMetaT polyf0
+
+Polyf1t : Type
+Polyf1t = MetaPolyFMetaT polyf1
+
+Polyf2t : Type
+Polyf2t = MetaPolyFMetaT polyf2
+
+polyf0i : Polyf0t
+polyf0i = (Left (), Left (), Right (), Left (), Right ())
+
+polyf2i : Polyf2t
+polyf2i = ()
+
 ----------------------------------
 ----------------------------------
 ----- Exported test function -----

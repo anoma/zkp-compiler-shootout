@@ -2962,40 +2962,28 @@ public export
 ---- Multiplication by a constant (via addition) ----
 -----------------------------------------------------
 
-public export
-polyMulConstAcc : PolyMu -> PolyMu -> Nat -> PolyMu
-polyMulConstAcc = foldrNat . const . ($+)
-
 infix 10 $:*
 public export
 ($:*) : Nat -> PolyMu -> PolyMu
-n $:* p = polyMulConstAcc p Poly0 n
+n $:* p = foldrNatNoUnit (($*) p) Poly0 p n
 
 ---------------------------------------
 ---- Multiplicative exponentiation ----
 ---------------------------------------
 
-public export
-polyExpMulAcc : PolyMu -> PolyMu -> Nat -> PolyMu
-polyExpMulAcc = foldrNat . const . ($*)
-
 infix 10 $*^
 public export
 ($*^) : PolyMu -> Nat -> PolyMu
-p $*^ n = polyExpMulAcc p Poly1 n
+p $*^ n = foldrNatNoUnit (($*) p) Poly1 p n
 
 --------------------------------------
 ---- Compositional exponentiation ----
 --------------------------------------
 
-public export
-polyCompMulAcc : PolyMu -> PolyMu -> Nat -> PolyMu
-polyCompMulAcc = foldrNat . const . ($.)
-
 infix 10 $.^
 public export
 ($.^) : PolyMu -> Nat -> PolyMu
-p $.^ n = polyCompMulAcc p PolyI n
+p $.^ n = foldrNatNoUnit (($.) p) PolyI p n
 
 -------------------------------------------------
 ---- Conversion to and from algebraic format ----
@@ -3094,6 +3082,14 @@ MetaPolyFMMetaF = metaPolyEval MetaPolyMetaFAlg
 public export
 MetaPolyFMetaF : PolyMu -> Type -> Type
 MetaPolyFMetaF = metaPolyCata MetaPolyMetaFAlg
+
+public export
+MetaPolyFMetaT : PolyMu -> Type
+MetaPolyFMetaT p = MetaPolyFMetaF p Unit
+
+---------------------------------------------------
+---- The free monad in the polynomial category ----
+---------------------------------------------------
 
 -------------------------------------------------------------
 -------------------------------------------------------------

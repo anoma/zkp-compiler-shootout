@@ -235,9 +235,14 @@ fromIsYes {x=(Yes x)} Refl = x
 fromIsYes {x=(No n)} Refl impossible
 
 public export
-foldrNat : (Nat -> a -> a) -> a -> Nat -> a
+foldrNat : (a -> a) -> a -> Nat -> a
 foldrNat f acc Z = acc
-foldrNat f acc (S n) = foldrNat f (f n acc) n
+foldrNat f acc (S n) = foldrNat f (f acc) n
+
+public export
+foldrNatNoUnit : (a -> a) -> a -> a -> Nat -> a
+foldrNatNoUnit f unit acc Z = unit
+foldrNatNoUnit f unit acc (S n) = foldrNat f acc n
 
 public export
 collectPairsAcc : List Nat -> List (Nat, Nat) -> List (Nat, Nat)
