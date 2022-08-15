@@ -2943,6 +2943,51 @@ public export
 distributeAndCompress : PolyMu -> PolyMu
 distributeAndCompress = polyRemoveOne . polyRemoveZero . polyDistrib
 
+------------------------------------------------
+---- Composition of polynomial endofunctors ----
+------------------------------------------------
+
+infixr 2 $.
+public export
+($.) : PolyMu -> PolyMu -> PolyMu
+(InPVar v) $. _ = void v
+(InPCom _) $. (InPVar v) = void v
+(InPCom PFI) $. q = q
+(InPCom PF0) $. (InPCom _) = Poly0
+(InPCom PF1) $. (InPCom _) = Poly1
+(InPCom (p $$+ q)) $. r = (p $. r) $+ (q $. r)
+(InPCom (p $$* q)) $. r = (p $. r) $* (q $. r)
+
+---------------------------------------
+---- Multiplicative exponentiation ----
+---------------------------------------
+
+public export
+polyExpMulAcc : PolyMu -> PolyMu -> Nat -> PolyMu
+polyExpMulAcc = foldrNat . const . ($*)
+
+infix 10 $*^
+public export
+($*^) : PolyMu -> Nat -> PolyMu
+p $*^ n = polyExpMulAcc p Poly1 n
+
+--------------------------------------
+---- Compositional exponentiation ----
+--------------------------------------
+
+public export
+polyCompMulAcc : PolyMu -> PolyMu -> Nat -> PolyMu
+polyCompMulAcc = foldrNat . const . ($.)
+
+infix 10 $.^
+public export
+($.^) : PolyMu -> Nat -> PolyMu
+p $.^ n = polyCompMulAcc p PolyI n
+
+-------------------------------------------------
+---- Conversion to and from algebraic format ----
+-------------------------------------------------
+
 public export
 CountOnesAlg : MetaPolyAlg Nat
 CountOnesAlg PFI = 0
@@ -2985,47 +3030,6 @@ positionList =
 public export
 powerCoeffList : PolyMu -> List (Nat, Nat)
 powerCoeffList = collectPairs . reverse . positionList
-
-------------------------------------------------
----- Composition of polynomial endofunctors ----
-------------------------------------------------
-
-infixr 2 $.
-public export
-($.) : PolyMu -> PolyMu -> PolyMu
-(InPVar v) $. _ = void v
-(InPCom _) $. (InPVar v) = void v
-(InPCom PFI) $. q = q
-(InPCom PF0) $. (InPCom _) = Poly0
-(InPCom PF1) $. (InPCom _) = Poly1
-(InPCom (p $$+ q)) $. r = (p $. r) $+ (q $. r)
-(InPCom (p $$* q)) $. r = (p $. r) $* (q $. r)
-
----------------------------------------
----- Multiplicative exponentiation ----
----------------------------------------
-
-public export
-polyExpMulAcc : PolyMu -> PolyMu -> Nat -> PolyMu
-polyExpMulAcc = foldrNat . const . ($*)
-
-infix 10 $*^
-public export
-($*^) : PolyMu -> Nat -> PolyMu
-p $*^ n = polyExpMulAcc p Poly1 n
-
---------------------------------------
----- Compositional exponentiation ----
---------------------------------------
-
-public export
-polyCompMulAcc : PolyMu -> PolyMu -> Nat -> PolyMu
-polyCompMulAcc = foldrNat . const . ($.)
-
-infix 10 $.^
-public export
-($.^) : PolyMu -> Nat -> PolyMu
-p $.^ n = polyCompMulAcc p PolyI n
 
 -----------------------------------------------------------------------------
 ---- Interpretation of polynomial functors as natural-number polymomials ----
