@@ -2958,6 +2958,19 @@ public export
 (InPCom (p $$+ q)) $. r = (p $. r) $+ (q $. r)
 (InPCom (p $$* q)) $. r = (p $. r) $* (q $. r)
 
+-----------------------------------------------------
+---- Multiplication by a constant (via addition) ----
+-----------------------------------------------------
+
+public export
+polyMulConstAcc : PolyMu -> PolyMu -> Nat -> PolyMu
+polyMulConstAcc = foldrNat . const . ($+)
+
+infix 10 $:*
+public export
+($:*) : Nat -> PolyMu -> PolyMu
+n $:* p = polyMulConstAcc p Poly0 n
+
 ---------------------------------------
 ---- Multiplicative exponentiation ----
 ---------------------------------------
@@ -3028,8 +3041,19 @@ positionList =
 
 -- A list of (power, coefficient) pairs.
 public export
-powerCoeffList : PolyMu -> List (Nat, Nat)
-powerCoeffList = collectPairs . reverse . positionList
+toPowerCoeffList : PolyMu -> List (Nat, Nat)
+toPowerCoeffList = collectPairs . reverse . positionList
+
+-- Create a polynomial from a list of (power, coefficient) pairs.
+public export
+fromPowerCoeffListAcc : List (Nat, Nat) -> PolyMu -> PolyMu
+fromPowerCoeffListAcc [] q = q
+fromPowerCoeffListAcc ((p, c) :: l) q =
+  fromPowerCoeffListAcc l (c $:* (PolyI $*^ p) $+ q)
+
+public export
+fromPowerCoeffList : List (Nat, Nat) -> PolyMu
+fromPowerCoeffList l = distributeAndCompress (fromPowerCoeffListAcc l Poly0)
 
 -----------------------------------------------------------------------------
 ---- Interpretation of polynomial functors as natural-number polymomials ----
