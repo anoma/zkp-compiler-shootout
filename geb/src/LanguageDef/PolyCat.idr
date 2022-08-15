@@ -3149,22 +3149,9 @@ public export
 PolyHomObj : PolyMu -> PolyMu -> PolyMu
 PolyHomObj (InPVar v) _ = void v
 PolyHomObj _ (InPVar v) = void v
--- id -> id == id + 1 (see exercise 4.29 in _Polynomial Functors: A General
--- Theory of Interaction_ for this and other formulas of the form
--- `id -> x == ?`)
-PolyHomObj (InPCom PFI) (InPCom PFI) = PolyI $+ Poly1
--- `id -> 0 == 0`
-PolyHomObj (InPCom PFI) (InPCom PF0) = Poly0
--- `id -> 1 == 1`
-PolyHomObj (InPCom PFI) (InPCom PF1) = Poly1
--- `id -> p + q == (id -> p) + (id -> q)` (the on-directions functions back
--- to the identity natural transformation are trivial, so we only have to
--- worry about the on-positions function)
-PolyHomObj i@(InPCom PFI) (InPCom (p $$+ q)) =
-  PolyHomObj i p $+ PolyHomObj i q
--- `id -> p * q == (id -> p) * (id -> q)`
-PolyHomObj i@(InPCom PFI) (InPCom (p $$* q)) =
-  PolyHomObj i p $* PolyHomObj i q
+-- id -> r == r . (id + 1) (see formula 4.27 in _Polynomial Functors: A General
+-- Theory of Interaction_
+PolyHomObj (InPCom PFI) r = r $. (PolyI $+ Poly1)
 -- `0 -> x == 1` (the universal property of the initial object)
 PolyHomObj (InPCom PF0) (InPCom q) = Poly1
 -- `1 -> x == x` (a special case of the Yoneda lemma, together with
