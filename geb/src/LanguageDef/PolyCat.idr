@@ -2798,6 +2798,18 @@ polySize : PolyMu -> Nat
 polySize = metaPolyCata PolySizeAlg
 
 public export
+PolyDistributedSizeAlg : MetaPolyAlg Nat
+PolyDistributedSizeAlg PFI = 1
+PolyDistributedSizeAlg PF0 = 1
+PolyDistributedSizeAlg PF1 = 1
+PolyDistributedSizeAlg (p $$+ q) = p + q
+PolyDistributedSizeAlg (p $$* q) = p * q
+
+public export
+polyDistributedSize : PolyMu -> Nat
+polyDistributedSize = metaPolyCata PolyDistributedSizeAlg
+
+public export
 PolyDepthAlg : MetaPolyAlg Nat
 PolyDepthAlg PFI = 0
 PolyDepthAlg PF0 = 0
@@ -2808,6 +2820,18 @@ PolyDepthAlg (p $$* q) = smax p q
 public export
 polyDepth : PolyMu -> Nat
 polyDepth = metaPolyCata PolyDepthAlg
+
+public export
+PolyCardAlg : Nat -> MetaPolyAlg Nat
+PolyCardAlg n PFI = n
+PolyCardAlg n PF0 = 0
+PolyCardAlg n PF1 = 1
+PolyCardAlg n (p $$+ q) = p + q
+PolyCardAlg n (p $$* q) = p * q
+
+public export
+polyCard : Nat -> PolyMu -> Nat
+polyCard = metaPolyCata . PolyCardAlg
 
 --------------------------------------------
 ---- Displaying polynomial endofunctors ----
@@ -2835,32 +2859,36 @@ polyMulId (InPVar v) = void v
 polyMulId (InPCom PFI) = PolyI $* PolyI
 polyMulId (InPCom PF0) = Poly0
 polyMulId (InPCom PF1) = PolyI
-polyMulId (InPCom (x $$+ y)) = PolyI $* x $+ PolyI $* y
-polyMulId (InPCom (x $$* y)) = PolyI $* x $* y
+polyMulId (InPCom (p $$+ q)) = PolyI $* p $+ PolyI $* q
+polyMulId (InPCom (p $$* q)) = PolyI $* p $* q
 
-public export
-polyDistribMul : PolyMu -> PolyMu -> PolyMu
-polyDistribMul (InPVar v) _ = void v
-polyDistribMul (InPCom _) (InPVar v) = void v
-polyDistribMul (InPCom PFI) q = polyMulId q
-polyDistribMul (InPCom PF0) q = Poly0
-polyDistribMul (InPCom PF1) q = q
-polyDistribMul (InPCom (p $$+ q)) r =
-  polyDistribMul p r $+ polyDistribMul q r
-polyDistribMul (InPCom (p $$* q)) r =
-  polyDistribMul p (polyDistribMul q r)
+mutual
+  public export
+  polyDistribMul : Nat -> PolyMu -> PolyMu -> PolyMu
+  polyDistribMul Z p q = p
+  polyDistribMul _ (InPVar v) _ = void v
+  polyDistribMul (S n) (InPCom _) (InPVar v) = void v
+  polyDistribMul (S n) (InPCom PFI) q = polyMulId $ polyDistribD n q
+  polyDistribMul (S n) (InPCom PF0) q = Poly0
+  polyDistribMul (S n) (InPCom PF1) q = polyDistribD n q
+  polyDistribMul (S n) (InPCom (p $$+ q)) r =
+    polyDistribMul n p r $+ polyDistribMul n q r
+  polyDistribMul (S n) (InPCom (p $$* q)) r =
+    polyDistribMul n p (polyDistribMul n q r)
 
-public export
-PolyDistribAlg : MetaPolyAlg PolyMu
-PolyDistribAlg PFI = PolyI
-PolyDistribAlg PF0 = Poly0
-PolyDistribAlg PF1 = Poly1
-PolyDistribAlg (p $$+ q) = p $+ q
-PolyDistribAlg (p $$* q) = polyDistribMul p q
+  public export
+  polyDistribD : Nat -> PolyMu -> PolyMu
+  polyDistribD Z p = p
+  polyDistribD (S n) (InPVar v) = void v
+  polyDistribD (S n) (InPCom PFI) = PolyI
+  polyDistribD (S n) (InPCom PF0) = Poly0
+  polyDistribD (S n) (InPCom PF1) = Poly1
+  polyDistribD (S n) (InPCom (p $$+ q)) = polyDistribD n p $+ polyDistribD n q
+  polyDistribD (S n) (InPCom (p $$* q)) = polyDistribMul n p q
 
 public export
 polyDistrib : PolyMu -> PolyMu
-polyDistrib = metaPolyCata PolyDistribAlg
+polyDistrib p = polyDistribD (polyDistributedSize p) p
 
 public export
 PolyRemoveZeroAlg : MetaPolyAlg PolyMu
