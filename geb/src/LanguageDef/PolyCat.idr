@@ -2975,9 +2975,16 @@ PowerListAlg PF1 = [0]
 PowerListAlg (p $$+ q) = p ++ q
 PowerListAlg (p $$* q) = [sum p + sum q]
 
+-- For each position, the number of directions at that position.
 public export
-powerList : PolyMu -> List Nat
-powerList = metaPolyCata PowerListAlg . distributeAndCompress
+positionList : PolyMu -> List Nat
+positionList =
+  reverse . sort . metaPolyCata PowerListAlg . distributeAndCompress
+
+-- A list of (power, coefficient) pairs.
+public export
+powerCoeffList : PolyMu -> List (Nat, Nat)
+powerCoeffList = collectPairs . reverse . positionList
 
 ------------------------------------------------
 ---- Composition of polynomial endofunctors ----

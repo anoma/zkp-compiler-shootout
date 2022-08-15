@@ -240,6 +240,20 @@ foldrNat f acc Z = acc
 foldrNat f acc (S n) = foldrNat f (f n acc) n
 
 public export
+collectPairsAcc : List Nat -> List (Nat, Nat) -> List (Nat, Nat)
+collectPairsAcc [] acc = acc
+collectPairsAcc (n :: ns) [] = collectPairsAcc ns [(n, 1)]
+collectPairsAcc (n :: ns) ps@((n', c) :: ps') =
+  if n == n' then
+    collectPairsAcc ns ((n', S c) :: ps')
+  else
+    collectPairsAcc ns $ (n, 1) :: ps
+
+public export
+collectPairs : List Nat -> List (Nat, Nat)
+collectPairs l = collectPairsAcc l []
+
+public export
 equalNatCorrect : {m : Nat} -> equalNat m m = True
 equalNatCorrect {m=Z} = Refl
 equalNatCorrect {m=(S m')} = equalNatCorrect {m=m'}
