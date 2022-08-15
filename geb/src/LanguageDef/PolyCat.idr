@@ -2978,9 +2978,9 @@ public export
 distributeAndCompress : PolyMu -> PolyMu
 distributeAndCompress = polyRemoveOne . polyRemoveZero . polyDistrib
 
-------------------------------------------------
----- Composition of polynomial endofunctors ----
-------------------------------------------------
+---------------------------------------------------------------
+---- Composition of polynomial endofunctors (substitution) ----
+---------------------------------------------------------------
 
 infixr 2 $.
 public export
@@ -3136,12 +3136,32 @@ public export
 MetaPolyMu : PolyMu -> Type
 MetaPolyMu p = MetaPolyFreeM p Void
 
---------------------------------------------
----- Morphisms between polynomial types ----
---------------------------------------------
+----------------------------------------------------------
+---- Exponentiation (hom-objects) of polynomial types ----
+----------------------------------------------------------
 
-data PolyMorph : PolyMu -> PolyMu -> Type where
-  PMId : PolyMorph p p
+-- Compute `p(Void) -> q(Void)`, also known as `q(Void) ^ p(Void)`.
+PolyHomObj : PolyMu -> PolyMu -> PolyMu
+PolyHomObj (InPVar v) _ = void v
+PolyHomObj _ (InPVar v) = void v
+-- In `p(Void)`, `PFI` becomes `Void`, so this is `0 -> x == 1`
+-- (the universal property of the initial object)
+PolyHomObj (InPCom PFI) (InPCom _) = Poly1
+-- `0 -> x == 1` (the universal property of the initial object)
+PolyHomObj (InPCom PF0) (InPCom q) = Poly1
+-- `1 -> x == x` (a special case of the Yoneda lemma, together with
+-- the universal property of the terminal object)
+PolyHomObj (InPCom PF1) (InPCom q) = InPCom q
+-- (p + q) -> r == (p -> r) * (q -> r)
+PolyHomObj (InPCom (p $$+ q)) (InPCom r) =
+  PolyHomObj p (InPCom r) $* PolyHomObj q (InPCom r)
+-- (p * q) -> r == p -> q -> r
+PolyHomObj (InPCom (p $$* q)) (InPCom r) =
+  PolyHomObj p (PolyHomObj q (InPCom r))
+
+-- `p(Void) ^ q(Void)`.
+PolyExp : PolyMu -> PolyMu -> PolyMu
+PolyExp = flip PolyHomObj
 
 -------------------------------------------------------------
 -------------------------------------------------------------
