@@ -193,6 +193,10 @@ IsTrue : Bool -> Type
 IsTrue b = b = True
 
 public export
+IsFalse : Bool -> Type
+IsFalse b = b = False
+
+public export
 IsJustTrue : {a : Type} -> Maybe a -> Type
 IsJustTrue x = isJust x = True
 

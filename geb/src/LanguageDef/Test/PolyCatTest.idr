@@ -895,8 +895,11 @@ polynatT1 = InFCom $ Right $ InFCom $ Left ()
 polynatT2 : PolyNat
 polynatT2 = InFCom $ Right $ InFCom $ Right $ InFCom $ Left ()
 
+polyNatIter : Nat -> PolyMu
+polyNatIter = ($.^) polyfnat
+
 PolyNatIter : Nat -> Type
-PolyNatIter n = MetaPolyFMetaT $ polyfnat $.^ n
+PolyNatIter = MetaPolyFMetaT . polyNatIter
 
 pniterT0 : Not $ PolyNatIter 0
 pniterT0 = id
@@ -930,6 +933,15 @@ pniterT9 = Right $ Right $ Left ()
 
 pniterT10 : PolyNatIter 4
 pniterT10 = Right $ Right $ Right $ Left ()
+
+polyfeqT0 : Assertion
+polyfeqT0 = Assert $ polyfnat /= polyNatIter 0
+
+polyfeqT1 : Assertion
+polyfeqT1 = Assert $ polyfnat == polyNatIter 1
+
+polyfeqT2 : Assertion
+polyfeqT2 = Assert $ polyfnat /= polyNatIter 2
 
 ----------------------------------
 ----------------------------------

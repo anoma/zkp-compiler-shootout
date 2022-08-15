@@ -2849,6 +2849,41 @@ public export
 Show a => Show (PolyFM a) where
   show = metaPolyEval PolyShowAlg show
 
+---------------------------------------------
+---- Equality on polynomial endofunctors ----
+---------------------------------------------
+
+public export
+Eq a => Eq (PolyFM a) where
+  (InPVar v) == (InPVar v') = v == v'
+  (InPVar x) == (InPCom y) = False
+  (InPCom x) == (InPVar y) = False
+  (InPCom PFI) == (InPCom PFI) = True
+  (InPCom PFI) == (InPCom PF0) = False
+  (InPCom PFI) == (InPCom PF1) = False
+  (InPCom PFI) == (InPCom (_ $$+ _)) = False
+  (InPCom PFI) == (InPCom (_ $$* _)) = False
+  (InPCom PF0) == (InPCom PFI) = False
+  (InPCom PF0) == (InPCom PF0) = True
+  (InPCom PF0) == (InPCom PF1) = False
+  (InPCom PF0) == (InPCom (_ $$+ _)) = False
+  (InPCom PF0) == (InPCom (_ $$* _)) = False
+  (InPCom PF1) == (InPCom PFI) = False
+  (InPCom PF1) == (InPCom PF0) = False
+  (InPCom PF1) == (InPCom PF1) = True
+  (InPCom PF1) == (InPCom (_ $$+ _)) = False
+  (InPCom PF1) == (InPCom (_ $$* _)) = False
+  (InPCom (_ $$+ _)) == (InPCom PFI) = False
+  (InPCom (_ $$+ _)) == (InPCom PF0) = False
+  (InPCom (_ $$+ _)) == (InPCom PF1) = False
+  (InPCom (p $$+ q)) == (InPCom (r $$+ s)) = p == r && q == s
+  (InPCom (_ $$+ _)) == (InPCom (_ $$* _)) = False
+  (InPCom (_ $$* _)) == (InPCom PFI) = False
+  (InPCom (_ $$* _)) == (InPCom PF0) = False
+  (InPCom (_ $$* _)) == (InPCom PF1) = False
+  (InPCom (_ $$* _)) == (InPCom (_ $$+ _)) = False
+  (InPCom (p $$* q)) == (InPCom (r $$* s)) = p == r && q == s
+
 -----------------------------------------------
 ---- Arithmetic on polynomial endofunctors ----
 -----------------------------------------------
