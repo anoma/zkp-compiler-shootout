@@ -2781,6 +2781,34 @@ public export
 metaPolyAna : MetaPolyCoalg x -> x -> PolyNu
 metaPolyAna coalg = metaPolyCoeval {a=Unit} coalg (const $ const ()) (const ())
 
+-------------------
+---- Utilities ----
+-------------------
+
+public export
+PolySizeAlg : MetaPolyAlg Nat
+PolySizeAlg PFI = 1
+PolySizeAlg PF0 = 1
+PolySizeAlg PF1 = 1
+PolySizeAlg (p $$+ q) = p + q
+PolySizeAlg (p $$* q) = p + q
+
+public export
+polySize : PolyMu -> Nat
+polySize = metaPolyCata PolySizeAlg
+
+public export
+PolyDepthAlg : MetaPolyAlg Nat
+PolyDepthAlg PFI = 0
+PolyDepthAlg PF0 = 0
+PolyDepthAlg PF1 = 0
+PolyDepthAlg (p $$+ q) = smax p q
+PolyDepthAlg (p $$* q) = smax p q
+
+public export
+polyDepth : PolyMu -> Nat
+polyDepth = metaPolyCata PolyDepthAlg
+
 --------------------------------------------
 ---- Displaying polynomial endofunctors ----
 --------------------------------------------
@@ -2790,8 +2818,8 @@ PolyShowAlg : MetaPolyAlg String
 PolyShowAlg PFI = "id"
 PolyShowAlg PF0 = "0"
 PolyShowAlg PF1 = "1"
-PolyShowAlg (x $$+ y) = "(" ++ x ++ ") + (" ++ y ++ ")"
-PolyShowAlg (x $$* y) = "[" ++ x ++ "] * [" ++ y ++ "]"
+PolyShowAlg (x $$+ y) = "(" ++ x ++ " + " ++ y ++ ")"
+PolyShowAlg (x $$* y) = x ++ " * " ++ y
 
 public export
 Show a => Show (PolyFM a) where
@@ -2883,6 +2911,10 @@ polyRemoveOne : PolyMu -> PolyMu
 polyRemoveOne = metaPolyCata PolyRemoveOneAlg
 
 public export
+distributeAndCompress : PolyMu -> PolyMu
+distributeAndCompress = polyRemoveOne . polyRemoveZero . polyDistrib
+
+public export
 CountOnesAlg : MetaPolyAlg Nat
 CountOnesAlg PFI = 0
 CountOnesAlg PF0 = 0
@@ -2905,6 +2937,18 @@ CountIdsAlg (p $$* q) = p + q
 public export
 countIds : PolyMu -> Nat
 countIds = metaPolyCata CountIdsAlg
+
+-- The result is only sensible if the term is distributed and compressed.
+PowerListAlg : MetaPolyAlg (List Nat)
+PowerListAlg PFI = [1]
+PowerListAlg PF0 = [0]
+PowerListAlg PF1 = [0]
+PowerListAlg (p $$+ q) = p ++ q
+PowerListAlg (p $$* q) = [sum p + sum q]
+
+public export
+powerList : PolyMu -> List Nat
+powerList = metaPolyCata PowerListAlg . distributeAndCompress
 
 ------------------------------------------------
 ---- Composition of polynomial endofunctors ----

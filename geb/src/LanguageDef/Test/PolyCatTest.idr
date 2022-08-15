@@ -824,7 +824,7 @@ bncpmt21 = Assert $ metaBNCPolyM 200 (bncpm1 #. (bncpm0 #/ bncpm1)) 3 == 27
 ---------------
 
 polyf0 : PolyMu
-polyf0 = (Poly1 $+ PolyI) $*^ 5
+polyf0 = (Poly1 $+ PolyI) $*^ 3
 
 ----------------------------------
 ----------------------------------
@@ -863,6 +863,8 @@ polyCatTest = do
   putStrLn "---------------"
   putStrLn $ "polyf0 = " ++ show polyf0
   putStrLn $ "distrib[polyf0] = " ++ show (polyDistrib polyf0)
+  putStrLn $ "dist-compress[polyf0] = " ++ show (distributeAndCompress polyf0)
+  putStrLn $ "power-list[polyf0] = " ++ show (powerList polyf0)
   {- XXX
   putStrLn ""
   putStrLn "----------------"
