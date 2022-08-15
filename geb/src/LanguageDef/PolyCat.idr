@@ -2853,22 +2853,23 @@ Show a => Show (PolyFM a) where
 ---- Arithmetic on polynomial endofunctors ----
 -----------------------------------------------
 
-public export
-polyMulId : PolyMu -> PolyMu
-polyMulId (InPVar v) = void v
-polyMulId (InPCom PFI) = PolyI $* PolyI
-polyMulId (InPCom PF0) = Poly0
-polyMulId (InPCom PF1) = PolyI
-polyMulId (InPCom (p $$+ q)) = PolyI $* p $+ PolyI $* q
-polyMulId (InPCom (p $$* q)) = PolyI $* p $* q
-
 mutual
   public export
+  polyMulId : Nat -> PolyMu -> PolyMu
+  polyMulId Z p = PolyI $* p
+  polyMulId (S n) (InPVar v) = void v
+  polyMulId (S n) (InPCom PFI) = PolyI $* PolyI
+  polyMulId (S n) (InPCom PF0) = Poly0
+  polyMulId (S n) (InPCom PF1) = PolyI
+  polyMulId (S n) (InPCom (p $$+ q)) = polyMulId n p $+ polyMulId n q
+  polyMulId (S n) (InPCom (p $$* q)) = polyMulId n (polyDistribMul n p q)
+
+  public export
   polyDistribMul : Nat -> PolyMu -> PolyMu -> PolyMu
-  polyDistribMul Z p q = p
+  polyDistribMul Z p q = p $* q
   polyDistribMul _ (InPVar v) _ = void v
   polyDistribMul (S n) (InPCom _) (InPVar v) = void v
-  polyDistribMul (S n) (InPCom PFI) q = polyMulId $ polyDistribD n q
+  polyDistribMul (S n) (InPCom PFI) q = polyMulId n $ polyDistribD n q
   polyDistribMul (S n) (InPCom PF0) q = Poly0
   polyDistribMul (S n) (InPCom PF1) q = polyDistribD n q
   polyDistribMul (S n) (InPCom (p $$+ q)) r =
