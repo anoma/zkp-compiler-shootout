@@ -901,6 +901,36 @@ PolyNatIter n = MetaPolyFMetaT $ polyfnat $.^ n
 pniterT0 : Not $ PolyNatIter 0
 pniterT0 = id
 
+pniterT1 : PolyNatIter 1
+pniterT1 = Left ()
+
+pniterT2 : PolyNatIter 2
+pniterT2 = Left ()
+
+pniterT3 : PolyNatIter 2
+pniterT3 = Right $ Left ()
+
+pniterT4 : PolyNatIter 3
+pniterT4 = Left ()
+
+pniterT5 : PolyNatIter 3
+pniterT5 = Right $ Left ()
+
+pniterT6 : PolyNatIter 3
+pniterT6 = Right $ Right $ Left ()
+
+pniterT7 : PolyNatIter 4
+pniterT7 = Left ()
+
+pniterT8 : PolyNatIter 4
+pniterT8 = Right $ Left ()
+
+pniterT9 : PolyNatIter 4
+pniterT9 = Right $ Right $ Left ()
+
+pniterT10 : PolyNatIter 4
+pniterT10 = Right $ Right $ Right $ Left ()
+
 ----------------------------------
 ----------------------------------
 ----- Exported test function -----
@@ -942,6 +972,7 @@ polyCatTest = do
   putStrLn $ "position-list[polyf0] = " ++ show (positionList polyf0)
   putStrLn $ "poly-list[polyf0] = " ++ show (toPowerCoeffList polyf0)
   putStrLn $ "poly-list[polyf1] = " ++ show (toPowerCoeffList polyf1)
+  putStrLn $ "pnitert10 = " ++ show pniterT10
   {- XXX
   putStrLn ""
   putStrLn "----------------"
