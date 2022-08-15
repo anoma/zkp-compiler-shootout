@@ -953,6 +953,9 @@ polyCardT0 : Assertion
 polyCardT0 = Assert $
   polyTCard polyHomBoolF0 == power (polyTCard polyf0) (polyTCard polybool)
 
+polyHomId4Id : PolyMu
+polyHomId4Id = PolyHomObj PolyI (4 $:* PolyI)
+
 ----------------------------------
 ----------------------------------
 ----- Exported test function -----
@@ -999,6 +1002,7 @@ polyCatTest = do
   putStrLn $ "card[polybool] = " ++ show (polyTCard polybool)
   putStrLn $ "(polybool -> polyf0) = " ++ show polyHomBoolF0
   putStrLn $ "card[polybool -> polyf0] = " ++ show (polyTCard polyHomBoolF0)
+  putStrLn $ "(id -> 4 * id) = " ++ show polyHomId4Id
   {- XXX
   putStrLn ""
   putStrLn "----------------"
