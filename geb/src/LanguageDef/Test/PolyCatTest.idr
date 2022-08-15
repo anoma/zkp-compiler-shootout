@@ -956,6 +956,9 @@ polyCardT0 = Assert $
 polyHomId4Id : PolyMu
 polyHomId4Id = PolyHomObj PolyI (4 $:* PolyI)
 
+polyDepth3BinTree : PolyMu
+polyDepth3BinTree = polyf1
+
 ----------------------------------
 ----------------------------------
 ----- Exported test function -----
@@ -1003,6 +1006,14 @@ polyCatTest = do
   putStrLn $ "(polybool -> polyf0) = " ++ show polyHomBoolF0
   putStrLn $ "card[polybool -> polyf0] = " ++ show (polyTCard polyHomBoolF0)
   putStrLn $ "(id -> 4 * id) = " ++ show polyHomId4Id
+  putStrLn $ "polyDepth3BT = " ++ show (toPowerCoeffList polyDepth3BinTree)
+  putStrLn $ "card[polyDepth3BT,0] = " ++ show (polyTCard polyDepth3BinTree)
+  putStrLn $ "depth4Nat = " ++ show (polyNatIter 4)
+  putStrLn $ "card[depth4Nat] = " ++ show (polyTCard (polyNatIter 4))
+  putStrLn $ "card[depth4Nat -> polyDepth3BT] = " ++
+    show (polyTCard $ PolyHomObj (polyNatIter 4) (polyDepth3BinTree))
+  putStrLn $ "card[polyDepth3BT -> depth4Nat] = " ++
+    show (polyTCard $ PolyHomObj (polyDepth3BinTree) (polyNatIter 4))
   {- XXX
   putStrLn ""
   putStrLn "----------------"
