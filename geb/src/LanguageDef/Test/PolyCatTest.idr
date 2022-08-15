@@ -823,8 +823,11 @@ bncpmt21 = Assert $ metaBNCPolyM 200 (bncpm1 #. (bncpm0 #/ bncpm1)) 3 == 27
 ---------------
 ---------------
 
+polyfnat : PolyMu
+polyfnat = Poly1 $+ PolyI
+
 polyf0 : PolyMu
-polyf0 = (Poly1 $+ PolyI) $*^ 5
+polyf0 = polyfnat $*^ 5
 
 polyf1 : PolyMu
 polyf1 = (Poly1 $+ PolyI $*^ 2) $.^ 3
@@ -855,6 +858,42 @@ polyf0i = (Left (), Left (), Right (), Left (), Right ())
 
 polyf2i : Polyf2t
 polyf2i = ()
+
+PolyFreeNat : (0 _ : Type) -> Type
+PolyFreeNat = MetaPolyFreeM polyfnat
+
+PolyNat : Type
+PolyNat = MetaPolyMu polyfnat
+
+polyFNatT0 : PolyFreeNat Nat
+polyFNatT0 = InFVar 7
+
+polyFNatT1 : PolyFreeNat Nat
+polyFNatT1 = InFCom $ Left ()
+
+polyFNatT2 : PolyFreeNat Nat
+polyFNatT2 = InFCom $ Right $ InFVar 5
+
+polyFNatT3 : PolyFreeNat Nat
+polyFNatT3 = InFCom $ Right $ InFCom $ Left ()
+
+polyFNatT4 : PolyFreeNat Nat
+polyFNatT4 = InFCom $ Right $ InFCom $ Right $ InFVar 3
+
+polyFNatT5 : PolyFreeNat Nat
+polyFNatT5 = InFCom $ Right $ InFCom $ Right $ InFCom $ Left ()
+
+polyFNatT6 : PolyFreeNat Nat
+polyFNatT6 = InFCom $ Right $ InFCom $ Right $ InFCom $ Right $ InFCom $ Left ()
+
+polynatT0 : PolyNat
+polynatT0 = InFCom $ Left ()
+
+polynatT1 : PolyNat
+polynatT1 = InFCom $ Right $ InFCom $ Left ()
+
+polynatT2 : PolyNat
+polynatT2 = InFCom $ Right $ InFCom $ Right $ InFCom $ Left ()
 
 ----------------------------------
 ----------------------------------

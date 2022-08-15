@@ -3014,6 +3014,7 @@ countIds : PolyMu -> Nat
 countIds = metaPolyCata CountIdsAlg
 
 -- The result is only sensible if the term is distributed and compressed.
+public export
 PowerListAlg : MetaPolyAlg (List Nat)
 PowerListAlg PFI = [1]
 PowerListAlg PF0 = [0]
@@ -3090,6 +3091,15 @@ MetaPolyFMetaT p = MetaPolyFMetaF p Unit
 ---------------------------------------------------
 ---- The free monad in the polynomial category ----
 ---------------------------------------------------
+
+public export
+MetaPolyFreeM : PolyMu -> (0 _ : Type) -> Type
+MetaPolyFreeM (InPVar v) = void v
+MetaPolyFreeM (InPCom p) = FreeM (MetaPolyFMetaF $ InPCom p)
+
+public export
+MetaPolyMu : PolyMu -> Type
+MetaPolyMu p = MetaPolyFreeM p Void
 
 -------------------------------------------------------------
 -------------------------------------------------------------
