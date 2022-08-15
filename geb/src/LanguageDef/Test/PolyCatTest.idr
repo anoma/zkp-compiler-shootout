@@ -901,6 +901,9 @@ polynatT2 = InFCom $ Right $ InFCom $ Right $ InFCom $ Left ()
 polyNatIter : Nat -> PolyMu
 polyNatIter = ($.^) polyfnat
 
+polyNatIterFixed : Nat -> PolyMu
+polyNatIterFixed n = polyNatIter n $. Poly0
+
 PolyNatIter : Nat -> Type
 PolyNatIter = MetaPolyT . polyNatIter
 
@@ -965,6 +968,9 @@ polyHomId4Id' = PolyHomObj PolyI (twoBits $* PolyI)
 polyDepth3BinTree : PolyMu
 polyDepth3BinTree = polyf1
 
+polyDepth3BinTreeFixed : PolyMu
+polyDepth3BinTreeFixed = polyDepth3BinTree $. Poly0
+
 ----------------------------------
 ----------------------------------
 ----- Exported test function -----
@@ -1021,6 +1027,15 @@ polyCatTest = do
     show (polyTCard $ PolyHomObj (polyNatIter 4) (polyDepth3BinTree))
   putStrLn $ "card[polyDepth3BT -> depth4Nat] = " ++
     show (polyTCard $ PolyHomObj (polyDepth3BinTree) (polyNatIter 4))
+  putStrLn $ "polyDepth3BTFixed = " ++ show polyDepth3BinTreeFixed
+  putStrLn $ "card[polyDepth3BTFixed,0] = "
+    ++ show (polyTCard polyDepth3BinTreeFixed)
+  putStrLn $ "depth4NatFixed = " ++ show (polyNatIterFixed 4)
+  putStrLn $ "card[depth4NatFixed] = " ++ show (polyTCard (polyNatIterFixed 4))
+  putStrLn $ "card[depth4NatFixed -> polyDepth3BTFixed] = " ++
+    show (polyTCard $ PolyHomObj (polyNatIterFixed 4) (polyDepth3BinTreeFixed))
+  putStrLn $ "card[polyDepth3BTFixed -> depth4NatFixed] = " ++
+    show (polyTCard $ PolyHomObj (polyDepth3BinTreeFixed) (polyNatIterFixed 4))
   {- XXX
   putStrLn ""
   putStrLn "----------------"
