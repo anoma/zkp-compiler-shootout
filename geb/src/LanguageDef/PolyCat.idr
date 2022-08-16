@@ -3020,6 +3020,28 @@ public export
 ($.^) : PolyMu -> Nat -> PolyMu
 p $.^ n = foldrNatNoUnit (($.) p) PolyI p n
 
+---------------------------------------
+---- Composition with zero and one ----
+---------------------------------------
+
+public export
+PolyAppZeroAlg : MetaPolyAlg PolyMu
+PolyAppZeroAlg PFI = Poly0
+PolyAppZeroAlg p = InPCom p
+
+public export
+polyAppZero : PolyMu -> PolyMu
+polyAppZero = distributeAndCompress . metaPolyCata PolyAppZeroAlg
+
+public export
+PolyAppOneAlg : MetaPolyAlg PolyMu
+PolyAppOneAlg PFI = Poly1
+PolyAppOneAlg p = InPCom p
+
+public export
+polyAppOne : PolyMu -> PolyMu
+polyAppOne = distributeAndCompress . metaPolyCata PolyAppOneAlg
+
 -------------------------------------------------
 ---- Conversion to and from algebraic format ----
 -------------------------------------------------
