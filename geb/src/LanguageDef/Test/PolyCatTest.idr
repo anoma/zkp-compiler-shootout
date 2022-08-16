@@ -965,6 +965,12 @@ twoBits = polybool $* polybool
 polyHomId4Id' : PolyMu
 polyHomId4Id' = PolyHomObj PolyI (twoBits $* PolyI)
 
+polyHom4IdId : PolyMu
+polyHom4IdId = PolyHomObj (4 $:* PolyI) PolyI
+
+polyHom4IdId' : PolyMu
+polyHom4IdId' = PolyHomObj (twoBits $* PolyI) PolyI
+
 polyDepth3BinTree : PolyMu
 polyDepth3BinTree = polyf1
 
@@ -1019,6 +1025,8 @@ polyCatTest = do
   putStrLn $ "card[polybool -> polyf0] = " ++ show (polyTCard polyHomBoolF0)
   putStrLn $ "(id -> 4 * id) = " ++ show polyHomId4Id
   putStrLn $ "(id -> (2 * 2) * id) = " ++ show polyHomId4Id'
+  putStrLn $ "(4 * id -> id) = " ++ show polyHom4IdId
+  putStrLn $ "((2 * 2) * id -> id) = " ++ show polyHom4IdId'
   putStrLn $ "polyDepth3BT = " ++ show (toPowerCoeffList polyDepth3BinTree)
   putStrLn $ "card[polyDepth3BT,0] = " ++ show (polyTCard polyDepth3BinTree)
   putStrLn $ "depth4Nat = " ++ show (polyNatIter 4)
@@ -1036,6 +1044,22 @@ polyCatTest = do
     show (polyTCard $ PolyHomObj (polyNatIterFixed 4) (polyDepth3BinTreeFixed))
   putStrLn $ "card[polyDepth3BTFixed -> depth4NatFixed] = " ++
     show (polyTCard $ PolyHomObj (polyDepth3BinTreeFixed) (polyNatIterFixed 4))
+  putStrLn $ "first compose = " ++ show ((4 $:* PolyI) $. (PolyI $+ Poly1))
+  putStrLn $ "second compose = " ++ show ((twoBits $* PolyI) $. (PolyI $+ Poly1))
+  putStrLn $ "exercise 5.8.3 first part unformatted = " ++
+    show (((PolyI $* PolyI) $. (PolyI $*^ 3 $+ Poly1)))
+  putStrLn $ "exercise 5.8.3 first part compressed = " ++
+    show (distributeAndCompress (((PolyI $* PolyI) $. (PolyI $*^ 3 $+ Poly1))))
+  putStrLn $ "exercise 5.8.3 first part = " ++
+    show (toPowerCoeffList (((PolyI $* PolyI) $. (PolyI $*^ 3 $+ Poly1))))
+  putStrLn $ "exercise 5.8.3 second part = " ++
+    show (toPowerCoeffList (((PolyI) $. (PolyI $*^ 3 $+ Poly1))))
+  putStrLn $ "exercise 5.8.3 composite unformatted = " ++
+    show (((PolyI $* PolyI $+ PolyI) $. (PolyI $*^ 3 $+ Poly1)))
+  putStrLn $ "exercise 5.8.3 composite compressed = " ++
+    show (distributeAndCompress (((PolyI $* PolyI $+ PolyI) $. (PolyI $*^ 3 $+ Poly1))))
+  putStrLn $ "exercise 5.8.3 composite = " ++
+    show (toPowerCoeffList (((PolyI $* PolyI $+ PolyI) $. (PolyI $*^ 3 $+ Poly1))))
   {- XXX
   putStrLn ""
   putStrLn "----------------"
