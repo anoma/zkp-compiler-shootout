@@ -1014,10 +1014,9 @@ polyCatTest = do
   putStrLn "---------------"
   putStrLn $ "polyf0 = " ++ show polyf0
   putStrLn $ "distrib[polyf0] = " ++ show (polyDistrib polyf0)
-  putStrLn $ "dist-compress[polyf0] = " ++ show (distributeAndCompress polyf0)
-  putStrLn $ "position-list[polyf0] = " ++ show (positionList polyf0)
-  putStrLn $ "poly-list[polyf0] = " ++ show (toPowerCoeffList polyf0)
-  putStrLn $ "poly-list[polyf1] = " ++ show (toPowerCoeffList polyf1)
+  putStrLn $ "position-list[polyf0] = " ++ polyPosShow polyf0
+  putStrLn $ "poly-list[polyf0] = " ++ show (toPolyShape polyf0)
+  putStrLn $ "poly-list[polyf1] = " ++ show (toPolyShape polyf1)
   putStrLn $ "pnitert10 = " ++ show pniterT10
   putStrLn $ "card[polyf0] = " ++ show (polyTCard polyf0)
   putStrLn $ "card[polybool] = " ++ show (polyTCard polybool)
@@ -1027,7 +1026,7 @@ polyCatTest = do
   putStrLn $ "(id -> (2 * 2) * id) = " ++ show polyHomId4Id'
   putStrLn $ "(4 * id -> id) = " ++ show polyHom4IdId
   putStrLn $ "((2 * 2) * id -> id) = " ++ show polyHom4IdId'
-  putStrLn $ "polyDepth3BT = " ++ show (toPowerCoeffList polyDepth3BinTree)
+  putStrLn $ "polyDepth3BT = " ++ show (toPolyShape polyDepth3BinTree)
   putStrLn $ "card[polyDepth3BT,0] = " ++ show (polyTCard polyDepth3BinTree)
   putStrLn $ "depth4Nat = " ++ show (polyNatIter 4)
   putStrLn $ "card[depth4Nat] = " ++ show (polyTCard (polyNatIter 4))
@@ -1045,21 +1044,22 @@ polyCatTest = do
   putStrLn $ "card[polyDepth3BTFixed -> depth4NatFixed] = " ++
     show (polyTCard $ PolyHomObj (polyDepth3BinTreeFixed) (polyNatIterFixed 4))
   putStrLn $ "first compose = " ++ show ((4 $:* PolyI) $. (PolyI $+ Poly1))
-  putStrLn $ "second compose = " ++ show ((twoBits $* PolyI) $. (PolyI $+ Poly1))
+  putStrLn $ "second compose = " ++
+    show ((twoBits $* PolyI) $. (PolyI $+ Poly1))
   putStrLn $ "exercise 5.8.3 first part unformatted = " ++
     show (((PolyI $* PolyI) $. (PolyI $*^ 3 $+ Poly1)))
-  putStrLn $ "exercise 5.8.3 first part compressed = " ++
-    show (distributeAndCompress (((PolyI $* PolyI) $. (PolyI $*^ 3 $+ Poly1))))
+  putStrLn $ "exercise 5.8.3 first part distributed = " ++
+    show (polyDistrib (((PolyI $* PolyI) $. (PolyI $*^ 3 $+ Poly1))))
   putStrLn $ "exercise 5.8.3 first part = " ++
-    show (toPowerCoeffList (((PolyI $* PolyI) $. (PolyI $*^ 3 $+ Poly1))))
+    show (toPolyShape (((PolyI $* PolyI) $. (PolyI $*^ 3 $+ Poly1))))
   putStrLn $ "exercise 5.8.3 second part = " ++
-    show (toPowerCoeffList (((PolyI) $. (PolyI $*^ 3 $+ Poly1))))
+    show (toPolyShape (((PolyI) $. (PolyI $*^ 3 $+ Poly1))))
   putStrLn $ "exercise 5.8.3 composite unformatted = " ++
     show (((PolyI $* PolyI $+ PolyI) $. (PolyI $*^ 3 $+ Poly1)))
-  putStrLn $ "exercise 5.8.3 composite compressed = " ++
-    show (distributeAndCompress (((PolyI $* PolyI $+ PolyI) $. (PolyI $*^ 3 $+ Poly1))))
+  putStrLn $ "exercise 5.8.3 composite distributed = " ++
+    show (polyDistrib (((PolyI $* PolyI $+ PolyI) $. (PolyI $*^ 3 $+ Poly1))))
   putStrLn $ "exercise 5.8.3 composite = " ++
-    show (toPowerCoeffList (((PolyI $* PolyI $+ PolyI) $. (PolyI $*^ 3 $+ Poly1))))
+    show (toPolyShape (((PolyI $* PolyI $+ PolyI) $. (PolyI $*^ 3 $+ Poly1))))
   {- XXX
   putStrLn ""
   putStrLn "----------------"
@@ -1106,7 +1106,7 @@ polyCatTest = do
   putStrLn $ show $ polyShapeExponential idPolyShape idPolyShape
   putStrLn $ show $ polyShapeExponential idPolyShape (prodIdPolyShape 4)
   putStrLn $ show $ parProdClosureShape [(2, 1), (1,2)] [(3, 2), (0, 3)]
-  putStrLn $ psIdxShow testPolyS6
+  putStrLn $ psPosShow testPolyS6
   putStrLn "--------------------"
   putStrLn ""
   putStrLn "------------------------"

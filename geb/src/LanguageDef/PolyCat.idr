@@ -1719,9 +1719,11 @@ public export
 psPosFold : {0 x : Type} -> ((pos, pow : Nat) -> x -> x) -> x -> PolyShape -> x
 psPosFold f acc = psPosFoldStartingAt f acc 0
 
+-- For each position, show the number of directions at that position
+-- (that is, the power).
 public export
-psIdxShow : PolyShape -> String
-psIdxShow =
+psPosShow : PolyShape -> String
+psPosShow =
   psPosFold
     (\pos, pow, str =>
       let pre = if (pos == 0) then "" else str ++ "; " in
@@ -2798,18 +2800,6 @@ polySize : PolyMu -> Nat
 polySize = metaPolyCata PolySizeAlg
 
 public export
-PolyDistributedSizeAlg : MetaPolyAlg Nat
-PolyDistributedSizeAlg PFI = 1
-PolyDistributedSizeAlg PF0 = 1
-PolyDistributedSizeAlg PF1 = 1
-PolyDistributedSizeAlg (p $$+ q) = p + q
-PolyDistributedSizeAlg (p $$* q) = p * q
-
-public export
-polyDistributedSize : PolyMu -> Nat
-polyDistributedSize = metaPolyCata PolyDistributedSizeAlg
-
-public export
 PolyDepthAlg : MetaPolyAlg Nat
 PolyDepthAlg PFI = 0
 PolyDepthAlg PF0 = 0
@@ -2888,44 +2878,6 @@ Eq a => Eq (PolyFM a) where
 ---- Arithmetic on polynomial endofunctors ----
 -----------------------------------------------
 
-mutual
-  public export
-  polyMulId : Nat -> PolyMu -> PolyMu
-  polyMulId Z p = PolyI $* p
-  polyMulId (S n) (InPVar v) = void v
-  polyMulId (S n) (InPCom PFI) = PolyI $* PolyI
-  polyMulId (S n) (InPCom PF0) = Poly0
-  polyMulId (S n) (InPCom PF1) = PolyI
-  polyMulId (S n) (InPCom (p $$+ q)) = polyMulId n p $+ polyMulId n q
-  polyMulId (S n) (InPCom (p $$* q)) = polyMulId n (polyDistribMul n p q)
-
-  public export
-  polyDistribMul : Nat -> PolyMu -> PolyMu -> PolyMu
-  polyDistribMul Z p q = p $* q
-  polyDistribMul _ (InPVar v) _ = void v
-  polyDistribMul (S n) (InPCom _) (InPVar v) = void v
-  polyDistribMul (S n) (InPCom PFI) q = polyMulId n $ polyDistribD n q
-  polyDistribMul (S n) (InPCom PF0) q = Poly0
-  polyDistribMul (S n) (InPCom PF1) q = polyDistribD n q
-  polyDistribMul (S n) (InPCom (p $$+ q)) r =
-    polyDistribMul n p r $+ polyDistribMul n q r
-  polyDistribMul (S n) (InPCom (p $$* q)) r =
-    polyDistribMul n p (polyDistribMul n q r)
-
-  public export
-  polyDistribD : Nat -> PolyMu -> PolyMu
-  polyDistribD Z p = p
-  polyDistribD (S n) (InPVar v) = void v
-  polyDistribD (S n) (InPCom PFI) = PolyI
-  polyDistribD (S n) (InPCom PF0) = Poly0
-  polyDistribD (S n) (InPCom PF1) = Poly1
-  polyDistribD (S n) (InPCom (p $$+ q)) = polyDistribD n p $+ polyDistribD n q
-  polyDistribD (S n) (InPCom (p $$* q)) = polyDistribMul n p q
-
-public export
-polyDistrib : PolyMu -> PolyMu
-polyDistrib p = polyDistribD (polyDistributedSize p) p
-
 public export
 PolyRemoveZeroAlg : MetaPolyAlg PolyMu
 PolyRemoveZeroAlg PFI = PolyI
@@ -2973,10 +2925,6 @@ PolyRemoveOneAlg (p $$* q) = case p of
 public export
 polyRemoveOne : PolyMu -> PolyMu
 polyRemoveOne = metaPolyCata PolyRemoveOneAlg
-
-public export
-distributeAndCompress : PolyMu -> PolyMu
-distributeAndCompress = polyRemoveOne . polyRemoveZero . polyDistrib
 
 ---------------------------------------------------------------
 ---- Composition of polynomial endofunctors (substitution) ----
@@ -3031,7 +2979,7 @@ PolyAppZeroAlg p = InPCom p
 
 public export
 polyAppZero : PolyMu -> PolyMu
-polyAppZero = distributeAndCompress . metaPolyCata PolyAppZeroAlg
+polyAppZero = polyRemoveZero . metaPolyCata PolyAppZeroAlg
 
 public export
 PolyAppOneAlg : MetaPolyAlg PolyMu
@@ -3040,7 +2988,7 @@ PolyAppOneAlg p = InPCom p
 
 public export
 polyAppOne : PolyMu -> PolyMu
-polyAppOne = distributeAndCompress . metaPolyCata PolyAppOneAlg
+polyAppOne = polyRemoveOne . metaPolyCata PolyAppOneAlg
 
 -------------------------------------------------
 ---- Conversion to and from algebraic format ----
@@ -3070,36 +3018,36 @@ public export
 countIds : PolyMu -> Nat
 countIds = metaPolyCata CountIdsAlg
 
--- The result is only sensible if the term is distributed and compressed.
 public export
-PowerListAlg : MetaPolyAlg (List Nat)
-PowerListAlg PFI = [1]
-PowerListAlg PF0 = [0]
-PowerListAlg PF1 = [0]
-PowerListAlg (p $$+ q) = p ++ q
-PowerListAlg (p $$* q) = [sum p + sum q]
+ToPolyShapeAlg : MetaPolyAlg PolyShape
+ToPolyShapeAlg PFI = idPolyShape
+ToPolyShapeAlg PF0 = initialPolyShape
+ToPolyShapeAlg PF1 = terminalPolyShape
+ToPolyShapeAlg (p $$+ q) = addPolyShape p q
+ToPolyShapeAlg (p $$* q) = mulPolyShape p q
 
--- For each position, the number of directions at that position.
 public export
-positionList : PolyMu -> List Nat
-positionList =
-  reverse . sort . metaPolyCata PowerListAlg . distributeAndCompress
+toPolyShape : PolyMu -> PolyShape
+toPolyShape = metaPolyCata ToPolyShapeAlg
 
--- A list of (power, coefficient) pairs.
 public export
-toPowerCoeffList : PolyMu -> List (Nat, Nat)
-toPowerCoeffList = collectPairs . reverse . positionList
+polyPosShow : PolyMu -> String
+polyPosShow = psPosShow . toPolyShape
 
 -- Create a polynomial from a list of (power, coefficient) pairs.
 public export
-fromPowerCoeffListAcc : List (Nat, Nat) -> PolyMu -> PolyMu
-fromPowerCoeffListAcc [] q = q
-fromPowerCoeffListAcc ((p, c) :: l) q =
-  fromPowerCoeffListAcc l (c $:* (PolyI $*^ p) $+ q)
+fromPolyShapeAcc : PolyShape -> PolyMu -> PolyMu
+fromPolyShapeAcc [] q = q
+fromPolyShapeAcc ((p, c) :: l) q =
+  fromPolyShapeAcc l (c $:* (PolyI $*^ p) $+ q)
 
 public export
-fromPowerCoeffList : List (Nat, Nat) -> PolyMu
-fromPowerCoeffList l = distributeAndCompress (fromPowerCoeffListAcc l Poly0)
+fromPolyShape : PolyShape -> PolyMu
+fromPolyShape l = fromPolyShapeAcc l Poly0
+
+public export
+polyDistrib : PolyMu -> PolyMu
+polyDistrib = fromPolyShape . toPolyShape
 
 -----------------------------------------------------------------------------
 ---- Interpretation of polynomial functors as natural-number polymomials ----
