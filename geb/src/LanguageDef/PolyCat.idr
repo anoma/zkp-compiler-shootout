@@ -3000,7 +3000,7 @@ public export
 infix 10 $:*
 public export
 ($:*) : Nat -> PolyMu -> PolyMu
-n $:* p = foldrNatNoUnit (($*) p) Poly0 p n
+n $:* p = foldrNatNoUnit (($+) p) Poly0 p n
 
 ---------------------------------------
 ---- Multiplicative exponentiation ----
