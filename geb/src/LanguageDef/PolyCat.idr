@@ -3120,7 +3120,7 @@ PolyHomObj : PolyMu -> PolyMu -> PolyMu
 PolyHomObj (InPVar v) _ = void v
 PolyHomObj _ (InPVar v) = void v
 -- id -> r == r . (id + 1) (see formula 4.27 in _Polynomial Functors: A General
--- Theory of Interaction_
+-- Theory of Interaction_)
 PolyHomObj (InPCom PFI) r = r $. (PolyI $+ Poly1)
 -- `0 -> x == 1` (the universal property of the initial object)
 PolyHomObj (InPCom PF0) (InPCom q) = Poly1
