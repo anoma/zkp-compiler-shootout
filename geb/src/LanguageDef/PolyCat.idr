@@ -281,25 +281,15 @@ CoequalizedF {f} {predf} normalizerf (a ** fn) =
 
 public export
 data TranslateF : (0 f : Type -> Type) -> (0 a, x : Type) -> Type where
-  InTF : {0 f : Type -> Type} -> {0 a, x : Type} ->
-    Either a (f x) -> TranslateF f a x
-
-public export
-InVar : {0 f : Type -> Type} -> {0 a, x : Type} -> a -> TranslateF f a x
-InVar = InTF . Left
-
-public export
-InCom : {0 f : Type -> Type} -> {0 a, x : Type} -> f x -> TranslateF f a x
-InCom = InTF . Right
+  InVar : {0 f : Type -> Type} -> {0 a, x : Type} ->
+    a -> TranslateF f a x
+  InCom : {0 f : Type -> Type} -> {0 a, x : Type} ->
+    f x -> TranslateF f a x
 
 public export
 data LinearF : (0 f : Type -> Type) -> (0 a, x : Type) -> Type where
-  InLF : {0 f : Type -> Type} -> {0 a, x : Type} ->
-    Pair a (f x) -> LinearF f a x
-
-public export
-InNode : {0 f : Type -> Type} -> {0 a, x : Type} -> a -> f x -> LinearF f a x
-InNode = ((.) InLF) . MkPair
+  InNode : {0 f : Type -> Type} -> {0 a, x : Type} ->
+    a -> f x -> LinearF f a x
 
 public export
 data FreeM : (0 f : Type -> Type) -> (0 x : Type) -> Type where
@@ -322,7 +312,7 @@ data CofreeCM : (0 f : Type -> Type) -> (0 x : Type) -> Type where
 public export
 InCFNode : {0 f : Type -> Type} -> {0 x : Type} ->
   x -> f (CofreeCM f x) -> CofreeCM f x
-InCFNode ex efx = InCofreeCM $ InLF (ex, efx)
+InCFNode ex efx = InCofreeCM $ InNode ex efx
 
 public export
 MuF : (0 f : Type -> Type) -> Type
@@ -609,8 +599,8 @@ ISOProduct = InFCom .* ISOProductF
 
 public export
 isubstOCata : FromInitialFAlg ISubstObjF
-isubstOCata x alg (InFreeM (InTF (Left v))) = void v
-isubstOCata x alg (InFreeM (InTF (Right c))) = alg $ case c of
+isubstOCata x alg (InFreeM (InVar v)) = void v
+isubstOCata x alg (InFreeM (InCom c)) = alg $ case c of
   Left () => Left ()
   Right t => Right $ case t of
     Left (y, z) => Left (isubstOCata x alg y, isubstOCata x alg z)
@@ -738,8 +728,8 @@ isubstOHomObjAlg (Left ()) x = InFCom x
 isubstOHomObjAlg (Right (Left (x, y))) z = ISOProduct (x z) (y z)
 -- (x * y) -> z == x -> y -> z
 isubstOHomObjAlg (Right (Right (x, y))) z with (y z)
-  isubstOHomObjAlg (Right (Right (x, y))) z | InFreeM (InTF (Left v)) = void v
-  isubstOHomObjAlg (Right (Right (x, y))) z | InFreeM (InTF (Right yz)) = x yz
+  isubstOHomObjAlg (Right (Right (x, y))) z | InFreeM (InVar v) = void v
+  isubstOHomObjAlg (Right (Right (x, y))) z | InFreeM (InCom yz) = x yz
 
 public export
 isubstOHomObj : MuISubstO -> MuISubstO -> MuISubstO
@@ -844,8 +834,8 @@ ISOEFProduct = InFCom .* ISOEFProductF
 
 public export
 isubstEndoCata : FromInitialFAlg ISubstEndoFunctorF
-isubstEndoCata x alg (InFreeM (InTF (Left v))) = void v
-isubstEndoCata x alg (InFreeM (InTF (Right c))) = alg $ case c of
+isubstEndoCata x alg (InFreeM (InVar v)) = void v
+isubstEndoCata x alg (InFreeM (InCom c)) = alg $ case c of
   Left () => Left ()
   Right c' => Right $ case c' of
     Left (l, r) => Left (isubstEndoCata x alg l, isubstEndoCata x alg r)
@@ -1045,11 +1035,11 @@ NatO1 = NatOS NatO0
 public export
 natOFoldFreeIdx : {0 x, v : Type} ->
   (v -> x) -> (FreeNatO v -> x -> x) -> FreeNatO v -> x -> FreeNatO v -> x
-natOFoldFreeIdx subst op idx e (InFreeM $ InTF $ Left var) =
+natOFoldFreeIdx subst op idx e (InFreeM $ InVar var) =
   subst var
-natOFoldFreeIdx subst op idx e (InFreeM $ InTF $ Right $ Left ()) =
+natOFoldFreeIdx subst op idx e (InFreeM $ InCom $ Left ()) =
   e
-natOFoldFreeIdx subst op idx e (InFreeM $ InTF $ Right $ Right n) =
+natOFoldFreeIdx subst op idx e (InFreeM $ InCom $ Right n) =
   natOFoldFreeIdx subst op (NatOS idx) (op idx e) n
 
 public export
@@ -1067,8 +1057,8 @@ natOFold {x} = natOFoldFree {x} {v=Void} (voidF x)
 
 public export
 natOCata : FromInitialFAlg NatOF
-natOCata x alg (InFreeM $ InTF $ Left v) = void v
-natOCata x alg (InFreeM $ InTF $ Right c) = alg $ case c of
+natOCata x alg (InFreeM $ InVar v) = void v
+natOCata x alg (InFreeM $ InCom c) = alg $ case c of
   Left () => Left ()
   Right n => Right $ natOCata x alg n
 
@@ -1086,7 +1076,7 @@ NuNatO = NuF NatOF
 
 public export
 natOAna : ToTerminalFCoalg NatOF
-natOAna x coalg e = InCofreeCM $ InLF $ MkPair () $ case coalg e of
+natOAna x coalg e = InCofreeCM $ InNode () $ case coalg e of
   Left () => Left ()
   Right n => Right $ natOAna x coalg n
 
@@ -1198,9 +1188,9 @@ NatPreAlg x = MuNatO -> NatOAlgC x
 
 public export
 natPreCata : {0 x : Type} -> NatPreAlg x -> {n : MuNatO} -> NatPre n -> x
-natPreCata {x} alg {n=(InFreeM $ InTF $ Left v)} m = void v
-natPreCata {x} alg {n=(InFreeM $ InTF $ Right $ Left ())} m = void m
-natPreCata {x} alg {n=(InFreeM $ InTF $ Right $ Right n)} m =
+natPreCata {x} alg {n=(InFreeM $ InVar v)} m = void v
+natPreCata {x} alg {n=(InFreeM $ InCom $ Left ())} m = void m
+natPreCata {x} alg {n=(InFreeM $ InCom $ Right n)} m =
   let (z, s) = alg n in
   case m of
     (Left ()) => z
@@ -1278,8 +1268,8 @@ MuNatOT = MuF NatOPairF
 
 public export
 natOTCata : FromInitialFAlg NatOPairF
-natOTCata x alg (InFreeM $ InTF $ Left v) = void v
-natOTCata x alg (InFreeM $ InTF $ Right c) = alg $ case c of
+natOTCata x alg (InFreeM $ InVar v) = void v
+natOTCata x alg (InFreeM $ InCom c) = alg $ case c of
   (Left (), Left ()) => (Left (), Left ())
   (Left (), Right n) => (Left (), Right $ natOTCata x alg n)
   (Right n, Left ()) => (Right $ natOTCata x alg n, Left ())
@@ -1465,15 +1455,15 @@ FreeS0SliceAlg = S0ObjAlg Type
 public export
 s0ObjFreeCata : {0 v, a : Type} ->
   S0ObjAlg a -> (v -> a) -> FreeS0Obj v -> a
-s0ObjFreeCata alg subst (InFreeM (InTF e)) = case e of
-  Left var => subst var
-  Right S0InitialF => soAlgInitial alg
-  Right S0TerminalF => soAlgTerminal alg
-  Right (S0CoproductF x y) =>
+s0ObjFreeCata alg subst (InFreeM e) = case e of
+  InVar var => subst var
+  InCom S0InitialF => soAlgInitial alg
+  InCom S0TerminalF => soAlgTerminal alg
+  InCom (S0CoproductF x y) =>
     soAlgCoproduct alg
       (s0ObjFreeCata alg subst x)
       (s0ObjFreeCata alg subst y)
-  Right (S0ProductF x y) =>
+  InCom (S0ProductF x y) =>
     soAlgProduct alg
       (s0ObjFreeCata alg subst x)
       (s0ObjFreeCata alg subst y)
@@ -1598,17 +1588,17 @@ freeS0DepSet : FreeS0DepAlg ->
   {0 v : Type} -> (subst : v -> Type) ->
   (depsubst : (var : v) -> subst var -> Type) ->
   (x : FreeS0Obj v) -> FreeS0DepSet subst x
-freeS0DepSet alg subst depsubst (InFreeM (InTF (Left var))) =
+freeS0DepSet alg subst depsubst (InFreeM (InVar var)) =
   depsubst var
-freeS0DepSet alg subst depsubst (InFreeM (InTF (Right S0InitialF))) =
+freeS0DepSet alg subst depsubst (InFreeM (InCom S0InitialF)) =
   voidF Type
-freeS0DepSet alg subst depsubst (InFreeM (InTF (Right S0TerminalF))) =
+freeS0DepSet alg subst depsubst (InFreeM (InCom S0TerminalF)) =
   \u => case u of () => fs0unit alg
-freeS0DepSet alg subst depsubst (InFreeM (InTF (Right (S0CoproductF x y)))) =
+freeS0DepSet alg subst depsubst (InFreeM (InCom (S0CoproductF x y))) =
   \e => case e of
     Left l => fs0left alg (freeS0DepSet alg subst depsubst x l)
     Right r => fs0right alg (freeS0DepSet alg subst depsubst y r)
-freeS0DepSet alg subst depsubst (InFreeM (InTF (Right (S0ProductF x y)))) =
+freeS0DepSet alg subst depsubst (InFreeM (InCom (S0ProductF x y))) =
   \p => case p of
     (l, r) =>
       fs0pair alg
@@ -2248,8 +2238,8 @@ MuRNM = MuF RangedNatMorphF
 
 public export
 rnmCata : FromInitialFAlg RangedNatMorphF
-rnmCata x alg (InFreeM $ InTF $ Left v) = void v
-rnmCata x alg (InFreeM $ InTF $ Right c) = alg $ case c of
+rnmCata x alg (InFreeM $ InVar v) = void v
+rnmCata x alg (InFreeM $ InCom c) = alg $ case c of
   RNMComposeF g f => RNMComposeF (rnmCata x alg g) (rnmCata x alg f)
   RNMPolyF dom ps => RNMPolyF dom ps
   RNMSwitchF n l r => RNMSwitchF n (rnmCata x alg l) (rnmCata x alg r)
@@ -3899,6 +3889,7 @@ FinTFNew (S Z) = FinTConst
 FinTFNew (S (S n)) = FinTVarF (FinTFDepth (S n))
 
 -- The directed colimit of `FinTF`, also known as its initial algebra.
+-- That makes this the type of all finite unrefined types.
 public export
 MuFinTF : Type
 MuFinTF = DPair Nat FinTFNew
