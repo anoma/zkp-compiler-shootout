@@ -3913,6 +3913,23 @@ TFSumNewToMu n (m ** (lt, type)) = ?TFSumNewToMu_hole
 -- a given depth, given the morphisms out of all unrefined types of
 -- lesser depths.
 public export
-MuFinMorphF : (n : Nat) -> ((m : Nat) -> LT m n -> FinTFDepth m -> Type) ->
-  FinTFDepth n -> Type
-MuFinMorphF n morph type = ?MuFinMorphF_hole
+FinNewMorphF : (n : Nat) -> ((m : Nat) -> LTE m n -> FinTFDepth m -> Type) ->
+  FinTFNew (S n) -> Type
+FinNewMorphF n morph type = ?MuFinMorphF_hole
+
+public export
+FinMorphF : (n : Nat) -> ((m : Nat) -> LTE m n -> FinTFNew m -> Type) ->
+  FinTFNew (S n) -> Type
+FinMorphF n morph type =
+  let
+    nm = FinNewMorphF n
+  in
+  ?FinMorphF_hole
+
+public export
+FinNewMorph : (n : Nat) -> FinTFNew n -> Type
+FinNewMorph = natGenInd (voidF Type, FinMorphF)
+
+public export
+MuFinMorph : MuFinTF -> Type
+MuFinMorph (n ** type) = FinNewMorph n type
