@@ -3920,11 +3920,12 @@ FinNewMorphF n morph type = ?MuFinMorphF_hole
 public export
 FinMorphF : (n : Nat) -> ((m : Nat) -> LTE m n -> FinTFNew m -> Type) ->
   FinTFNew (S n) -> Type
-FinMorphF n morph type =
-  let
-    nm = FinNewMorphF n
-  in
-  ?FinMorphF_hole
+FinMorphF n morph =
+  FinNewMorphF n $ \m, lte, dtype =>
+    let
+      (m' ** (lte', ntype)) = TFDepthToNew m dtype
+    in
+    morph m' (transitive (lteSuccLeft lte') lte) ntype
 
 public export
 FinNewMorph : (n : Nat) -> FinTFNew n -> Type
