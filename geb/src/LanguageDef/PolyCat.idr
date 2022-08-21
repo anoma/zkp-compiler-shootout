@@ -3891,12 +3891,17 @@ FinTFNew (S (S n)) = FinTVarF (FinTFDepth (S n))
 -- The sum of a prefix of `FinTFNew`s.
 public export
 FinTFSumNewN : Nat -> Type
-FinTFSumNewN n = (m : Nat ** (LT m n, FinTFNew m))
+FinTFSumNewN n = (m : Nat ** (LTE m n, FinTFNew m))
 
 -- Every `FinTFDepth` is a `FinTFSumNewN`.
 public export
 TFDepthToNew : (n : Nat) -> FinTFDepth n -> FinTFSumNewN n
-TFDepthToNew n type = ?TFDepthToNew_hole
+TFDepthToNew Z type = void type
+TFDepthToNew (S n) (FTFConst ct) = (S Z ** (LTESucc LTEZero, ct))
+TFDepthToNew (S n) (FTFVar (FTVCoproduct x y)) =
+  case (TFDepthToNew n x, TFDepthToNew n y) of
+    ((mx ** (ltx, newx)), ((my ** (lty, newy)))) => ?TFDepthToNew_hole_2v_0
+TFDepthToNew (S n) (FTFVar (FTVProduct x y)) = ?TFDepthToNew_hole_2v_1
 
 -- The directed colimit of `FinTF`, also known as its initial algebra.
 public export
@@ -3906,8 +3911,8 @@ MuFinTF = DPair Nat FinTFNew
 -- Every `FinTFSumNewN` is a `MuFinTF`.
 -- Consequently, `MuFinTF` is the type of all finite unrefined types.
 public export
-TFSumNewToMu : (n : Nat) -> FinTFSumNewN n -> MuFinTF
-TFSumNewToMu n (m ** (lt, type)) = ?TFSumNewToMu_hole
+TFSumNewToMu : {n : Nat} -> FinTFSumNewN n -> MuFinTF
+TFSumNewToMu (m ** (_, type)) = (m ** type)
 
 -- Generate the morphisms out of a given finite unrefined type of
 -- a given depth, given the morphisms out of all unrefined types of
@@ -3925,7 +3930,7 @@ FinMorphF n morph =
     let
       (m' ** (lte', ntype)) = TFDepthToNew m dtype
     in
-    morph m' (transitive (lteSuccLeft lte') lte) ntype
+    morph m' (transitive lte' lte) ntype
 
 public export
 FinNewMorph : (n : Nat) -> FinTFNew n -> Type
