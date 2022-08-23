@@ -185,6 +185,18 @@ smax : Nat -> Nat -> Nat
 smax = S .* max
 
 public export
+smaxLTLeft : (m, n : Nat) -> LT m (smax m n)
+smaxLTLeft m n = ?smaxLTLeft_hole
+
+public export
+smaxLTRight : (m, n : Nat) -> LT n (smax m n)
+smaxLTRight m n = ?smaxLTRight_hole
+
+public export
+smaxLTMax : (m, n : Nat) -> LT (max m n) (smax m n)
+smaxLTMax m n = ?smaxLTMax_hole
+
+public export
 voidF : (0 a : Type) -> Void -> a
 voidF _ x = void x
 
