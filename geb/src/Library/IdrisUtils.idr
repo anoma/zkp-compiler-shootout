@@ -181,6 +181,12 @@ lteSuccEitherEqLte {m} {n} lte with (decEq m (S n))
     Right $ fromLteSucc $ lteTolt lte neq
 
 public export
+maxLTE : {m, n, k : Nat} -> LTE m k -> LTE n k -> LTE (max m n) k
+maxLTE {m} {n} {k} ltmk ltnk with (m > n)
+  maxLTE {m} {n} {k} ltmk ltnk | True = ltmk
+  maxLTE {m} {n} {k} ltmk ltnk | False = ltnk
+
+public export
 smax : Nat -> Nat -> Nat
 smax = S .* max
 

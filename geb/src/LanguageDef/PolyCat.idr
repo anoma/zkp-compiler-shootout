@@ -3879,20 +3879,6 @@ FinTFDepth : Nat -> Type
 FinTFDepth Z = Void
 FinTFDepth (S n) = FinTF (FinTFDepth n)
 
--- The type of types requiring a minimum of precisely `N` iterations of
--- `FinTF` on top of `Void` to generate (the ones "newly generated" at
--- depth `N`).
-public export
-FinTFNew : Nat -> Type
-FinTFNew Z = Void
-FinTFNew (S Z) = FinTConst
-FinTFNew (S (S n)) = FinTVarF (FinTFDepth (S n))
-
--- The sum of a prefix of `FinTFNew`s.
-public export
-FinTFSumNewN : Nat -> Type
-FinTFSumNewN n = (m : Nat ** (LTE m n, FinTFNew m))
-
 public export
 minDepth : {n : Nat} -> FinTFDepth n -> Nat
 minDepth {n=Z} type = void type
@@ -3905,23 +3891,56 @@ minDepthCorrect : {n : Nat} ->
   (type : FinTFDepth n) -> LTE (minDepth {n} type) n
 minDepthCorrect {n=Z} type = void type
 minDepthCorrect {n=(S n)} (FTFConst _) = LTESucc LTEZero
-minDepthCorrect {n=(S n)} (FTFVar (FTVCoproduct x y)) = ?minDepthCorrect_hole_3
-minDepthCorrect {n=(S n)} (FTFVar (FTVProduct x y)) = ?minDepthCorrect_hole_4
+minDepthCorrect {n=(S n)} (FTFVar (FTVCoproduct x y)) =
+  LTESucc $ maxLTE (minDepthCorrect {n} x) (minDepthCorrect {n} y)
+minDepthCorrect {n=(S n)} (FTFVar (FTVProduct x y)) =
+  LTESucc $ maxLTE (minDepthCorrect {n} x) (minDepthCorrect {n} y)
 
-{-
+-- The type of types requiring a minimum of precisely `N` iterations of
+-- `FinTF` on top of `Void` to generate (the ones "newly generated" at
+-- depth `N`).
+public export
+FinTFNew : Nat -> Type
+FinTFNew n = (type : FinTFDepth n ** minDepth {n} type = n)
+
+-- The sum of a prefix of `FinTFNew`s.
+public export
+FinTFSumNewN : Nat -> Type
+FinTFSumNewN n = (m : Nat ** (LTE m n, FinTFNew m))
+
+-- A type that can be generated at a given depth can also be generated
+-- at any greater depth.
+public export
+FinTFPromoteOne : {n : Nat} -> FinTFDepth n -> FinTFDepth (S n)
+FinTFPromoteOne {n} type = ?FinTFPromoteOne_hole
+
+public export
+FinTFPromote : {n, m : Nat} -> FinTFDepth n -> LTE n m -> FinTFDepth m
+FinTFPromote {n} {m} type = ?FinTFPromote_hole
+
 public export
 minDepthType : {n : Nat} ->
   (type : FinTFDepth n) -> FinTFNew (minDepth {n} type)
-minDepthType {n} type = ?minDepthType_hole
--}
+minDepthType {n=Z} type = void type
+minDepthType {n=(S n)} (FTFConst x) = (FTFConst x ** Refl)
+minDepthType {n=(S n)} (FTFVar (FTVCoproduct x y))
+  with (minDepth x > minDepth y) proof gtxy
+    minDepthType {n=(S n)} (FTFVar (FTVCoproduct x y)) | True =
+      let
+        x' = minDepthType {n} x
+        y' = minDepthType {n} y
+        yp = FinTFPromote {m=(minDepth x)} (fst y') ?minDepthType_lte_hole
+      in
+      (FTFVar (FTVCoproduct (fst x') yp) ** ?minDepthType_snd_hole)
+    minDepthType {n=(S n)} (FTFVar (FTVCoproduct x y)) | False =
+      ?minDepthType_gte_hole
+minDepthType {n=(S n)} (FTFVar (FTVProduct x y)) = ?minDepthType_product_hole
 
 -- Every `FinTFDepth` is a `FinTFSumNewN`.
 public export
 TFDepthToNew : (n : Nat) -> FinTFDepth n -> FinTFSumNewN n
-TFDepthToNew n type = ?TFDepthToNew_hole
-{-
+TFDepthToNew n type =
   (minDepth {n} type ** (minDepthCorrect {n} type, minDepthType {n} type))
-  -}
 
 -- The directed colimit of `FinTF`, also known as its initial algebra.
 public export
@@ -3954,7 +3973,7 @@ FinMorphF n morph =
 
 public export
 FinNewMorph : (n : Nat) -> FinTFNew n -> Type
-FinNewMorph = natGenInd (voidF Type, FinMorphF)
+FinNewMorph = natGenInd (voidF _ . fst, FinMorphF)
 
 public export
 MuFinMorph : MuFinTF -> Type
