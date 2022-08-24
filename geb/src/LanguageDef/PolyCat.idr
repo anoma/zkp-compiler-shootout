@@ -3939,13 +3939,13 @@ FinMorphF n morph =
     morph (minDepth dtype) (transitive (depthLTE dtype) lte) (FinType dtype)
 
 public export
-FinNewMorph : (n : Nat) -> FinTFNew n -> Type
-FinNewMorph = natGenInd (depth0ExFalso, FinMorphF)
+FinNewMorph : {n : Nat} -> FinTFNew n -> Type
+FinNewMorph {n} = natGenInd (depth0ExFalso, FinMorphF) n
 
 public export
-FinDepthMorph : (n : Nat) -> FinTFDepth n -> Type
-FinDepthMorph n (m ** (lte, type)) = FinNewMorph m type
+FinDepthMorph : {n : Nat} -> FinTFDepth n -> Type
+FinDepthMorph {n} (m ** (lte, type)) = FinNewMorph {n=m} type
 
 public export
 MuFinMorph : MuFinTF -> Type
-MuFinMorph (n ** type) = FinNewMorph n type
+MuFinMorph (n ** type) = FinNewMorph {n} type
