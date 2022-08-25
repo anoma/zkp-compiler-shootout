@@ -3923,6 +3923,32 @@ public export
 TFDepthToMu : {n : Nat} -> FinTFDepth n -> MuFinTF
 TFDepthToMu {n} (m ** (lte, type)) = (m ** type)
 
+-- The signature of the general induction principle for `MuFinTF`.
+public export
+MuFinGenIndAlg : Type -> Type
+MuFinGenIndAlg a =
+  (n : Nat) ->
+  ((m : Nat) -> LTE m n -> FinTFDepth m -> a) ->
+  FinTFNew (S n) ->
+  a
+
+public export
+muFinGenIndAlgStrengthened :
+  {0 a : Type} ->
+  MuFinGenIndAlg a ->
+  (n : Nat) ->
+  ((m : Nat) -> LTE m n -> FinTFNew m -> a) ->
+  FinTFNew (S n) ->
+  a
+muFinGenIndAlgStrengthened alg n morph =
+  alg n $ \m, lte, dtype =>
+    morph (minDepth dtype) (transitive (depthLTE dtype) lte) (FinType dtype)
+
+-- General induction on `MuFinTF`.
+public export
+muFinGenInd : {0 a : Type} -> MuFinGenIndAlg a -> (n : Nat) -> FinTFNew n -> a
+muFinGenInd alg = natGenInd (depth0ExFalso, muFinGenIndAlgStrengthened alg)
+
 -- Generate the morphisms out of a given finite unrefined type of
 -- a given depth, given the morphisms out of all unrefined types of
 -- lesser depths.
@@ -3932,15 +3958,8 @@ FinNewMorphF : (n : Nat) -> ((m : Nat) -> LTE m n -> FinTFDepth m -> Type) ->
 FinNewMorphF n morph type = ?MuFinMorphF_hole
 
 public export
-FinMorphF : (n : Nat) -> ((m : Nat) -> LTE m n -> FinTFNew m -> Type) ->
-  FinTFNew (S n) -> Type
-FinMorphF n morph =
-  FinNewMorphF n $ \m, lte, dtype =>
-    morph (minDepth dtype) (transitive (depthLTE dtype) lte) (FinType dtype)
-
-public export
 FinNewMorph : {n : Nat} -> FinTFNew n -> Type
-FinNewMorph {n} = natGenInd (depth0ExFalso, FinMorphF) n
+FinNewMorph {n} = muFinGenInd FinNewMorphF n
 
 public export
 FinDepthMorph : {n : Nat} -> FinTFDepth n -> Type
