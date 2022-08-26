@@ -1313,10 +1313,17 @@ NatDepAlgebra : NatSliceObj -> Type
 NatDepAlgebra p = (p Z, NatSliceMorphism p S)
 
 public export
+natDepFoldIdx : {0 p : Nat -> Type} ->
+  NatSliceMorphism p S -> (n, i : Nat) -> p i -> p (n + i)
+natDepFoldIdx op Z i acc = acc
+natDepFoldIdx op (S n) i acc = replace {p} (sym (plusSuccRightSucc n i)) $
+  natDepFoldIdx op n (S i) (op i acc)
+
+public export
 natDepCata : {0 p : NatSliceObj} ->
   NatDepAlgebra p -> NatPi p
-natDepCata (z, s) Z = z
-natDepCata dalg@(z, s) (S n) = s n (natDepCata dalg n)
+natDepCata (z, s) n = replace {p} (plusZeroRightNeutral n) $
+  natDepFoldIdx s n 0 z
 
 public export
 NatDepCoalgebra : NatSliceObj -> Type
