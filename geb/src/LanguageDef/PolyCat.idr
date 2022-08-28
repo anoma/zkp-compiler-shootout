@@ -3944,7 +3944,7 @@ public export
 TFDepthToMu : {n : Nat} -> FinTFDepth n -> MuFinTF
 TFDepthToMu {n} (m ** (lte, type)) = (m ** type)
 
--- The signature of the special induction principle for `MuFinTF`.
+-- The signature of the induction principle for `MuFinTF`.
 public export
 MuFinIndAlg : Type -> Type
 MuFinIndAlg a =
@@ -3964,36 +3964,10 @@ muFinIndAlgStrengthened :
 muFinIndAlgStrengthened alg n hyp =
   alg n $ \dtype => hyp (minDepth dtype) (depthLTE dtype) (FinType dtype)
 
--- Special induction on `MuFinTF`.
+-- Induction on `MuFinTF`.
 public export
 muFinInd : {0 a : Type} -> MuFinIndAlg a -> (n : Nat) -> FinTFNew n -> a
 muFinInd alg = natGenInd (depth0ExFalso, muFinIndAlgStrengthened alg)
-
--- The signature of the general induction principle for `MuFinTF`.
-public export
-MuFinGenIndAlg : Type -> Type
-MuFinGenIndAlg a =
-  (n : Nat) ->
-  ((m : Nat) -> LTE m n -> FinTFDepth m -> a) ->
-  FinTFNew (S n) ->
-  a
-
-public export
-muFinGenIndAlgStrengthened :
-  {0 a : Type} ->
-  MuFinGenIndAlg a ->
-  (n : Nat) ->
-  ((m : Nat) -> LTE m n -> FinTFNew m -> a) ->
-  FinTFNew (S n) ->
-  a
-muFinGenIndAlgStrengthened alg n hyp =
-  alg n $ \m, lte, dtype =>
-    hyp (minDepth dtype) (transitive (depthLTE dtype) lte) (FinType dtype)
-
--- General induction on `MuFinTF`.
-public export
-muFinGenInd : {0 a : Type} -> MuFinGenIndAlg a -> (n : Nat) -> FinTFNew n -> a
-muFinGenInd alg = natGenInd (depth0ExFalso, muFinGenIndAlgStrengthened alg)
 
 -- Morphisms from the terminal object to a given object.  This
 -- hom-set is isomorphic to the object itself.  From the perspective
@@ -4028,13 +4002,12 @@ MuFinTerm = muFinInd MuFinTermAlg
 -- a given depth, given the morphisms out of all unrefined types of
 -- lesser depths.
 public export
-FinNewMorphF : (n : Nat) -> ((m : Nat) -> LTE m n -> FinTFDepth m -> Type) ->
-  FinTFNew (S n) -> Type
+FinNewMorphF : (n : Nat) -> (FinTFDepth n -> Type) -> FinTFNew (S n) -> Type
 FinNewMorphF n morph type = ?MuFinMorphF_hole
 
 public export
 FinNewMorph : {n : Nat} -> FinTFNew n -> Type
-FinNewMorph {n} = muFinGenInd FinNewMorphF n
+FinNewMorph {n} = muFinInd FinNewMorphF n
 
 public export
 FinDepthMorph : {n : Nat} -> FinTFDepth n -> Type
