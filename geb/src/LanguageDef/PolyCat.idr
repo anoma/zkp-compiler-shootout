@@ -3924,6 +3924,14 @@ FinTFPromoteMax : {n, m : Nat} -> FinTFDepth n -> FinTFDepth (maximum n m)
 FinTFPromoteMax {n} {m} dtype =
   FinTFPromote {n} {m=(maximum n m)} dtype $ maxLTELeft n m
 
+public export
+FinPromoteLeft : {m, n : Nat} -> FinTFNew m -> FinTFDepth (maximum m n)
+FinPromoteLeft type = (m ** (maxLTELeft m n, type))
+
+public export
+FinPromoteRight : {m, n : Nat} -> FinTFNew n -> FinTFDepth (maximum m n)
+FinPromoteRight type = (n ** (maxLTERight m n, type))
+
 -- The directed colimit of the metalanguage functor that generates
 -- object-language types.  (The directed colimit is also known as the
 -- initial algebra.)
@@ -3998,23 +4006,23 @@ data MuFinTermAlg : MuFinIndAlg Type where
   MFTLeft :
     {0 m, n : Nat} -> {0 hyp : FinTFDepth (maximum m n) -> Type} ->
     {0 x : FinTFNew m} -> {0 y : FinTFNew n} ->
-    hyp (m ** (maxLTELeft m n, x)) ->
+    hyp (FinPromoteLeft {n} x) ->
     MuFinTermAlg (maximum m n) hyp (FinTFVar (FTVCoproduct x y))
   MFTRight :
     {0 m, n : Nat} -> {0 hyp : FinTFDepth (maximum m n) -> Type} ->
     {0 x : FinTFNew m} -> {0 y : FinTFNew n} ->
-    hyp (n ** (maxLTERight m n, y)) ->
+    hyp (FinPromoteRight {m} y) ->
     MuFinTermAlg (maximum m n) hyp (FinTFVar (FTVCoproduct x y))
   MFTPair :
     {0 m, n : Nat} -> {0 hyp : FinTFDepth (maximum m n) -> Type} ->
     {0 x : FinTFNew m} -> {0 y : FinTFNew n} ->
-    hyp (m ** (maxLTELeft m n, x)) ->
-    hyp (n ** (maxLTERight m n, y)) ->
+    hyp (FinPromoteLeft {n} x) ->
+    hyp (FinPromoteRight {m} y) ->
     MuFinTermAlg (maximum m n) hyp (FinTFVar (FTVProduct x y))
 
 public export
-muFinTerm : (n : Nat) -> FinTFNew n -> Type
-muFinTerm = muFinInd MuFinTermAlg
+MuFinTerm : (n : Nat) -> FinTFNew n -> Type
+MuFinTerm = muFinInd MuFinTermAlg
 
 -- Generate the morphisms out of a given finite unrefined type of
 -- a given depth, given the morphisms out of all unrefined types of
