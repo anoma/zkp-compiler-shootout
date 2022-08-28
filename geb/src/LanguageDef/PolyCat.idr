@@ -3755,7 +3755,7 @@ FinSubstHomDepthObjEval {cx=(cx + cy)} {cy=cz} (FinCoproduct x y) z with
     (Evidence0 dyz (hyz ** (Evidence0 hdyz evalyz)))) =
     (Evidence0 (smax dxz dyz) $ rewrite powerOfSum cz cx cy in
      (FinProduct hxz hyz ** Evidence0
-      (S (max (smax hdxz hdyz) 5))
+      (S (maximum (smax hdxz hdyz) 5))
       $
       rewrite powerOfSum cz cx cy in
       FinCompose (FinCase evalxz evalyz) $ FinCompose
@@ -3919,6 +3919,11 @@ FinTFPromote : {n, m : Nat} -> FinTFDepth n -> LTE n m -> FinTFDepth m
 FinTFPromote {n} {m} (m' ** (ltem'n, type)) ltenm =
   (m' ** (transitive ltem'n ltenm, type))
 
+public export
+FinTFPromoteMax : {n, m : Nat} -> FinTFDepth n -> FinTFDepth (maximum n m)
+FinTFPromoteMax {n} {m} dtype =
+  FinTFPromote {n} {m=(maximum n m)} dtype $ maxLTELeft n m
+
 -- The directed colimit of the metalanguage functor that generates
 -- object-language types.  (The directed colimit is also known as the
 -- initial algebra.)
@@ -3981,6 +3986,35 @@ muFinGenIndAlgStrengthened alg n hyp =
 public export
 muFinGenInd : {0 a : Type} -> MuFinGenIndAlg a -> (n : Nat) -> FinTFNew n -> a
 muFinGenInd alg = natGenInd (depth0ExFalso, muFinGenIndAlgStrengthened alg)
+
+-- Morphisms from the terminal object to a given object.  This
+-- hom-set is isomorphic to the object itself.  From the perspective
+-- of (dependent) types, these are the terms of the object/type.
+public export
+data MuFinTermAlg : MuFinIndAlg Type where
+  MFTUnit :
+    {0 hyp : FinTFDepth Z -> Type} ->
+    MuFinTermAlg Z hyp (FinTFConst FTVTerminal)
+  MFTLeft :
+    {0 m, n : Nat} -> {0 hyp : FinTFDepth (maximum m n) -> Type} ->
+    {0 x : FinTFNew m} -> {0 y : FinTFNew n} ->
+    hyp (m ** (maxLTELeft m n, x)) ->
+    MuFinTermAlg (maximum m n) hyp (FinTFVar (FTVCoproduct x y))
+  MFTRight :
+    {0 m, n : Nat} -> {0 hyp : FinTFDepth (maximum m n) -> Type} ->
+    {0 x : FinTFNew m} -> {0 y : FinTFNew n} ->
+    hyp (n ** (maxLTERight m n, y)) ->
+    MuFinTermAlg (maximum m n) hyp (FinTFVar (FTVCoproduct x y))
+  MFTPair :
+    {0 m, n : Nat} -> {0 hyp : FinTFDepth (maximum m n) -> Type} ->
+    {0 x : FinTFNew m} -> {0 y : FinTFNew n} ->
+    hyp (m ** (maxLTELeft m n, x)) ->
+    hyp (n ** (maxLTERight m n, y)) ->
+    MuFinTermAlg (maximum m n) hyp (FinTFVar (FTVProduct x y))
+
+public export
+muFinTerm : (n : Nat) -> FinTFNew n -> Type
+muFinTerm = muFinInd MuFinTermAlg
 
 -- Generate the morphisms out of a given finite unrefined type of
 -- a given depth, given the morphisms out of all unrefined types of

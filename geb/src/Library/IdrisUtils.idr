@@ -181,26 +181,36 @@ lteSuccEitherEqLte {m} {n} lte with (decEq m (S n))
     Right $ fromLteSucc $ lteTolt lte neq
 
 public export
-maxLTE : {m, n, k : Nat} -> LTE m k -> LTE n k -> LTE (max m n) k
-maxLTE {m} {n} {k} ltmk ltnk with (m > n)
-  maxLTE {m} {n} {k} ltmk ltnk | True = ltmk
-  maxLTE {m} {n} {k} ltmk ltnk | False = ltnk
+maxLTE : {m, n, k : Nat} -> LTE m k -> LTE n k -> LTE (maximum m n) k
+maxLTE {m=Z} {n} {k} ltmk ltnk = ltnk
+maxLTE {m=(S m)} {n=Z} {k} ltmk ltnk = ltmk
+maxLTE {m=(S m)} {n=(S n)} {k=Z} ltmk ltnk = void $ succNotLTEzero ltmk
+maxLTE {m=(S m)} {n=(S n)} {k=(S k)} ltmk ltnk =
+  LTESucc $ maxLTE {m} {n} {k} (fromLteSucc ltmk) (fromLteSucc ltnk)
+
+public export
+maxLTELeft : (m, n : Nat) -> LTE m (maximum m n)
+maxLTELeft = maximumLeftUpperBound
+
+public export
+maxLTERight : (m, n : Nat) -> LTE n (maximum m n)
+maxLTERight = maximumRightUpperBound
 
 public export
 smax : Nat -> Nat -> Nat
-smax = S .* max
+smax = S .* maximum
 
 public export
 smaxLTLeft : (m, n : Nat) -> LT m (smax m n)
-smaxLTLeft m n = ?smaxLTLeft_hole
+smaxLTLeft m n = LTESucc $ maxLTELeft m n
 
 public export
 smaxLTRight : (m, n : Nat) -> LT n (smax m n)
-smaxLTRight m n = ?smaxLTRight_hole
+smaxLTRight m n = LTESucc $ maxLTERight m n
 
 public export
-smaxLTMax : (m, n : Nat) -> LT (max m n) (smax m n)
-smaxLTMax m n = ?smaxLTMax_hole
+smaxLTMax : (m, n : Nat) -> LT (maximum m n) (smax m n)
+smaxLTMax m n = LTESucc reflexive
 
 public export
 voidF : (0 a : Type) -> Void -> a
