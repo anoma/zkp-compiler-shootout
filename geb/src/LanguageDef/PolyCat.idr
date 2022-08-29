@@ -51,13 +51,14 @@ InterpInPF : {0 pos : Type} -> {0 dir : pos -> Type} ->
 InterpInPF {pos} {dir} (InPF {p=(pos ** dir)} i d) = (i ** d)
 
 public export
-PFTranslatePos : PolyFunc -> Type -> Type
-PFTranslatePos (pos ** dir) a = Either a pos
+data PFTranslatePos : PolyFunc -> Type -> Type where
+  PFVar : {0 p : PolyFunc} -> a -> PFTranslatePos p a
+  PFCom : {0 p : PolyFunc} -> pfPos p -> PFTranslatePos p a
 
 public export
 PFTranslateDir : (p : PolyFunc) -> (a : Type) -> PFTranslatePos p a -> Type
-PFTranslateDir (pos ** dir) a (Left _) = ()
-PFTranslateDir (pos ** dir) a (Right i) = dir i
+PFTranslateDir (pos ** dir) a (PFVar _) = ()
+PFTranslateDir (pos ** dir) a (PFCom i) = dir i
 
 public export
 PFTranslate : PolyFunc -> Type -> PolyFunc
@@ -77,7 +78,8 @@ public export
 SliceObj : Type -> Type
 SliceObj a = a -> Type
 
--- A polynomial functor may also be viewed as a slice object.
+-- A polynomial functor may also be viewed as a slice object
+-- (in the slice category of its type of positions).
 public export
 PolyFuncToSlice : (p : PolyFunc) -> SliceObj (pfPos p)
 PolyFuncToSlice (pos ** dir) = dir
