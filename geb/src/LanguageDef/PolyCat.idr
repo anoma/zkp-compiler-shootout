@@ -120,12 +120,12 @@ PFCoalg (pos ** dir) a = a -> (i : pos ** (dir i -> a))
 public export
 pfCata : {0 p : PolyFunc} -> {0 a : Type} -> PFAlg p a -> PolyFuncMu p -> a
 pfCata {p=p@(pos ** dir)} {a} alg (InPFM i da) =
-  alg i $ \d => pfCata {p} alg $ da d
+  alg i $ \d : dir i => pfCata {p} alg $ da d
 
 public export
 pfAna : {0 p : PolyFunc} -> {0 a : Type} -> PFCoalg p a -> a -> PolyFuncNu p
 pfAna {p=p@(pos ** dir)} {a} coalg e = case coalg e of
-  (i ** da) => InPFN i $ \d => pfAna coalg $ da d
+  (i ** da) => InPFN i $ \d : dir i => pfAna coalg $ da d
 
 ------------------------------------------------------------
 ---- Natural transformations on polynomial endofunctors ----
@@ -148,7 +148,7 @@ pntOnDir {p=(_ ** _)} {q=(_ ** _)} (onPos ** onDir) = onDir
 
 public export
 InterpPolyNT : {0 p, q : PolyFunc} -> PolyNatTrans p q ->
-  {a : Type} -> InterpPolyFunc p a -> InterpPolyFunc q a
+  {0 a : Type} -> InterpPolyFunc p a -> InterpPolyFunc q a
 InterpPolyNT {p=(_ ** _)} {q=(_ ** _)} (onPos ** onDir) (pi ** pd) =
   (onPos pi ** (pd . onDir pi))
 
@@ -187,6 +187,31 @@ SigmaToPair (x ** y) = (x, y)
 public export
 PairToSigma : {0 a, b : Type} -> (a, b) -> (Sigma {a} (const b))
 PairToSigma (x, y) = (x ** y)
+
+public export
+SliceMorphism : {a : Type} -> SliceObj a -> SliceObj a -> Type
+SliceMorphism {a} s s' = (e : a) -> s e -> s' e
+
+-- A slice morphism can be viewed as a special case of a natural transformation
+-- between the polynomial endofunctors as which the codomain and domain slices
+-- may be viewed.  (The special case is that the on-positions function is the
+-- identity.)
+public export
+SliceMorphismToPolyNatTrans : {0 a : Type} -> {0 s, s' : SliceObj a} ->
+  SliceMorphism s s' -> PolyNatTrans (SliceToPolyFunc s') (SliceToPolyFunc s)
+SliceMorphismToPolyNatTrans {a} m = (id {a} ** m)
+
+public export
+PolyNatTransToSliceMorphism : {0 p, q : PolyFunc} ->
+  {eqpos : pfPos p = pfPos q} ->
+  (alpha : PolyNatTrans p q) ->
+  ((i : pfPos p) -> pntOnPos {p} {q} alpha i = replace {p=(\t => t)} eqpos i) ->
+  SliceMorphism
+    {a=(pfPos p)}
+    (replace {p=(\type => type -> Type)} (sym eqpos) (PolyFuncToSlice q))
+    (PolyFuncToSlice p)
+PolyNatTransToSliceMorphism {p=(_ ** _)} {q=(_ ** qdir)}
+  (_ ** ondir) onPosId i sp = ondir i $ replace {p=qdir} (sym (onPosId i)) sp
 
 ---------------------------------------
 ---- Dependent polynomial functors ----
