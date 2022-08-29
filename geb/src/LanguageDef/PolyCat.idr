@@ -34,15 +34,38 @@ InterpPolyFunc : PolyFunc -> Type -> Type
 InterpPolyFunc (pos ** dir) x = (i : pos ** (dir i -> x))
 
 public export
-data PolyFreeM : PolyFunc -> Type -> Type where
-  InPFVar : {0 a : Type} -> {0 p : PolyFunc} ->
-    a -> PolyFreeM p a
-  InPFCom : {0 a : Type} -> {0 p : PolyFunc} ->
-    (0 i : pfPos p) -> (pfDir {p} i -> PolyFreeM p a) -> PolyFreeM p a
+data PolyFuncMu : PolyFunc -> Type where
+  InPF : {0 p : PolyFunc} ->
+    (i : pfPos p) -> (pfDir {p} i -> PolyFuncMu p) -> PolyFuncMu p
 
 public export
-PolyFuncMu : PolyFunc -> Type
-PolyFuncMu p = PolyFreeM p Void
+InPFInterp : {0 pos : Type} -> {0 dir : pos -> Type} ->
+  InterpPolyFunc (pos ** dir) (PolyFuncMu (pos ** dir)) ->
+  PolyFuncMu (pos ** dir)
+InPFInterp {pos} {dir} (i ** d) = InPF {p=(pos ** dir)} i d
+
+public export
+InterpInPF : {0 pos : Type} -> {0 dir : pos -> Type} ->
+  PolyFuncMu (pos ** dir) ->
+  InterpPolyFunc (pos ** dir) (PolyFuncMu (pos ** dir))
+InterpInPF {pos} {dir} (InPF {p=(pos ** dir)} i d) = (i ** d)
+
+public export
+PFTranslatePos : PolyFunc -> Type -> Type
+PFTranslatePos (pos ** dir) a = Either a pos
+
+public export
+PFTranslateDir : (p : PolyFunc) -> (a : Type) -> PFTranslatePos p a -> Type
+PFTranslateDir (pos ** dir) a (Left _) = ()
+PFTranslateDir (pos ** dir) a (Right i) = dir i
+
+public export
+PFTranslate : PolyFunc -> Type -> PolyFunc
+PFTranslate p a = (PFTranslatePos p a ** PFTranslateDir p a)
+
+public export
+PolyFuncFreeM : PolyFunc -> Type -> Type
+PolyFuncFreeM = PolyFuncMu .* PFTranslate
 
 -------------------------
 -------------------------
@@ -53,6 +76,15 @@ PolyFuncMu p = PolyFreeM p Void
 public export
 SliceObj : Type -> Type
 SliceObj a = a -> Type
+
+-- A polynomial functor may also be viewed as a slice object.
+public export
+PolyFuncToSlice : (p : PolyFunc) -> SliceObj (pfPos p)
+PolyFuncToSlice (pos ** dir) = dir
+
+public export
+SliceToPolyFunc : {a : Type} -> SliceObj a -> PolyFunc
+SliceToPolyFunc {a} sl = (a ** sl)
 
 public export
 Pi : {a : Type} -> SliceObj a -> Type
