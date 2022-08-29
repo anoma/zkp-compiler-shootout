@@ -146,6 +146,12 @@ pntOnDir : {0 p, q : PolyFunc} -> (alpha : PolyNatTrans p q) ->
   (i : pfPos p) -> pfDir {p=q} (pntOnPos {p} {q} alpha i) -> pfDir {p} i
 pntOnDir {p=(_ ** _)} {q=(_ ** _)} (onPos ** onDir) = onDir
 
+public export
+InterpPolyNT : {0 p, q : PolyFunc} -> PolyNatTrans p q ->
+  {a : Type} -> InterpPolyFunc p a -> InterpPolyFunc q a
+InterpPolyNT {p=(_ ** _)} {q=(_ ** _)} (onPos ** onDir) (pi ** pd) =
+  (onPos pi ** (pd . onDir pi))
+
 -------------------------
 -------------------------
 ---- Dependent types ----
