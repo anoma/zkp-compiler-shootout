@@ -127,6 +127,25 @@ pfAna : {0 p : PolyFunc} -> {0 a : Type} -> PFCoalg p a -> a -> PolyFuncNu p
 pfAna {p=p@(pos ** dir)} {a} coalg e = case coalg e of
   (i ** da) => InPFN i $ \d => pfAna coalg $ da d
 
+------------------------------------------------------------
+---- Natural transformations on polynomial endofunctors ----
+------------------------------------------------------------
+
+public export
+PolyNatTrans : PolyFunc -> PolyFunc -> Type
+PolyNatTrans (ppos ** pdir) (qpos ** qdir) =
+  (onPos : ppos -> qpos ** ((i : ppos) -> qdir (onPos i) -> pdir i))
+
+public export
+pntOnPos : {0 p, q : PolyFunc} -> PolyNatTrans p q ->
+  pfPos p -> pfPos q
+pntOnPos {p=(_ ** _)} {q=(_ ** _)} (onPos ** onDir) = onPos
+
+public export
+pntOnDir : {0 p, q : PolyFunc} -> (alpha : PolyNatTrans p q) ->
+  (i : pfPos p) -> pfDir {p=q} (pntOnPos {p} {q} alpha i) -> pfDir {p} i
+pntOnDir {p=(_ ** _)} {q=(_ ** _)} (onPos ** onDir) = onDir
+
 -------------------------
 -------------------------
 ---- Dependent types ----
