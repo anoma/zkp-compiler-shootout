@@ -243,12 +243,20 @@ SlicePolyFunc : Type -> Type -> Type
 SlicePolyFunc a b = (p : PolyFunc ** SliceIdx p a b)
 
 public export
-InterpSPFunc : {a, b : Type} -> SlicePolyFunc a b -> (a -> Type) -> b -> Type
+InterpSPFunc : {a, b : Type} -> SlicePolyFunc a b -> SliceObj a -> SliceObj b
 InterpSPFunc {a} {b} ((pos ** dir) ** idx) fa eb =
   (i : pos **
    param : dir i -> a **
    (idx i param = eb,
     (d : dir i) -> fa $ param d))
+
+public export
+InterpSPFMap : {0 a, b : Type} -> (spf : SlicePolyFunc a b) ->
+  {0 sa, sa' : SliceObj a} ->
+  SliceMorphism sa sa' ->
+  SliceMorphism (InterpSPFunc spf sa) (InterpSPFunc spf sa')
+InterpSPFMap ((_ ** dir) ** _) m _ (i ** param ** (eqidx, da)) =
+  (i ** param ** (eqidx, \d : dir i => m (param d) (da d)))
 
 -----------------------
 ---- Refined types ----
