@@ -37,6 +37,22 @@ public export
 InterpPolyFunc : PolyFunc -> Type -> Type
 InterpPolyFunc (pos ** dir) x = (i : pos ** (dir i -> x))
 
+--------------------------------------------------------
+---- Algebras and coalgebras of polynomial functors ----
+--------------------------------------------------------
+
+public export
+PFAlg : PolyFunc -> Type -> Type
+PFAlg (pos ** dir) a = (i : pos) -> (dir i -> a) -> a
+
+public export
+PFCoalg : PolyFunc -> Type -> Type
+PFCoalg (pos ** dir) a = a -> (i : pos ** (dir i -> a))
+
+-------------------------------------------------------------------------
+---- Initial algebras and terminal coalgebras of polynomial functors ----
+-------------------------------------------------------------------------
+
 public export
 data PolyFuncMu : PolyFunc -> Type where
   InPFM : {0 p : PolyFunc} ->
@@ -105,17 +121,9 @@ public export
 PolyFuncCofreeCM : PolyFunc -> Type -> Type
 PolyFuncCofreeCM = PolyFuncNu .* PFScale
 
---------------------------------------------------------
----- Algebras and coalgebras of polynomial functors ----
---------------------------------------------------------
-
-public export
-PFAlg : PolyFunc -> Type -> Type
-PFAlg (pos ** dir) a = (i : pos) -> (dir i -> a) -> a
-
-public export
-PFCoalg : PolyFunc -> Type -> Type
-PFCoalg (pos ** dir) a = a -> (i : pos ** (dir i -> a))
+---------------------------------------------------------------
+---- Catamorphisms and anamorphisms of polynomial functors ----
+---------------------------------------------------------------
 
 public export
 pfCata : {0 p : PolyFunc} -> {0 a : Type} -> PFAlg p a -> PolyFuncMu p -> a
