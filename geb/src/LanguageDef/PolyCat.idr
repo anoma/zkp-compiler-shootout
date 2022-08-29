@@ -5,6 +5,39 @@ import Library.IdrisCategories
 
 %default total
 
+-------------------------------------------
+-------------------------------------------
+---- Polynomial endofunctors in `Type` ----
+-------------------------------------------
+-------------------------------------------
+
+-- A polynomial endofunctor may be viewed as a dependent type,
+-- with a type family of directions dependent on a set of positions.
+public export
+PolyFuncDir : Type -> Type
+PolyFuncDir pos = pos -> Type
+
+public export
+PolyFunc : Type
+PolyFunc = DPair Type PolyFuncDir
+
+public export
+InterpPolyFunc : PolyFunc -> Type -> Type
+InterpPolyFunc (pos ** dir) x = (i : pos ** (dir i -> x))
+
+public export
+data PolyFreeM : PolyFunc -> Type -> Type where
+  InPFVar : {0 a : Type} -> {0 p : PolyFunc} ->
+    a -> PolyFreeM p a
+  InPFCom : {0 a : Type} -> {0 pos : Type} -> {0 dir : pos -> Type} ->
+    (0 i : pos) ->
+    InterpPolyFunc (pos ** dir) (PolyFreeM (pos ** dir) a) ->
+    PolyFreeM (pos ** dir) a
+
+public export
+PolyFuncMu : PolyFunc -> Type
+PolyFuncMu p = PolyFreeM p Void
+
 -------------------------
 -------------------------
 ---- Dependent types ----
@@ -30,6 +63,10 @@ SigmaToPair (x ** y) = (x, y)
 public export
 PairToSigma : {0 a, b : Type} -> (a, b) -> (Sigma {a} (const b))
 PairToSigma (x, y) = (x ** y)
+
+---------------------------------------
+---- Dependent polynomial functors ----
+---------------------------------------
 
 -----------------------
 ---- Refined types ----
