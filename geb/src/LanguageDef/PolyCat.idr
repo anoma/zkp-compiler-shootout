@@ -35,25 +35,42 @@ InterpPolyFunc (pos ** dir) x = (i : pos ** (dir i -> x))
 
 public export
 data PolyFuncMu : PolyFunc -> Type where
-  InPF : {0 p : PolyFunc} ->
+  InPFM : {0 p : PolyFunc} ->
     (i : pfPos p) -> (pfDir {p} i -> PolyFuncMu p) -> PolyFuncMu p
 
 public export
-InPFInterp : {0 pos : Type} -> {0 dir : pos -> Type} ->
+InPFMInterp : {0 pos : Type} -> {0 dir : pos -> Type} ->
   InterpPolyFunc (pos ** dir) (PolyFuncMu (pos ** dir)) ->
   PolyFuncMu (pos ** dir)
-InPFInterp {pos} {dir} (i ** d) = InPF {p=(pos ** dir)} i d
+InPFMInterp {pos} {dir} (i ** d) = InPFM {p=(pos ** dir)} i d
 
 public export
-InterpInPF : {0 pos : Type} -> {0 dir : pos -> Type} ->
+InterpInPFM : {0 pos : Type} -> {0 dir : pos -> Type} ->
   PolyFuncMu (pos ** dir) ->
   InterpPolyFunc (pos ** dir) (PolyFuncMu (pos ** dir))
-InterpInPF {pos} {dir} (InPF {p=(pos ** dir)} i d) = (i ** d)
+InterpInPFM {pos} {dir} (InPFM {p=(pos ** dir)} i d) = (i ** d)
+
+public export
+data PolyFuncNu : PolyFunc -> Type where
+  InPFN : {0 p : PolyFunc} ->
+    (i : Inf (pfPos p)) -> Inf (pfDir {p} i -> PolyFuncNu p) -> PolyFuncNu p
+
+public export
+InPFNInterp : {0 pos : Type} -> {0 dir : pos -> Type} ->
+  InterpPolyFunc (pos ** dir) (PolyFuncNu (pos ** dir)) ->
+  PolyFuncNu (pos ** dir)
+InPFNInterp {pos} {dir} (i ** d) = InPFN {p=(pos ** dir)} i d
+
+public export
+InterpInPFN : {0 pos : Type} -> {0 dir : pos -> Type} ->
+  PolyFuncNu (pos ** dir) ->
+  InterpPolyFunc (pos ** dir) (PolyFuncNu (pos ** dir))
+InterpInPFN {pos} {dir} (InPFN {p=(pos ** dir)} i d) = (i ** d)
 
 public export
 data PFTranslatePos : PolyFunc -> Type -> Type where
-  PFVar : {0 p : PolyFunc} -> a -> PFTranslatePos p a
-  PFCom : {0 p : PolyFunc} -> pfPos p -> PFTranslatePos p a
+  PFVar : {0 p : PolyFunc} -> {0 a : Type} -> a -> PFTranslatePos p a
+  PFCom : {0 p : PolyFunc} -> {0 a : Type} -> pfPos p -> PFTranslatePos p a
 
 public export
 PFTranslateDir : (p : PolyFunc) -> (a : Type) -> PFTranslatePos p a -> Type
@@ -67,6 +84,18 @@ PFTranslate p a = (PFTranslatePos p a ** PFTranslateDir p a)
 public export
 PolyFuncFreeM : PolyFunc -> Type -> Type
 PolyFuncFreeM = PolyFuncMu .* PFTranslate
+
+public export
+data PFScalePos : PolyFunc -> Type -> Type where
+  PFNode : {0 p : PolyFunc} -> {0 a : Type} -> a -> pfPos p -> PFScalePos p a
+
+public export
+PFScaleDir : (p : PolyFunc) -> (a : Type) -> PFScalePos p a -> Type
+PFScaleDir (pos ** dir) a (PFNode _ i) = dir i
+
+public export
+PFScale : PolyFunc -> Type -> PolyFunc
+PFScale p a = (PFScalePos p a ** PFScaleDir p a)
 
 -------------------------
 -------------------------
