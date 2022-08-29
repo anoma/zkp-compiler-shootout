@@ -258,6 +258,22 @@ InterpSPFMap : {0 a, b : Type} -> (spf : SlicePolyFunc a b) ->
 InterpSPFMap ((_ ** dir) ** _) m _ (i ** param ** (eqidx, da)) =
   (i ** param ** (eqidx, \d : dir i => m (param d) (da d)))
 
+public export
+SlicePolyEndoF : Type -> Type
+SlicePolyEndoF a = SlicePolyFunc a a
+
+------------------------------------------------------------------
+---- Algebras and coalgebras of dependent polynomial functors ----
+------------------------------------------------------------------
+
+public export
+SPFAlg : {a : Type} -> SlicePolyEndoF a -> SliceObj a -> Type
+SPFAlg spf sa = SliceMorphism (InterpSPFunc spf sa) sa
+
+public export
+SPFCoalg : {a : Type} -> SlicePolyEndoF a -> SliceObj a -> Type
+SPFCoalg spf sa = SliceMorphism sa (InterpSPFunc spf sa)
+
 -----------------------
 ---- Refined types ----
 -----------------------
