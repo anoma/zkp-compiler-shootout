@@ -11,6 +11,10 @@ import Library.IdrisCategories
 -------------------------------------------
 -------------------------------------------
 
+-----------------------------------------------------
+---- Polynomial functors as dependent sets/types ----
+-----------------------------------------------------
+
 -- A polynomial endofunctor may be viewed as a dependent type,
 -- with a type family of directions dependent on a set of positions.
 public export
@@ -53,7 +57,7 @@ InterpInPFM {pos} {dir} (InPFM {p=(pos ** dir)} i d) = (i ** d)
 public export
 data PolyFuncNu : PolyFunc -> Type where
   InPFN : {0 p : PolyFunc} ->
-    (i : Inf (pfPos p)) -> Inf (pfDir {p} i -> PolyFuncNu p) -> PolyFuncNu p
+    (i : pfPos p) -> Inf (pfDir {p} i -> PolyFuncNu p) -> PolyFuncNu p
 
 public export
 InPFNInterp : {0 pos : Type} -> {0 dir : pos -> Type} ->
@@ -100,6 +104,28 @@ PFScale p a = (PFScalePos p a ** PFScaleDir p a)
 public export
 PolyFuncCofreeCM : PolyFunc -> Type -> Type
 PolyFuncCofreeCM = PolyFuncNu .* PFScale
+
+--------------------------------------------------------
+---- Algebras and coalgebras of polynomial functors ----
+--------------------------------------------------------
+
+public export
+PFAlg : PolyFunc -> Type -> Type
+PFAlg (pos ** dir) a = (i : pos) -> (dir i -> a) -> a
+
+public export
+PFCoalg : PolyFunc -> Type -> Type
+PFCoalg (pos ** dir) a = a -> (i : pos ** (dir i -> a))
+
+public export
+pfCata : {0 p : PolyFunc} -> {0 a : Type} -> PFAlg p a -> PolyFuncMu p -> a
+pfCata {p=p@(pos ** dir)} {a} alg (InPFM i da) =
+  alg i $ \d => pfCata {p} alg $ da d
+
+public export
+pfAna : {0 p : PolyFunc} -> {0 a : Type} -> PFCoalg p a -> a -> PolyFuncNu p
+pfAna {p=p@(pos ** dir)} {a} coalg e = case coalg e of
+  (i ** da) => InPFN i $ \d => pfAna coalg $ da d
 
 -------------------------
 -------------------------
