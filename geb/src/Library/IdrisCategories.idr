@@ -1309,10 +1309,10 @@ PolyData : Type
 PolyData = List (Type, Type)
 
 public export
-PolyFunc : PolyData -> (Type -> Type)
-PolyFunc [] _ = Void
-PolyFunc ((coeff, rep) :: l) ty =
-  Either (coeff, CovarHomFunc rep ty) (PolyFunc l ty)
+PolyDFunc : PolyData -> (Type -> Type)
+PolyDFunc [] _ = Void
+PolyDFunc ((coeff, rep) :: l) ty =
+  Either (coeff, CovarHomFunc rep ty) (PolyDFunc l ty)
 
 public export
 DirichFunc : PolyData -> (Type -> Type)
