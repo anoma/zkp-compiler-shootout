@@ -235,8 +235,12 @@ PolyNatTransToSliceMorphism {p=(_ ** _)} {q=(_ ** qdir)}
 ---------------------------------------
 
 public export
+SliceIdx : PolyFunc -> Type -> Type -> Type
+SliceIdx p a b = (i : pfPos p) -> (pfDir {p} i -> a) -> b
+
+public export
 SlicePolyFunc : Type -> Type -> Type
-SlicePolyFunc a b = (p : PolyFunc ** ((i : pfPos p) -> (pfDir {p} i -> a) -> b))
+SlicePolyFunc a b = (p : PolyFunc ** SliceIdx p a b)
 
 public export
 InterpSPFunc : {a, b : Type} -> SlicePolyFunc a b -> (a -> Type) -> b -> Type
