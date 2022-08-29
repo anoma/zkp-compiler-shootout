@@ -97,6 +97,10 @@ public export
 PFScale : PolyFunc -> Type -> PolyFunc
 PFScale p a = (PFScalePos p a ** PFScaleDir p a)
 
+public export
+PolyFuncCofreeCM : PolyFunc -> Type -> Type
+PolyFuncCofreeCM = PolyFuncNu .* PFTranslate
+
 -------------------------
 -------------------------
 ---- Dependent types ----
