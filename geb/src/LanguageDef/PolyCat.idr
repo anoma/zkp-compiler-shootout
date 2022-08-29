@@ -37,6 +37,15 @@ public export
 InterpPolyFunc : PolyFunc -> Type -> Type
 InterpPolyFunc (pos ** dir) x = (i : pos ** (dir i -> x))
 
+public export
+InterpPFMap : (p : PolyFunc) -> {0 a, b : Type} ->
+  (a -> b) -> InterpPolyFunc p a -> InterpPolyFunc p b
+InterpPFMap (_ ** _) m (i ** d) = (i ** m . d)
+
+public export
+(p : PolyFunc) => Functor (InterpPolyFunc p) where
+  map {p} = InterpPFMap p
+
 --------------------------------------------------------
 ---- Algebras and coalgebras of polynomial functors ----
 --------------------------------------------------------
