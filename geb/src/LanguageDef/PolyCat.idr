@@ -82,18 +82,18 @@ InterpInPFM {pos} {dir} (InPFM {p=(pos ** dir)} i d) = (i ** d)
 public export
 data PolyFuncNu : PolyFunc -> Type where
   InPFN : {0 p : PolyFunc} ->
-    (i : pfPos p) -> Inf (pfDir {p} i -> PolyFuncNu p) -> PolyFuncNu p
+    (i : pfPos p) -> (pfDir {p} i -> Inf (PolyFuncNu p)) -> PolyFuncNu p
 
 public export
 InPFNInterp : {0 pos : Type} -> {0 dir : pos -> Type} ->
-  InterpPolyFunc (pos ** dir) (PolyFuncNu (pos ** dir)) ->
+  InterpPolyFunc (pos ** dir) (Inf (PolyFuncNu (pos ** dir))) ->
   PolyFuncNu (pos ** dir)
 InPFNInterp {pos} {dir} (i ** d) = InPFN {p=(pos ** dir)} i d
 
 public export
 InterpInPFN : {0 pos : Type} -> {0 dir : pos -> Type} ->
   PolyFuncNu (pos ** dir) ->
-  InterpPolyFunc (pos ** dir) (PolyFuncNu (pos ** dir))
+  InterpPolyFunc (pos ** dir) (Inf (PolyFuncNu (pos ** dir)))
 InterpInPFN {pos} {dir} (InPFN {p=(pos ** dir)} i d) = (i ** d)
 
 public export
@@ -308,7 +308,7 @@ data SPFNu : {0 a : Type} -> SlicePolyEndoF a -> SliceObj a where
   InSPFN : {0 a : Type} -> {0 spf : SlicePolyEndoF a} ->
     (i : spfPos spf) ->
     (param : spfDir {spf} i -> a) ->
-    Inf ((di : spfDir {spf} i) -> SPFNu {a} spf (param di)) ->
+    ((di : spfDir {spf} i) -> Inf (SPFNu {a} spf (param di))) ->
     SPFNu {a} spf (spfIdx {spf} i param)
 
 -------------------------------------------------------------------------
