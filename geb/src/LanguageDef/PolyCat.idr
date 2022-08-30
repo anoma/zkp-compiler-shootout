@@ -387,6 +387,55 @@ spfAna {a} {spf=spf@((pos ** dir) ** idx)} {sa} coalg ea esa =
     (i ** param ** (Refl, da)) =>
       InSPFN i param $ \di : dir i => spfAna coalg (param di) (da di)
 
+-----------------------------------------------------------------------
+---- Natural transformations on dependent polynomial endofunctors ----
+-----------------------------------------------------------------------
+
+public export
+SPNatTrans : {x, y : Type} -> SlicePolyFunc x y -> SlicePolyFunc x y -> Type
+SPNatTrans p q =
+  (pnt : PolyNatTrans (spfFunc p) (spfFunc q) **
+   (pi : spfPos p) -> (pparam : spfDir {spf=p} pi -> x) ->
+    spfIdx {spf=q} (pntOnPos pnt pi) (pparam . pntOnDir pnt pi) =
+    spfIdx {spf=p} pi pparam)
+
+public export
+spntPnt : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} ->
+  SPNatTrans p q -> PolyNatTrans (spfFunc p) (spfFunc q)
+spntPnt = DPair.fst
+
+public export
+spntOnPos : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} -> SPNatTrans p q ->
+  spfPos p -> spfPos q
+spntOnPos = pntOnPos . spntPnt
+
+public export
+spntOnDir : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} ->
+  (alpha : SPNatTrans p q) -> (i : spfPos p) ->
+  spfDir {spf=q} (spntOnPos {p} {q} alpha i) ->
+  spfDir {spf=p} i
+spntOnDir alpha i = pntOnDir (spntPnt alpha) i
+
+public export
+spntOnIdx : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} ->
+  (alpha : SPNatTrans p q) ->
+  (pi : spfPos p) -> (pparam : spfDir {spf=p} pi -> x) ->
+  spfIdx {spf=q}
+    (spntOnPos {p} {q} alpha pi) (pparam . spntOnDir {p} {q} alpha pi) =
+  spfIdx {spf=p} pi pparam
+spntOnIdx = DPair.snd
+
+public export
+InterpSPNT : {0 x, y : Type} -> {p, q : SlicePolyFunc x y} ->
+  SPNatTrans p q -> {0 sx : SliceObj x} ->
+  SliceMorphism {a=y} (InterpSPFunc p sx) (InterpSPFunc q sx)
+InterpSPNT {x} {y} {p=((ppos ** pdir) ** pidx)} {q=((qpos ** qdir) ** qidx)}
+  ((onPos ** onDir) ** onIdx) {sx} _ (pi ** pparam ** (Refl, pda)) =
+    (onPos pi **
+     pparam . onDir pi **
+     (onIdx pi pparam,
+      \qd : qdir (onPos pi) => pda $ onDir pi qd))
+
 -----------------------
 ---- Refined types ----
 -----------------------
