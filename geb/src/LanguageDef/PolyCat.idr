@@ -30,7 +30,7 @@ pfPos : PolyFunc -> Type
 pfPos (pos ** dir) = pos
 
 public export
-pfDir : {p : PolyFunc} -> (i : pfPos p) -> Type
+pfDir : {p : PolyFunc} -> pfPos p -> Type
 pfDir {p=(pos ** dir)} i = dir i
 
 public export
@@ -243,6 +243,23 @@ SlicePolyFunc : Type -> Type -> Type
 SlicePolyFunc a b = (p : PolyFunc ** SliceIdx p a b)
 
 public export
+spfFunc : {0 a, b : Type} -> SlicePolyFunc a b -> PolyFunc
+spfFunc = DPair.fst
+
+public export
+spfPos : {0 a, b : Type} -> SlicePolyFunc a b -> Type
+spfPos = pfPos . spfFunc
+
+public export
+spfDir : {0 a, b : Type} -> {spf : SlicePolyFunc a b} -> spfPos spf -> Type
+spfDir {spf} = pfDir {p=(spfFunc spf)}
+
+public export
+spfIdx : {0 a, b : Type} ->
+  {spf : SlicePolyFunc a b} -> SliceIdx (spfFunc spf) a b
+spfIdx {spf} = DPair.snd spf
+
+public export
 InterpSPFunc : {a, b : Type} -> SlicePolyFunc a b -> SliceObj a -> SliceObj b
 InterpSPFunc {a} {b} ((pos ** dir) ** idx) fa eb =
   (i : pos **
@@ -273,6 +290,45 @@ SPFAlg spf sa = SliceMorphism (InterpSPFunc spf sa) sa
 public export
 SPFCoalg : {a : Type} -> SlicePolyEndoF a -> SliceObj a -> Type
 SPFCoalg spf sa = SliceMorphism sa (InterpSPFunc spf sa)
+
+---------------------------------------------------------------------------
+---- Initial algebras and terminal coalgebras of dependent polynomials ----
+---------------------------------------------------------------------------
+
+public export
+data SPFMu : {0 a : Type} -> SlicePolyEndoF a -> SliceObj a where
+  InSPFM : {0 a : Type} -> {0 spf : SlicePolyEndoF a} ->
+    (i : spfPos spf) ->
+    (param : spfDir {spf} i -> a) ->
+    ((di : spfDir {spf} i) -> SPFMu {a} spf (param di)) ->
+    SPFMu {a} spf (spfIdx {spf} i param)
+
+public export
+data SPFNu : {0 a : Type} -> SlicePolyEndoF a -> SliceObj a where
+  InSPFN : {0 a : Type} -> {0 spf : SlicePolyEndoF a} ->
+    (i : spfPos spf) ->
+    (param : spfDir {spf} i -> a) ->
+    Inf ((di : spfDir {spf} i) -> SPFNu {a} spf (param di)) ->
+    SPFNu {a} spf (spfIdx {spf} i param)
+
+-------------------------------------------------------------------------
+---- Catamorphisms and anamorphisms of dependent polynomial functors ----
+-------------------------------------------------------------------------
+
+public export
+spfCata : {0 a : Type} -> {spf : SlicePolyEndoF a} -> {0 sa : SliceObj a} ->
+  SPFAlg spf sa -> (ea : a) -> SPFMu spf ea -> sa ea
+spfCata {a} {spf=spf@((pos ** dir) ** idx)} {sa} alg _ (InSPFM i param da) =
+  alg (idx i param)
+    (i ** param ** (Refl, \di : dir i => spfCata alg (param di) (da di)))
+
+public export
+spfAna : {0 a : Type} -> {spf : SlicePolyEndoF a} -> {0 sa : SliceObj a} ->
+  SPFCoalg spf sa -> (ea : a) -> sa ea -> SPFNu spf ea
+spfAna {a} {spf=spf@((pos ** dir) ** idx)} {sa} coalg ea esa =
+  case coalg ea esa of
+    (i ** param ** (Refl, da)) =>
+      InSPFN i param $ \di : dir i => spfAna coalg (param di) (da di)
 
 -----------------------
 ---- Refined types ----
