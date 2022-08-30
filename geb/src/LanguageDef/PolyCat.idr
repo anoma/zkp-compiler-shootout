@@ -392,12 +392,17 @@ spfAna {a} {spf=spf@((pos ** dir) ** idx)} {sa} coalg ea esa =
 -----------------------------------------------------------------------
 
 public export
+SPNatTransOnIdx : {x, y : Type} -> (p, q : SlicePolyFunc x y) ->
+  PolyNatTrans (spfFunc p) (spfFunc q) -> Type
+SPNatTransOnIdx {x} p q pnt =
+  (pi : spfPos p) -> (pparam : spfDir {spf=p} pi -> x) ->
+  spfIdx {spf=q} (pntOnPos pnt pi) (pparam . pntOnDir pnt pi) =
+  spfIdx {spf=p} pi pparam
+
+public export
 SPNatTrans : {x, y : Type} -> SlicePolyFunc x y -> SlicePolyFunc x y -> Type
 SPNatTrans {x} p q =
-  (pnt : PolyNatTrans (spfFunc p) (spfFunc q) **
-   (pi : spfPos p) -> (pparam : spfDir {spf=p} pi -> x) ->
-    spfIdx {spf=q} (pntOnPos pnt pi) (pparam . pntOnDir pnt pi) =
-    spfIdx {spf=p} pi pparam)
+  (pnt : PolyNatTrans (spfFunc p) (spfFunc q) ** SPNatTransOnIdx p q pnt)
 
 public export
 spntPnt : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} ->
@@ -418,11 +423,7 @@ spntOnDir alpha i = pntOnDir (spntPnt alpha) i
 
 public export
 spntOnIdx : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} ->
-  (alpha : SPNatTrans p q) ->
-  (pi : spfPos p) -> (pparam : spfDir {spf=p} pi -> x) ->
-  spfIdx {spf=q}
-    (spntOnPos {p} {q} alpha pi) (pparam . spntOnDir {p} {q} alpha pi) =
-  spfIdx {spf=p} pi pparam
+  (alpha : SPNatTrans p q) -> SPNatTransOnIdx p q (spntPnt {p} {q} alpha)
 spntOnIdx = DPair.snd
 
 public export
