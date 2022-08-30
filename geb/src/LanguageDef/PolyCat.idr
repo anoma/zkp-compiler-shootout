@@ -340,6 +340,34 @@ data SPFNu : {0 a : Type} -> SlicePolyEndoF a -> SliceObj a where
     ((di : spfDir {spf} i) -> Inf (SPFNu {a} spf (param di))) ->
     SPFNu {a} spf (spfIdx {spf} i param)
 
+public export
+SPFScalePos : {0 x, y : Type} -> SlicePolyFunc x y -> Type -> Type
+SPFScalePos = PFScalePos . spfFunc
+
+public export
+SPFScaleDir : {x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
+  SPFScalePos spf a -> Type
+SPFScaleDir spf a = PFScaleDir (spfFunc spf) a
+
+public export
+SPFScaleFunc : {x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
+  PolyFunc
+SPFScaleFunc spf a = (SPFScalePos spf a ** SPFScaleDir spf a)
+
+public export
+SPFScaleIdx : {0 x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
+  (a -> y -> y) -> SliceIdx (SPFScaleFunc spf a) x y
+SPFScaleIdx {x} {y} ((pos ** dir) ** idx) a f (PFNode l i) di = f l (idx i di)
+
+public export
+SPFScale : {x, y : Type} -> SlicePolyFunc x y -> (a : Type) ->
+  (a -> y -> y) -> SlicePolyFunc x y
+SPFScale spf a f = (SPFScaleFunc spf a ** SPFScaleIdx spf a f)
+
+public export
+SPFCofreeCM : {x : Type} -> SlicePolyEndoF x -> SliceObj x -> SliceObj x
+SPFCofreeCM spf sx = SPFNu {a=x} (SPFScale {x} {y=x} spf (Sigma sx) (const id))
+
 -------------------------------------------------------------------------
 ---- Catamorphisms and anamorphisms of dependent polynomial functors ----
 -------------------------------------------------------------------------
