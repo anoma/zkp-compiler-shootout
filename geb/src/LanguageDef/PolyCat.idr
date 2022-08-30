@@ -304,6 +304,35 @@ data SPFMu : {0 a : Type} -> SlicePolyEndoF a -> SliceObj a where
     SPFMu {a} spf (spfIdx {spf} i param)
 
 public export
+SPFTranslatePos : {0 x, y : Type} -> SlicePolyFunc x y -> Type -> Type
+SPFTranslatePos = PFTranslatePos . spfFunc
+
+public export
+SPFTranslateDir : {x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
+  SPFTranslatePos spf a -> Type
+SPFTranslateDir spf a = PFTranslateDir (spfFunc spf) a
+
+public export
+SPFTranslateFunc : {x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
+  PolyFunc
+SPFTranslateFunc spf a = (SPFTranslatePos spf a ** SPFTranslateDir spf a)
+
+public export
+SPFTranslateIdx : {0 x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
+  (a -> x -> y) -> SliceIdx (SPFTranslateFunc spf a) x y
+SPFTranslateIdx ((_ ** _) ** idx) _ f (PFVar v) di = f v (di ())
+SPFTranslateIdx ((_ ** _) ** idx) _ f (PFCom i) di = idx i di
+
+public export
+SPFTranslate : {x, y : Type} -> SlicePolyFunc x y -> (a : Type) ->
+  (a -> x -> y) -> SlicePolyFunc x y
+SPFTranslate spf a f = (SPFTranslateFunc spf a ** SPFTranslateIdx spf a f)
+
+public export
+SPFFreeM : {x : Type} -> SlicePolyEndoF x -> SliceObj x -> SliceObj x
+SPFFreeM spf sx = SPFMu {a=x} (SPFTranslate {x} {y=x} spf (Sigma sx) (const id))
+
+public export
 data SPFNu : {0 a : Type} -> SlicePolyEndoF a -> SliceObj a where
   InSPFN : {0 a : Type} -> {0 spf : SlicePolyEndoF a} ->
     (i : spfPos spf) ->
