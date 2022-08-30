@@ -393,7 +393,7 @@ spfAna {a} {spf=spf@((pos ** dir) ** idx)} {sa} coalg ea esa =
 
 public export
 SPNatTrans : {x, y : Type} -> SlicePolyFunc x y -> SlicePolyFunc x y -> Type
-SPNatTrans p q =
+SPNatTrans {x} p q =
   (pnt : PolyNatTrans (spfFunc p) (spfFunc q) **
    (pi : spfPos p) -> (pparam : spfDir {spf=p} pi -> x) ->
     spfIdx {spf=q} (pntOnPos pnt pi) (pparam . pntOnDir pnt pi) =
