@@ -951,55 +951,6 @@ data FinTFNew : Nat -> Type where
   FinTFVar : {0 n : Nat} -> FinTVarF FinTFNew n -> FinTFNew n
 
 public export
-FinTObjTypes1 : (Type, Type)
-FinTObjTypes1 = (FinTConst, FinTConst)
-
-public export
-data FinTObjVarF : Type -> Type where
-  FTOVCoproduct : carrier -> carrier -> FinTObjVarF carrier
-  FTOVProduct : carrier -> carrier -> FinTObjVarF carrier
-
-public export
-FinTObjTypesSucc : (Type, Type) -> (Type, Type)
-FinTObjTypesSucc (newTypes, allTypes) =
-  let succNewTypes = FinTObjVarF allTypes in
-  (succNewTypes, Either allTypes succNewTypes)
-
-public export
-FinTPredObjAlg : NatAlgebra (Type, Type)
-FinTPredObjAlg = (FinTObjTypes1, const FinTObjTypesSucc)
-
-public export
-FinTPredObjTypes : Nat -> (Type, Type)
-FinTPredObjTypes = natCata FinTPredObjAlg
-
-public export
-FinTPredNewObj : Nat -> Type
-FinTPredNewObj = fst . FinTPredObjTypes
-
-public export
-FinTPredDepthObj : Nat -> Type
-FinTPredDepthObj = snd . FinTPredObjTypes
-
-public export
-FinTNewObj : Nat -> Type
-FinTNewObj Z = Void
-FinTNewObj (S n) = FinTPredNewObj n
-
-public export
-FinTDepthObj : Nat -> Type
-FinTDepthObj Z = Void
-FinTDepthObj (S n) = FinTPredDepthObj n
-
-public export
-fromNewZero : {0 a : Type} -> FinTNewObj 0 -> a
-fromNewZero v = void v
-
-public export
-fromDepthZero : {0 a : Type} -> FinTDepthObj 0 -> a
-fromDepthZero v = void v
-
-public export
 depthNonZero : FinTFNew 0 -> Void
 depthNonZero (FinTFConst _) impossible
 depthNonZero (FinTFVar (FTVCoproduct x y)) impossible
