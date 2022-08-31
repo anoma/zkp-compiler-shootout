@@ -144,6 +144,14 @@ natAna : {0 a : Type} -> NatCoalgebra a -> (Nat, a) -> Inf (Maybe (Nat, a))
 natAna coalg nx =
   map {f=Maybe} SigmaToPair $ natDepAna {p=(const a)} coalg $ PairToSigma nx
 
+public export
+NatGenAlgebra : Type -> Type
+NatGenAlgebra a = (a, (n : Nat) -> ((m : Nat) -> LTE m n -> a) -> a)
+
+public export
+natGenInd : {0 a : Type} -> NatGenAlgebra a -> Nat -> a
+natGenInd = natDepGenInd {p=(const a)}
+
 -----------------------------
 -----------------------------
 ---- Polynomial functors ----
