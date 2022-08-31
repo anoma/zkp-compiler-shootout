@@ -106,10 +106,10 @@ NatDepGenAlgebra p =
   (p Z, (n : Nat) -> ((m : Nat) -> LTE m n -> p m) -> p (S n))
 
 public export
-natGenIndStrengthened : {0 p : NatSliceObj} ->
+natDepGenIndStrengthened : {0 p : NatSliceObj} ->
   NatDepGenAlgebra p ->
   (x : Nat) -> (y : Nat) -> LTE y x -> p y
-natGenIndStrengthened {p} (p0, pS) =
+natDepGenIndStrengthened {p} (p0, pS) =
   natDepCata
     {p=(\x => (y : Nat) -> LTE y x -> p y)}
     (\n, lte => replace {p} (lteZeroIsZero lte) p0,
@@ -118,10 +118,10 @@ natGenIndStrengthened {p} (p0, pS) =
       Right lteyn => hyp y lteyn)
 
 public export
-natGenInd : {0 p : NatSliceObj} ->
+natDepGenInd : {0 p : NatSliceObj} ->
   NatDepGenAlgebra p ->
   NatPi p
-natGenInd alg k = natGenIndStrengthened alg k k reflexive
+natDepGenInd alg k = natDepGenIndStrengthened alg k k reflexive
 
 -----------------------
 ---- Non-dependent ----
@@ -1025,7 +1025,7 @@ muFinIndAlgStrengthened alg n hyp =
 -- Induction on `MuFinTF`.
 public export
 muFinInd : {0 a : Type} -> MuFinIndAlg a -> (n : Nat) -> FinTFNew n -> a
-muFinInd alg = natGenInd (depth0ExFalso, muFinIndAlgStrengthened alg)
+muFinInd alg = natDepGenInd (depth0ExFalso, muFinIndAlgStrengthened alg)
 
 -- Morphisms from the terminal object to a given object.  This
 -- hom-set is isomorphic to the object itself.  From the perspective
