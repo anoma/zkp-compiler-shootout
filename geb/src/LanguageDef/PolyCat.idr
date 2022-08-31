@@ -96,40 +96,6 @@ InterpInPFN : {0 pos : Type} -> {0 dir : pos -> Type} ->
   InterpPolyFunc (pos ** dir) (Inf (PolyFuncNu (pos ** dir)))
 InterpInPFN {pos} {dir} (InPFN {p=(pos ** dir)} i d) = (i ** d)
 
-public export
-data PFTranslatePos : PolyFunc -> Type -> Type where
-  PFVar : {0 p : PolyFunc} -> {0 a : Type} -> a -> PFTranslatePos p a
-  PFCom : {0 p : PolyFunc} -> {0 a : Type} -> pfPos p -> PFTranslatePos p a
-
-public export
-PFTranslateDir : (p : PolyFunc) -> (a : Type) -> PFTranslatePos p a -> Type
-PFTranslateDir (pos ** dir) a (PFVar _) = ()
-PFTranslateDir (pos ** dir) a (PFCom i) = dir i
-
-public export
-PFTranslate : PolyFunc -> Type -> PolyFunc
-PFTranslate p a = (PFTranslatePos p a ** PFTranslateDir p a)
-
-public export
-PolyFuncFreeM : PolyFunc -> Type -> Type
-PolyFuncFreeM = PolyFuncMu .* PFTranslate
-
-public export
-data PFScalePos : PolyFunc -> Type -> Type where
-  PFNode : {0 p : PolyFunc} -> {0 a : Type} -> a -> pfPos p -> PFScalePos p a
-
-public export
-PFScaleDir : (p : PolyFunc) -> (a : Type) -> PFScalePos p a -> Type
-PFScaleDir (pos ** dir) a (PFNode _ i) = dir i
-
-public export
-PFScale : PolyFunc -> Type -> PolyFunc
-PFScale p a = (PFScalePos p a ** PFScaleDir p a)
-
-public export
-PolyFuncCofreeCM : PolyFunc -> Type -> Type
-PolyFuncCofreeCM = PolyFuncNu .* PFScale
-
 ---------------------------------------------------------------
 ---- Catamorphisms and anamorphisms of polynomial functors ----
 ---------------------------------------------------------------
@@ -304,69 +270,12 @@ data SPFMu : {0 a : Type} -> SlicePolyEndoF a -> SliceObj a where
     SPFMu {a} spf (spfIdx {spf} i param)
 
 public export
-SPFTranslatePos : {0 x, y : Type} -> SlicePolyFunc x y -> Type -> Type
-SPFTranslatePos = PFTranslatePos . spfFunc
-
-public export
-SPFTranslateDir : {x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
-  SPFTranslatePos spf a -> Type
-SPFTranslateDir spf a = PFTranslateDir (spfFunc spf) a
-
-public export
-SPFTranslateFunc : {x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
-  PolyFunc
-SPFTranslateFunc spf a = (SPFTranslatePos spf a ** SPFTranslateDir spf a)
-
-public export
-SPFTranslateIdx : {0 x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
-  (a -> x -> y) -> SliceIdx (SPFTranslateFunc spf a) x y
-SPFTranslateIdx ((_ ** _) ** idx) _ f (PFVar v) di = f v (di ())
-SPFTranslateIdx ((_ ** _) ** idx) _ f (PFCom i) di = idx i di
-
-public export
-SPFTranslate : {x, y : Type} -> SlicePolyFunc x y -> (a : Type) ->
-  (a -> x -> y) -> SlicePolyFunc x y
-SPFTranslate spf a f = (SPFTranslateFunc spf a ** SPFTranslateIdx spf a f)
-
-public export
-SPFFreeM : {x : Type} -> SlicePolyEndoF x -> SliceObj x -> SliceObj x
-SPFFreeM spf sx = SPFMu {a=x} (SPFTranslate {x} {y=x} spf (Sigma sx) (const id))
-
-public export
 data SPFNu : {0 a : Type} -> SlicePolyEndoF a -> SliceObj a where
   InSPFN : {0 a : Type} -> {0 spf : SlicePolyEndoF a} ->
     (i : spfPos spf) ->
     (param : spfDir {spf} i -> a) ->
     ((di : spfDir {spf} i) -> Inf (SPFNu {a} spf (param di))) ->
     SPFNu {a} spf (spfIdx {spf} i param)
-
-public export
-SPFScalePos : {0 x, y : Type} -> SlicePolyFunc x y -> Type -> Type
-SPFScalePos = PFScalePos . spfFunc
-
-public export
-SPFScaleDir : {x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
-  SPFScalePos spf a -> Type
-SPFScaleDir spf a = PFScaleDir (spfFunc spf) a
-
-public export
-SPFScaleFunc : {x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
-  PolyFunc
-SPFScaleFunc spf a = (SPFScalePos spf a ** SPFScaleDir spf a)
-
-public export
-SPFScaleIdx : {0 x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
-  (a -> y -> y) -> SliceIdx (SPFScaleFunc spf a) x y
-SPFScaleIdx {x} {y} ((pos ** dir) ** idx) a f (PFNode l i) di = f l (idx i di)
-
-public export
-SPFScale : {x, y : Type} -> SlicePolyFunc x y -> (a : Type) ->
-  (a -> y -> y) -> SlicePolyFunc x y
-SPFScale spf a f = (SPFScaleFunc spf a ** SPFScaleIdx spf a f)
-
-public export
-SPFCofreeCM : {x : Type} -> SlicePolyEndoF x -> SliceObj x -> SliceObj x
-SPFCofreeCM spf sx = SPFNu {a=x} (SPFScale {x} {y=x} spf (Sigma sx) (const id))
 
 -------------------------------------------------------------------------
 ---- Catamorphisms and anamorphisms of dependent polynomial functors ----
@@ -436,6 +345,105 @@ InterpSPNT {x} {y} {p=((ppos ** pdir) ** pidx)} {q=((qpos ** qdir) ** qidx)}
      pparam . onDir pi **
      (onIdx pi pparam,
       \qd : qdir (onPos pi) => pda $ onDir pi qd))
+
+----------------------------------------
+---- Polynomial (co)free (co)monads ----
+----------------------------------------
+
+public export
+data PFTranslatePos : PolyFunc -> Type -> Type where
+  PFVar : {0 p : PolyFunc} -> {0 a : Type} -> a -> PFTranslatePos p a
+  PFCom : {0 p : PolyFunc} -> {0 a : Type} -> pfPos p -> PFTranslatePos p a
+
+public export
+PFTranslateDir : (p : PolyFunc) -> (a : Type) -> PFTranslatePos p a -> Type
+PFTranslateDir (pos ** dir) a (PFVar _) = ()
+PFTranslateDir (pos ** dir) a (PFCom i) = dir i
+
+public export
+PFTranslate : PolyFunc -> Type -> PolyFunc
+PFTranslate p a = (PFTranslatePos p a ** PFTranslateDir p a)
+
+public export
+PolyFuncFreeM : PolyFunc -> Type -> Type
+PolyFuncFreeM = PolyFuncMu .* PFTranslate
+
+public export
+data PFScalePos : PolyFunc -> Type -> Type where
+  PFNode : {0 p : PolyFunc} -> {0 a : Type} -> a -> pfPos p -> PFScalePos p a
+
+public export
+PFScaleDir : (p : PolyFunc) -> (a : Type) -> PFScalePos p a -> Type
+PFScaleDir (pos ** dir) a (PFNode _ i) = dir i
+
+public export
+PFScale : PolyFunc -> Type -> PolyFunc
+PFScale p a = (PFScalePos p a ** PFScaleDir p a)
+
+public export
+PolyFuncCofreeCM : PolyFunc -> Type -> Type
+PolyFuncCofreeCM = PolyFuncNu .* PFScale
+
+--------------------------------------------------
+---- Dependent polynomial (co)free (co)monads ----
+--------------------------------------------------
+
+public export
+SPFTranslatePos : {0 x, y : Type} -> SlicePolyFunc x y -> Type -> Type
+SPFTranslatePos = PFTranslatePos . spfFunc
+
+public export
+SPFTranslateDir : {x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
+  SPFTranslatePos spf a -> Type
+SPFTranslateDir spf a = PFTranslateDir (spfFunc spf) a
+
+public export
+SPFTranslateFunc : {x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
+  PolyFunc
+SPFTranslateFunc spf a = (SPFTranslatePos spf a ** SPFTranslateDir spf a)
+
+public export
+SPFTranslateIdx : {0 x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
+  (a -> x -> y) -> SliceIdx (SPFTranslateFunc spf a) x y
+SPFTranslateIdx ((_ ** _) ** idx) _ f (PFVar v) di = f v (di ())
+SPFTranslateIdx ((_ ** _) ** idx) _ f (PFCom i) di = idx i di
+
+public export
+SPFTranslate : {x, y : Type} -> SlicePolyFunc x y -> (a : Type) ->
+  (a -> x -> y) -> SlicePolyFunc x y
+SPFTranslate spf a f = (SPFTranslateFunc spf a ** SPFTranslateIdx spf a f)
+
+public export
+SPFFreeM : {x : Type} -> SlicePolyEndoF x -> SliceObj x -> SliceObj x
+SPFFreeM spf sx = SPFMu {a=x} (SPFTranslate {x} {y=x} spf (Sigma sx) (const id))
+
+public export
+SPFScalePos : {0 x, y : Type} -> SlicePolyFunc x y -> Type -> Type
+SPFScalePos = PFScalePos . spfFunc
+
+public export
+SPFScaleDir : {x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
+  SPFScalePos spf a -> Type
+SPFScaleDir spf a = PFScaleDir (spfFunc spf) a
+
+public export
+SPFScaleFunc : {x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
+  PolyFunc
+SPFScaleFunc spf a = (SPFScalePos spf a ** SPFScaleDir spf a)
+
+public export
+SPFScaleIdx : {0 x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
+  (a -> y -> y) -> SliceIdx (SPFScaleFunc spf a) x y
+SPFScaleIdx {x} {y} ((pos ** dir) ** idx) a f (PFNode l i) di = f l (idx i di)
+
+public export
+SPFScale : {x, y : Type} -> SlicePolyFunc x y -> (a : Type) ->
+  (a -> y -> y) -> SlicePolyFunc x y
+SPFScale spf a f = (SPFScaleFunc spf a ** SPFScaleIdx spf a f)
+
+public export
+SPFCofreeCM : {x : Type} -> SlicePolyEndoF x -> SliceObj x -> SliceObj x
+SPFCofreeCM spf sx = SPFNu {a=x} (SPFScale {x} {y=x} spf (Sigma sx) (const id))
 
 -----------------------
 ---- Refined types ----
