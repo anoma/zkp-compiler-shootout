@@ -38,6 +38,10 @@ public export
 SliceMorphism : {a : Type} -> SliceObj a -> SliceObj a -> Type
 SliceMorphism {a} s s' = (e : a) -> s e -> s' e
 
+public export
+SliceFMorphism : {a : Type} -> SliceObj a -> (a -> a) -> Type
+SliceFMorphism s f = SliceMorphism s (s . f)
+
 --------------------------------------------------
 --------------------------------------------------
 ---- Natural number induction and coinduction ----
@@ -61,20 +65,20 @@ NatSigma : NatSliceObj -> Type
 NatSigma = Sigma {a=Nat}
 
 public export
-NatSliceNatTrans : NatSliceObj -> NatSliceObj -> Type
-NatSliceNatTrans = SliceMorphism {a=Nat}
+NatSliceMorphism : NatSliceObj -> NatSliceObj -> Type
+NatSliceMorphism = SliceMorphism {a=Nat}
 
 public export
-NatSliceMorphism : NatSliceObj -> (Nat -> Nat) -> Type
-NatSliceMorphism p f = NatSliceNatTrans p (p . f)
+NatSliceFMorphism : NatSliceObj -> (Nat -> Nat) -> Type
+NatSliceFMorphism = SliceFMorphism {a=Nat}
 
 public export
 NatDepAlgebra : NatSliceObj -> Type
-NatDepAlgebra p = (p Z, NatSliceMorphism p S)
+NatDepAlgebra p = (p Z, NatSliceFMorphism p S)
 
 public export
 natDepFoldIdx : {0 p : Nat -> Type} ->
-  NatSliceMorphism p S -> (n, i : Nat) -> p i -> p (n + i)
+  NatSliceFMorphism p S -> (n, i : Nat) -> p i -> p (n + i)
 natDepFoldIdx op Z i acc = acc
 natDepFoldIdx op (S n) i acc = replace {p} (sym (plusSuccRightSucc n i)) $
   natDepFoldIdx op n (S i) (op i acc)
@@ -87,7 +91,7 @@ natDepCata (z, s) n = replace {p} (plusZeroRightNeutral n) $
 
 public export
 NatDepCoalgebra : NatSliceObj -> Type
-NatDepCoalgebra p = NatSliceNatTrans p (Maybe . p . S)
+NatDepCoalgebra p = NatSliceMorphism p (Maybe . p . S)
 
 public export
 natDepAna : {0 p : NatSliceObj} ->
