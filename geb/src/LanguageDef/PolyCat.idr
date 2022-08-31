@@ -5,11 +5,146 @@ import Library.IdrisCategories
 
 %default total
 
--------------------------------------------
--------------------------------------------
----- Polynomial endofunctors in `Type` ----
--------------------------------------------
--------------------------------------------
+---------------------------------------
+---------------------------------------
+---- Dependent types, categorially ----
+---------------------------------------
+---------------------------------------
+
+public export
+SliceObj : Type -> Type
+SliceObj a = a -> Type
+
+public export
+Pi : {a : Type} -> SliceObj a -> Type
+Pi {a} p = (x : a) -> p x
+
+public export
+Sigma : {a : Type} -> SliceObj a -> Type
+Sigma {a} p = (x : a ** p x)
+
+public export
+SigmaToPair : {0 a, b : Type} -> (Sigma {a} (const b)) -> (a, b)
+SigmaToPair (x ** y) = (x, y)
+
+public export
+PairToSigma : {0 a, b : Type} -> (a, b) -> (Sigma {a} (const b))
+PairToSigma (x, y) = (x ** y)
+
+public export
+SliceMorphism : {a : Type} -> SliceObj a -> SliceObj a -> Type
+SliceMorphism {a} s s' = (e : a) -> s e -> s' e
+
+--------------------------------------------------
+--------------------------------------------------
+---- Natural number induction and coinduction ----
+--------------------------------------------------
+--------------------------------------------------
+
+-------------------------------------------------------
+---- Dependent (slice) category of natural numbers ----
+-------------------------------------------------------
+
+public export
+NatSliceObj : Type
+NatSliceObj = SliceObj Nat
+
+public export
+NatPi : NatSliceObj -> Type
+NatPi = Pi {a=Nat}
+
+public export
+NatSigma : NatSliceObj -> Type
+NatSigma = Sigma {a=Nat}
+
+-- If we view a slice object as a functor from the discrete category of
+-- natural numbers to the category `Type`, then this type can be viewed as
+-- a natural transformation.
+public export
+NatSliceNatTrans : NatSliceObj -> NatSliceObj -> Type
+NatSliceNatTrans p q = (n : Nat) -> p n -> q n
+
+public export
+NatSliceMorphism : NatSliceObj -> (Nat -> Nat) -> Type
+NatSliceMorphism p f = NatSliceNatTrans p (p . f)
+
+public export
+NatDepAlgebra : NatSliceObj -> Type
+NatDepAlgebra p = (p Z, NatSliceMorphism p S)
+
+public export
+natDepFoldIdx : {0 p : Nat -> Type} ->
+  NatSliceMorphism p S -> (n, i : Nat) -> p i -> p (n + i)
+natDepFoldIdx op Z i acc = acc
+natDepFoldIdx op (S n) i acc = replace {p} (sym (plusSuccRightSucc n i)) $
+  natDepFoldIdx op n (S i) (op i acc)
+
+public export
+natDepCata : {0 p : NatSliceObj} ->
+  NatDepAlgebra p -> NatPi p
+natDepCata (z, s) n = replace {p} (plusZeroRightNeutral n) $
+  natDepFoldIdx s n 0 z
+
+public export
+NatDepCoalgebra : NatSliceObj -> Type
+NatDepCoalgebra p = NatSliceNatTrans p (Maybe . p . S)
+
+public export
+natDepAna : {0 p : NatSliceObj} ->
+  NatDepCoalgebra p -> NatSigma p -> Inf (Maybe (NatSigma p))
+natDepAna coalg (n ** x) with (coalg n x)
+  natDepAna coalg (n ** x) | Nothing = Nothing
+  natDepAna coalg (n ** x) | Just x' = Delay (natDepAna coalg (S n ** x'))
+
+public export
+NatDepGenAlgebra : NatSliceObj -> Type
+NatDepGenAlgebra p =
+  (p Z, (n : Nat) -> ((m : Nat) -> LTE m n -> p m) -> p (S n))
+
+public export
+natGenIndStrengthened : {0 p : NatSliceObj} ->
+  NatDepGenAlgebra p ->
+  (x : Nat) -> (y : Nat) -> LTE y x -> p y
+natGenIndStrengthened {p} (p0, pS) =
+  natDepCata
+    {p=(\x => (y : Nat) -> LTE y x -> p y)}
+    (\n, lte => replace {p} (lteZeroIsZero lte) p0,
+     \n, hyp, y, lteySn => case lteSuccEitherEqLte lteySn of
+      Left eq => replace {p} (sym eq) $ pS n hyp
+      Right lteyn => hyp y lteyn)
+
+public export
+natGenInd : {0 p : NatSliceObj} ->
+  NatDepGenAlgebra p ->
+  NatPi p
+natGenInd alg k = natGenIndStrengthened alg k k reflexive
+
+-----------------------
+---- Non-dependent ----
+-----------------------
+
+public export
+NatAlgebra : Type -> Type
+NatAlgebra a = (a, Nat -> a -> a)
+
+public export
+natCata : {0 a : Type} -> NatAlgebra a -> Nat -> a
+natCata = natDepCata {p=(const a)}
+
+public export
+NatCoalgebra : Type -> Type
+NatCoalgebra a = Nat -> a -> Maybe a
+
+public export
+natAna : {0 a : Type} -> NatCoalgebra a -> (Nat, a) -> Inf (Maybe (Nat, a))
+natAna coalg nx =
+  map {f=Maybe} SigmaToPair $ natDepAna {p=(const a)} coalg $ PairToSigma nx
+
+-----------------------------
+-----------------------------
+---- Polynomial functors ----
+-----------------------------
+-----------------------------
 
 -----------------------------------------------------
 ---- Polynomial functors as dependent sets/types ----
@@ -45,6 +180,62 @@ InterpPFMap (_ ** _) m (i ** d) = (i ** m . d)
 public export
 (p : PolyFunc) => Functor (InterpPolyFunc p) where
   map {p} = InterpPFMap p
+
+-- A polynomial functor may also be viewed as a slice object
+-- (in the slice category of its type of positions).
+public export
+PolyFuncToSlice : (p : PolyFunc) -> SliceObj (pfPos p)
+PolyFuncToSlice (pos ** dir) = dir
+
+public export
+SliceToPolyFunc : {a : Type} -> SliceObj a -> PolyFunc
+SliceToPolyFunc {a} sl = (a ** sl)
+
+------------------------------------------------------------
+---- Natural transformations on polynomial endofunctors ----
+------------------------------------------------------------
+
+public export
+PolyNatTrans : PolyFunc -> PolyFunc -> Type
+PolyNatTrans (ppos ** pdir) (qpos ** qdir) =
+  (onPos : ppos -> qpos ** ((i : ppos) -> qdir (onPos i) -> pdir i))
+
+public export
+pntOnPos : {0 p, q : PolyFunc} -> PolyNatTrans p q ->
+  pfPos p -> pfPos q
+pntOnPos {p=(_ ** _)} {q=(_ ** _)} (onPos ** onDir) = onPos
+
+public export
+pntOnDir : {0 p, q : PolyFunc} -> (alpha : PolyNatTrans p q) ->
+  (i : pfPos p) -> pfDir {p=q} (pntOnPos {p} {q} alpha i) -> pfDir {p} i
+pntOnDir {p=(_ ** _)} {q=(_ ** _)} (onPos ** onDir) = onDir
+
+public export
+InterpPolyNT : {0 p, q : PolyFunc} -> PolyNatTrans p q ->
+  {0 a : Type} -> InterpPolyFunc p a -> InterpPolyFunc q a
+InterpPolyNT {p=(_ ** _)} {q=(_ ** _)} (onPos ** onDir) (pi ** pd) =
+  (onPos pi ** (pd . onDir pi))
+
+-- A slice morphism can be viewed as a special case of a natural transformation
+-- between the polynomial endofunctors as which the codomain and domain slices
+-- may be viewed.  (The special case is that the on-positions function is the
+-- identity.)
+public export
+SliceMorphismToPolyNatTrans : {0 a : Type} -> {0 s, s' : SliceObj a} ->
+  SliceMorphism s s' -> PolyNatTrans (SliceToPolyFunc s') (SliceToPolyFunc s)
+SliceMorphismToPolyNatTrans {a} m = (id {a} ** m)
+
+public export
+PolyNatTransToSliceMorphism : {0 p, q : PolyFunc} ->
+  {eqpos : pfPos p = pfPos q} ->
+  (alpha : PolyNatTrans p q) ->
+  ((i : pfPos p) -> pntOnPos {p} {q} alpha i = replace {p=(\t => t)} eqpos i) ->
+  SliceMorphism
+    {a=(pfPos p)}
+    (replace {p=(\type => type -> Type)} (sym eqpos) (PolyFuncToSlice q))
+    (PolyFuncToSlice p)
+PolyNatTransToSliceMorphism {p=(_ ** _)} {q=(_ ** qdir)}
+  (_ ** ondir) onPosId i sp = ondir i $ replace {p=qdir} (sym (onPosId i)) sp
 
 --------------------------------------------------------
 ---- Algebras and coalgebras of polynomial functors ----
@@ -110,92 +301,6 @@ pfAna : {0 p : PolyFunc} -> {0 a : Type} -> PFCoalg p a -> a -> PolyFuncNu p
 pfAna {p=p@(pos ** dir)} {a} coalg e = case coalg e of
   (i ** da) => InPFN i $ \d : dir i => pfAna coalg $ da d
 
-------------------------------------------------------------
----- Natural transformations on polynomial endofunctors ----
-------------------------------------------------------------
-
-public export
-PolyNatTrans : PolyFunc -> PolyFunc -> Type
-PolyNatTrans (ppos ** pdir) (qpos ** qdir) =
-  (onPos : ppos -> qpos ** ((i : ppos) -> qdir (onPos i) -> pdir i))
-
-public export
-pntOnPos : {0 p, q : PolyFunc} -> PolyNatTrans p q ->
-  pfPos p -> pfPos q
-pntOnPos {p=(_ ** _)} {q=(_ ** _)} (onPos ** onDir) = onPos
-
-public export
-pntOnDir : {0 p, q : PolyFunc} -> (alpha : PolyNatTrans p q) ->
-  (i : pfPos p) -> pfDir {p=q} (pntOnPos {p} {q} alpha i) -> pfDir {p} i
-pntOnDir {p=(_ ** _)} {q=(_ ** _)} (onPos ** onDir) = onDir
-
-public export
-InterpPolyNT : {0 p, q : PolyFunc} -> PolyNatTrans p q ->
-  {0 a : Type} -> InterpPolyFunc p a -> InterpPolyFunc q a
-InterpPolyNT {p=(_ ** _)} {q=(_ ** _)} (onPos ** onDir) (pi ** pd) =
-  (onPos pi ** (pd . onDir pi))
-
--------------------------
--------------------------
----- Dependent types ----
--------------------------
--------------------------
-
-public export
-SliceObj : Type -> Type
-SliceObj a = a -> Type
-
--- A polynomial functor may also be viewed as a slice object
--- (in the slice category of its type of positions).
-public export
-PolyFuncToSlice : (p : PolyFunc) -> SliceObj (pfPos p)
-PolyFuncToSlice (pos ** dir) = dir
-
-public export
-SliceToPolyFunc : {a : Type} -> SliceObj a -> PolyFunc
-SliceToPolyFunc {a} sl = (a ** sl)
-
-public export
-Pi : {a : Type} -> SliceObj a -> Type
-Pi {a} p = (x : a) -> p x
-
-public export
-Sigma : {a : Type} -> SliceObj a -> Type
-Sigma {a} p = (x : a ** p x)
-
-public export
-SigmaToPair : {0 a, b : Type} -> (Sigma {a} (const b)) -> (a, b)
-SigmaToPair (x ** y) = (x, y)
-
-public export
-PairToSigma : {0 a, b : Type} -> (a, b) -> (Sigma {a} (const b))
-PairToSigma (x, y) = (x ** y)
-
-public export
-SliceMorphism : {a : Type} -> SliceObj a -> SliceObj a -> Type
-SliceMorphism {a} s s' = (e : a) -> s e -> s' e
-
--- A slice morphism can be viewed as a special case of a natural transformation
--- between the polynomial endofunctors as which the codomain and domain slices
--- may be viewed.  (The special case is that the on-positions function is the
--- identity.)
-public export
-SliceMorphismToPolyNatTrans : {0 a : Type} -> {0 s, s' : SliceObj a} ->
-  SliceMorphism s s' -> PolyNatTrans (SliceToPolyFunc s') (SliceToPolyFunc s)
-SliceMorphismToPolyNatTrans {a} m = (id {a} ** m)
-
-public export
-PolyNatTransToSliceMorphism : {0 p, q : PolyFunc} ->
-  {eqpos : pfPos p = pfPos q} ->
-  (alpha : PolyNatTrans p q) ->
-  ((i : pfPos p) -> pntOnPos {p} {q} alpha i = replace {p=(\t => t)} eqpos i) ->
-  SliceMorphism
-    {a=(pfPos p)}
-    (replace {p=(\type => type -> Type)} (sym eqpos) (PolyFuncToSlice q))
-    (PolyFuncToSlice p)
-PolyNatTransToSliceMorphism {p=(_ ** _)} {q=(_ ** qdir)}
-  (_ ** ondir) onPosId i sp = ondir i $ replace {p=qdir} (sym (onPosId i)) sp
-
 ---------------------------------------
 ---- Dependent polynomial functors ----
 ---------------------------------------
@@ -244,6 +349,56 @@ InterpSPFMap ((_ ** dir) ** _) m _ (i ** param ** (eqidx, da)) =
 public export
 SlicePolyEndoF : Type -> Type
 SlicePolyEndoF a = SlicePolyFunc a a
+
+-----------------------------------------------------------------------
+---- Natural transformations on dependent polynomial endofunctors ----
+-----------------------------------------------------------------------
+
+public export
+SPNatTransOnIdx : {x, y : Type} -> (p, q : SlicePolyFunc x y) ->
+  PolyNatTrans (spfFunc p) (spfFunc q) -> Type
+SPNatTransOnIdx {x} p q pnt =
+  (pi : spfPos p) -> (pparam : spfDir {spf=p} pi -> x) ->
+  spfIdx {spf=q} (pntOnPos pnt pi) (pparam . pntOnDir pnt pi) =
+  spfIdx {spf=p} pi pparam
+
+public export
+SPNatTrans : {x, y : Type} -> SlicePolyFunc x y -> SlicePolyFunc x y -> Type
+SPNatTrans {x} p q =
+  (pnt : PolyNatTrans (spfFunc p) (spfFunc q) ** SPNatTransOnIdx p q pnt)
+
+public export
+spntPnt : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} ->
+  SPNatTrans p q -> PolyNatTrans (spfFunc p) (spfFunc q)
+spntPnt = DPair.fst
+
+public export
+spntOnPos : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} -> SPNatTrans p q ->
+  spfPos p -> spfPos q
+spntOnPos = pntOnPos . spntPnt
+
+public export
+spntOnDir : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} ->
+  (alpha : SPNatTrans p q) -> (i : spfPos p) ->
+  spfDir {spf=q} (spntOnPos {p} {q} alpha i) ->
+  spfDir {spf=p} i
+spntOnDir alpha i = pntOnDir (spntPnt alpha) i
+
+public export
+spntOnIdx : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} ->
+  (alpha : SPNatTrans p q) -> SPNatTransOnIdx p q (spntPnt {p} {q} alpha)
+spntOnIdx = DPair.snd
+
+public export
+InterpSPNT : {0 x, y : Type} -> {p, q : SlicePolyFunc x y} ->
+  SPNatTrans p q -> {0 sx : SliceObj x} ->
+  SliceMorphism {a=y} (InterpSPFunc p sx) (InterpSPFunc q sx)
+InterpSPNT {x} {y} {p=((ppos ** pdir) ** pidx)} {q=((qpos ** qdir) ** qidx)}
+  ((onPos ** onDir) ** onIdx) {sx} _ (pi ** pparam ** (Refl, pda)) =
+    (onPos pi **
+     pparam . onDir pi **
+     (onIdx pi pparam,
+      \qd : qdir (onPos pi) => pda $ onDir pi qd))
 
 ------------------------------------------------------------------
 ---- Algebras and coalgebras of dependent polynomial functors ----
@@ -295,56 +450,6 @@ spfAna {a} {spf=spf@((pos ** dir) ** idx)} {sa} coalg ea esa =
   case coalg ea esa of
     (i ** param ** (Refl, da)) =>
       InSPFN i param $ \di : dir i => spfAna coalg (param di) (da di)
-
------------------------------------------------------------------------
----- Natural transformations on dependent polynomial endofunctors ----
------------------------------------------------------------------------
-
-public export
-SPNatTransOnIdx : {x, y : Type} -> (p, q : SlicePolyFunc x y) ->
-  PolyNatTrans (spfFunc p) (spfFunc q) -> Type
-SPNatTransOnIdx {x} p q pnt =
-  (pi : spfPos p) -> (pparam : spfDir {spf=p} pi -> x) ->
-  spfIdx {spf=q} (pntOnPos pnt pi) (pparam . pntOnDir pnt pi) =
-  spfIdx {spf=p} pi pparam
-
-public export
-SPNatTrans : {x, y : Type} -> SlicePolyFunc x y -> SlicePolyFunc x y -> Type
-SPNatTrans {x} p q =
-  (pnt : PolyNatTrans (spfFunc p) (spfFunc q) ** SPNatTransOnIdx p q pnt)
-
-public export
-spntPnt : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} ->
-  SPNatTrans p q -> PolyNatTrans (spfFunc p) (spfFunc q)
-spntPnt = DPair.fst
-
-public export
-spntOnPos : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} -> SPNatTrans p q ->
-  spfPos p -> spfPos q
-spntOnPos = pntOnPos . spntPnt
-
-public export
-spntOnDir : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} ->
-  (alpha : SPNatTrans p q) -> (i : spfPos p) ->
-  spfDir {spf=q} (spntOnPos {p} {q} alpha i) ->
-  spfDir {spf=p} i
-spntOnDir alpha i = pntOnDir (spntPnt alpha) i
-
-public export
-spntOnIdx : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} ->
-  (alpha : SPNatTrans p q) -> SPNatTransOnIdx p q (spntPnt {p} {q} alpha)
-spntOnIdx = DPair.snd
-
-public export
-InterpSPNT : {0 x, y : Type} -> {p, q : SlicePolyFunc x y} ->
-  SPNatTrans p q -> {0 sx : SliceObj x} ->
-  SliceMorphism {a=y} (InterpSPFunc p sx) (InterpSPFunc q sx)
-InterpSPNT {x} {y} {p=((ppos ** pdir) ** pidx)} {q=((qpos ** qdir) ** qidx)}
-  ((onPos ** onDir) ** onIdx) {sx} _ (pi ** pparam ** (Refl, pda)) =
-    (onPos pi **
-     pparam . onDir pi **
-     (onIdx pi pparam,
-      \qd : qdir (onPos pi) => pda $ onDir pi qd))
 
 ----------------------------------------
 ---- Polynomial (co)free (co)monads ----
@@ -468,7 +573,9 @@ SPFCofreeCMFromNu spf sx =
   SPFNu {a=x} (SPFScale {x} {y=x} spf (Sigma sx) (const id))
 
 -----------------------
+-----------------------
 ---- Refined types ----
+-----------------------
 -----------------------
 
 public export
@@ -1710,111 +1817,6 @@ natOTCata x alg (InFreeM $ InCom c) = alg $ case c of
   (Left (), Right n) => (Left (), Right $ natOTCata x alg n)
   (Right n, Left ()) => (Right $ natOTCata x alg n, Left ())
   (Right m, Right n) => (Right $ natOTCata x alg m, Right $ natOTCata x alg n)
-
---------------------------------------------------
---------------------------------------------------
----- Natural number induction and coinduction ----
---------------------------------------------------
---------------------------------------------------
-
--------------------------------------------------------
----- Dependent (slice) category of natural numbers ----
--------------------------------------------------------
-
-public export
-NatSliceObj : Type
-NatSliceObj = SliceObj Nat
-
-public export
-NatPi : NatSliceObj -> Type
-NatPi = Pi {a=Nat}
-
-public export
-NatSigma : NatSliceObj -> Type
-NatSigma = Sigma {a=Nat}
-
--- If we view a slice object as a functor from the discrete category of
--- natural numbers to the category `Type`, then this type can be viewed as
--- a natural transformation.
-public export
-NatSliceNatTrans : NatSliceObj -> NatSliceObj -> Type
-NatSliceNatTrans p q = (n : Nat) -> p n -> q n
-
-public export
-NatSliceMorphism : NatSliceObj -> (Nat -> Nat) -> Type
-NatSliceMorphism p f = NatSliceNatTrans p (p . f)
-
-public export
-NatDepAlgebra : NatSliceObj -> Type
-NatDepAlgebra p = (p Z, NatSliceMorphism p S)
-
-public export
-natDepFoldIdx : {0 p : Nat -> Type} ->
-  NatSliceMorphism p S -> (n, i : Nat) -> p i -> p (n + i)
-natDepFoldIdx op Z i acc = acc
-natDepFoldIdx op (S n) i acc = replace {p} (sym (plusSuccRightSucc n i)) $
-  natDepFoldIdx op n (S i) (op i acc)
-
-public export
-natDepCata : {0 p : NatSliceObj} ->
-  NatDepAlgebra p -> NatPi p
-natDepCata (z, s) n = replace {p} (plusZeroRightNeutral n) $
-  natDepFoldIdx s n 0 z
-
-public export
-NatDepCoalgebra : NatSliceObj -> Type
-NatDepCoalgebra p = NatSliceNatTrans p (Maybe . p . S)
-
-public export
-natDepAna : {0 p : NatSliceObj} ->
-  NatDepCoalgebra p -> NatSigma p -> Inf (Maybe (NatSigma p))
-natDepAna coalg (n ** x) with (coalg n x)
-  natDepAna coalg (n ** x) | Nothing = Nothing
-  natDepAna coalg (n ** x) | Just x' = Delay (natDepAna coalg (S n ** x'))
-
-public export
-NatDepGenAlgebra : NatSliceObj -> Type
-NatDepGenAlgebra p =
-  (p Z, (n : Nat) -> ((m : Nat) -> LTE m n -> p m) -> p (S n))
-
-public export
-natGenIndStrengthened : {0 p : NatSliceObj} ->
-  NatDepGenAlgebra p ->
-  (x : Nat) -> (y : Nat) -> LTE y x -> p y
-natGenIndStrengthened {p} (p0, pS) =
-  natDepCata
-    {p=(\x => (y : Nat) -> LTE y x -> p y)}
-    (\n, lte => replace {p} (lteZeroIsZero lte) p0,
-     \n, hyp, y, lteySn => case lteSuccEitherEqLte lteySn of
-      Left eq => replace {p} (sym eq) $ pS n hyp
-      Right lteyn => hyp y lteyn)
-
-public export
-natGenInd : {0 p : NatSliceObj} ->
-  NatDepGenAlgebra p ->
-  NatPi p
-natGenInd alg k = natGenIndStrengthened alg k k reflexive
-
------------------------
----- Non-dependent ----
------------------------
-
-public export
-NatAlgebra : Type -> Type
-NatAlgebra a = (a, Nat -> a -> a)
-
-public export
-natCata : {0 a : Type} -> NatAlgebra a -> Nat -> a
-natCata = natDepCata {p=(const a)}
-
-public export
-NatCoalgebra : Type -> Type
-NatCoalgebra a = Nat -> a -> Maybe a
-
-public export
-natAna : {0 a : Type} -> NatCoalgebra a -> (Nat, a) -> Inf (Maybe (Nat, a))
-natAna coalg nx =
-  map {f=Maybe} SigmaToPair $ natDepAna {p=(const a)} coalg $ PairToSigma nx
 
 ----------------------------------------------------
 ----------------------------------------------------
