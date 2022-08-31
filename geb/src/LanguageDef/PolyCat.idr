@@ -365,8 +365,8 @@ PFTranslate : PolyFunc -> Type -> PolyFunc
 PFTranslate p a = (PFTranslatePos p a ** PFTranslateDir p a)
 
 public export
-PolyFuncFreeM : PolyFunc -> Type -> Type
-PolyFuncFreeM = PolyFuncMu .* PFTranslate
+PolyFuncFreeMFromMu : PolyFunc -> Type -> Type
+PolyFuncFreeMFromMu = PolyFuncMu .* PFTranslate
 
 public export
 data PFScalePos : PolyFunc -> Type -> Type where
@@ -381,8 +381,8 @@ PFScale : PolyFunc -> Type -> PolyFunc
 PFScale p a = (PFScalePos p a ** PFScaleDir p a)
 
 public export
-PolyFuncCofreeCM : PolyFunc -> Type -> Type
-PolyFuncCofreeCM = PolyFuncNu .* PFScale
+PolyFuncCofreeCMFromNu : PolyFunc -> Type -> Type
+PolyFuncCofreeCMFromNu = PolyFuncNu .* PFScale
 
 --------------------------------------------------
 ---- Dependent polynomial (co)free (co)monads ----
@@ -414,8 +414,9 @@ SPFTranslate : {x, y : Type} -> SlicePolyFunc x y -> (a : Type) ->
 SPFTranslate spf a f = (SPFTranslateFunc spf a ** SPFTranslateIdx spf a f)
 
 public export
-SPFFreeM : {x : Type} -> SlicePolyEndoF x -> SliceObj x -> SliceObj x
-SPFFreeM spf sx = SPFMu {a=x} (SPFTranslate {x} {y=x} spf (Sigma sx) (const id))
+SPFFreeMFromMu : {x : Type} -> SlicePolyEndoF x -> SliceObj x -> SliceObj x
+SPFFreeMFromMu spf sx =
+  SPFMu {a=x} (SPFTranslate {x} {y=x} spf (Sigma sx) (const id))
 
 public export
 SPFScalePos : {0 x, y : Type} -> SlicePolyFunc x y -> Type -> Type
@@ -442,8 +443,9 @@ SPFScale : {x, y : Type} -> SlicePolyFunc x y -> (a : Type) ->
 SPFScale spf a f = (SPFScaleFunc spf a ** SPFScaleIdx spf a f)
 
 public export
-SPFCofreeCM : {x : Type} -> SlicePolyEndoF x -> SliceObj x -> SliceObj x
-SPFCofreeCM spf sx = SPFNu {a=x} (SPFScale {x} {y=x} spf (Sigma sx) (const id))
+SPFCofreeCMFromNu : {x : Type} -> SlicePolyEndoF x -> SliceObj x -> SliceObj x
+SPFCofreeCMFromNu spf sx =
+  SPFNu {a=x} (SPFScale {x} {y=x} spf (Sigma sx) (const id))
 
 -----------------------
 ---- Refined types ----
