@@ -977,6 +977,43 @@ polyDepth3BinTree = polyf1
 polyDepth3BinTreeFixed : PolyMu
 polyDepth3BinTreeFixed = polyDepth3BinTree $. Poly0
 
+------------------------------------------
+------------------------------------------
+---- Metalanguage polynomial functors ----
+------------------------------------------
+------------------------------------------
+
+data BinBoolTreePos : Type where
+  BBLeaf : Bool -> BinBoolTreePos
+  BBNode : BinBoolTreePos
+
+data BinBoolTreeDir : BinBoolTreePos -> Type where
+  BBLeft : BinBoolTreeDir BBNode
+  BBRight : BinBoolTreeDir BBNode
+
+BinBoolTreeLeafVoid : {0 x : Type} -> {0 b : Bool} ->
+  BinBoolTreeDir (BBLeaf b) -> x
+BinBoolTreeLeafVoid BBLeft impossible
+BinBoolTreeLeafVoid BBRight impossible
+
+BinBoolTreePF : PolyFunc
+BinBoolTreePF = (BinBoolTreePos ** BinBoolTreeDir)
+
+BinBoolTreeF : Type -> Type
+BinBoolTreeF = InterpPolyFunc BinBoolTreePF
+
+InBBLeaf : {ty : Type} -> Bool -> BinBoolTreeF ty
+InBBLeaf b = (BBLeaf b ** BinBoolTreeLeafVoid)
+
+BinBoolTree1 : Type
+BinBoolTree1 = BinBoolTreeF Void
+
+binBoolTree1False : BinBoolTree1
+binBoolTree1False = InBBLeaf False
+
+binBoolTree1True : BinBoolTree1
+binBoolTree1True = InBBLeaf True
+
 ----------------------------------
 ----------------------------------
 ----- Exported test function -----
@@ -1189,6 +1226,10 @@ polyCatTest = do
   putStrLn $ show testSO9
   putStrLn "--------"
   XXX -}
+  putStrLn ""
+  putStrLn "------------------------------------------"
+  putStrLn "---- Metalanguage polynomial functors ----"
+  putStrLn "------------------------------------------"
   putStrLn ""
   putStrLn "----------------"
   putStrLn "End polyCatTest."

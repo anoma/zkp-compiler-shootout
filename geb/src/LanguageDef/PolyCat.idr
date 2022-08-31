@@ -365,8 +365,28 @@ PFTranslate : PolyFunc -> Type -> PolyFunc
 PFTranslate p a = (PFTranslatePos p a ** PFTranslateDir p a)
 
 public export
-PolyFuncFreeMFromMu : PolyFunc -> Type -> Type
-PolyFuncFreeMFromMu = PolyFuncMu .* PFTranslate
+PolyFuncFreeMPos : PolyFunc -> Type
+PolyFuncFreeMPos = PolyFuncMu
+
+public export
+PolyFuncFreeMDirAlg : (p : PolyFunc) -> PFAlg p Type
+PolyFuncFreeMDirAlg (pos ** dir) = \i, d => Either (dir i) (DPair (dir i) d)
+
+public export
+PolyFuncFreeMDir : (p : PolyFunc) -> PolyFuncFreeMPos p -> Type
+PolyFuncFreeMDir p = pfCata $ PolyFuncFreeMDirAlg p
+
+public export
+PolyFuncFreeM : PolyFunc -> PolyFunc
+PolyFuncFreeM p = (PolyFuncFreeMPos p ** PolyFuncFreeMDir p)
+
+public export
+InterpPolyFuncFreeM : PolyFunc -> Type -> Type
+InterpPolyFuncFreeM = InterpPolyFunc . PolyFuncFreeM
+
+public export
+PolyFuncFreeMFromTranslate : PolyFunc -> Type -> Type
+PolyFuncFreeMFromTranslate = PolyFuncMu .* PFTranslate
 
 public export
 data PFScalePos : PolyFunc -> Type -> Type where
