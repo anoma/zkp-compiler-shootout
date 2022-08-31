@@ -261,58 +261,6 @@ public export
 PFCoalg : PolyFunc -> Type -> Type
 PFCoalg (pos ** dir) a = a -> (i : pos ** (dir i -> a))
 
--------------------------------------------------------------------------
----- Initial algebras and terminal coalgebras of polynomial functors ----
--------------------------------------------------------------------------
-
-public export
-data PolyFuncMu : PolyFunc -> Type where
-  InPFM : {0 p : PolyFunc} ->
-    (i : pfPos p) -> (pfDir {p} i -> PolyFuncMu p) -> PolyFuncMu p
-
-public export
-InPFMInterp : {0 pos : Type} -> {0 dir : pos -> Type} ->
-  InterpPolyFunc (pos ** dir) (PolyFuncMu (pos ** dir)) ->
-  PolyFuncMu (pos ** dir)
-InPFMInterp {pos} {dir} (i ** d) = InPFM {p=(pos ** dir)} i d
-
-public export
-InterpInPFM : {0 pos : Type} -> {0 dir : pos -> Type} ->
-  PolyFuncMu (pos ** dir) ->
-  InterpPolyFunc (pos ** dir) (PolyFuncMu (pos ** dir))
-InterpInPFM {pos} {dir} (InPFM {p=(pos ** dir)} i d) = (i ** d)
-
-public export
-data PolyFuncNu : PolyFunc -> Type where
-  InPFN : {0 p : PolyFunc} ->
-    (i : pfPos p) -> (pfDir {p} i -> Inf (PolyFuncNu p)) -> PolyFuncNu p
-
-public export
-InPFNInterp : {0 pos : Type} -> {0 dir : pos -> Type} ->
-  InterpPolyFunc (pos ** dir) (Inf (PolyFuncNu (pos ** dir))) ->
-  PolyFuncNu (pos ** dir)
-InPFNInterp {pos} {dir} (i ** d) = InPFN {p=(pos ** dir)} i d
-
-public export
-InterpInPFN : {0 pos : Type} -> {0 dir : pos -> Type} ->
-  PolyFuncNu (pos ** dir) ->
-  InterpPolyFunc (pos ** dir) (Inf (PolyFuncNu (pos ** dir)))
-InterpInPFN {pos} {dir} (InPFN {p=(pos ** dir)} i d) = (i ** d)
-
----------------------------------------------------------------
----- Catamorphisms and anamorphisms of polynomial functors ----
----------------------------------------------------------------
-
-public export
-pfCata : {0 p : PolyFunc} -> {0 a : Type} -> PFAlg p a -> PolyFuncMu p -> a
-pfCata {p=p@(pos ** dir)} {a} alg (InPFM i da) =
-  alg i $ \d : dir i => pfCata {p} alg $ da d
-
-public export
-pfAna : {0 p : PolyFunc} -> {0 a : Type} -> PFCoalg p a -> a -> PolyFuncNu p
-pfAna {p=p@(pos ** dir)} {a} coalg e = case coalg e of
-  (i ** da) => InPFN i $ \d : dir i => pfAna coalg $ da d
-
 ---------------------------------------
 ---- Dependent polynomial functors ----
 ---------------------------------------
@@ -423,6 +371,58 @@ SPFAlg spf sa = SliceMorphism (InterpSPFunc spf sa) sa
 public export
 SPFCoalg : {a : Type} -> SlicePolyEndoF a -> SliceObj a -> Type
 SPFCoalg spf sa = SliceMorphism sa (InterpSPFunc spf sa)
+
+-------------------------------------------------------------------------
+---- Initial algebras and terminal coalgebras of polynomial functors ----
+-------------------------------------------------------------------------
+
+public export
+data PolyFuncMu : PolyFunc -> Type where
+  InPFM : {0 p : PolyFunc} ->
+    (i : pfPos p) -> (pfDir {p} i -> PolyFuncMu p) -> PolyFuncMu p
+
+public export
+InPFMInterp : {0 pos : Type} -> {0 dir : pos -> Type} ->
+  InterpPolyFunc (pos ** dir) (PolyFuncMu (pos ** dir)) ->
+  PolyFuncMu (pos ** dir)
+InPFMInterp {pos} {dir} (i ** d) = InPFM {p=(pos ** dir)} i d
+
+public export
+InterpInPFM : {0 pos : Type} -> {0 dir : pos -> Type} ->
+  PolyFuncMu (pos ** dir) ->
+  InterpPolyFunc (pos ** dir) (PolyFuncMu (pos ** dir))
+InterpInPFM {pos} {dir} (InPFM {p=(pos ** dir)} i d) = (i ** d)
+
+public export
+data PolyFuncNu : PolyFunc -> Type where
+  InPFN : {0 p : PolyFunc} ->
+    (i : pfPos p) -> (pfDir {p} i -> Inf (PolyFuncNu p)) -> PolyFuncNu p
+
+public export
+InPFNInterp : {0 pos : Type} -> {0 dir : pos -> Type} ->
+  InterpPolyFunc (pos ** dir) (Inf (PolyFuncNu (pos ** dir))) ->
+  PolyFuncNu (pos ** dir)
+InPFNInterp {pos} {dir} (i ** d) = InPFN {p=(pos ** dir)} i d
+
+public export
+InterpInPFN : {0 pos : Type} -> {0 dir : pos -> Type} ->
+  PolyFuncNu (pos ** dir) ->
+  InterpPolyFunc (pos ** dir) (Inf (PolyFuncNu (pos ** dir)))
+InterpInPFN {pos} {dir} (InPFN {p=(pos ** dir)} i d) = (i ** d)
+
+---------------------------------------------------------------
+---- Catamorphisms and anamorphisms of polynomial functors ----
+---------------------------------------------------------------
+
+public export
+pfCata : {0 p : PolyFunc} -> {0 a : Type} -> PFAlg p a -> PolyFuncMu p -> a
+pfCata {p=p@(pos ** dir)} {a} alg (InPFM i da) =
+  alg i $ \d : dir i => pfCata {p} alg $ da d
+
+public export
+pfAna : {0 p : PolyFunc} -> {0 a : Type} -> PFCoalg p a -> a -> PolyFuncNu p
+pfAna {p=p@(pos ** dir)} {a} coalg e = case coalg e of
+  (i ** da) => InPFN i $ \d : dir i => pfAna coalg $ da d
 
 ---------------------------------------------------------------------------
 ---- Initial algebras and terminal coalgebras of dependent polynomials ----
