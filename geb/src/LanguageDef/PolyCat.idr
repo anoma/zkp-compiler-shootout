@@ -992,14 +992,18 @@ FinTDepthObj Z = Void
 FinTDepthObj (S n) = FinTPredDepthObj n
 
 public export
+fromNewZero : {0 a : Type} -> FinTNewObj 0 -> a
+fromNewZero v = void v
+
+public export
+fromDepthZero : {0 a : Type} -> FinTDepthObj 0 -> a
+fromDepthZero v = void v
+
+public export
 depthNonZero : FinTFNew 0 -> Void
 depthNonZero (FinTFConst _) impossible
 depthNonZero (FinTFVar (FTVCoproduct x y)) impossible
 depthNonZero (FinTFVar (FTVProduct x y)) impossible
-
-public export
-newNonZero : {0 a : Type} -> FinTNewObj 0 -> a
-newNonZero v = void v
 
 public export
 depth0ExFalso : {0 a : Type} -> FinTFNew 0 -> a
