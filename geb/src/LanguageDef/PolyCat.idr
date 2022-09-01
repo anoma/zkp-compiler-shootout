@@ -1094,28 +1094,30 @@ depth0ExFalso type = void (depth0Void type)
 
 -- The signature of the induction principle for `FinTFNew`.
 public export
-FinTFNewIndAlg : Type -> Type
+FinTFNewIndAlg : ((n : Nat) -> FinTFNew n -> Type) -> Type
 FinTFNewIndAlg a =
   (n : Nat) ->
-  (FinTFDepth n -> a) ->
-  FinTFNew (S n) ->
-  a
+  ((type : FinTFDepth n) -> a (minDepth type) (FinType type)) ->
+  (type : FinTFNew (S n)) ->
+  a (S n) type
 
 public export
 FinTFNewIndAlgStrengthened :
-  {0 a : Type} ->
+  {0 a : (n : Nat) -> FinTFNew n -> Type} ->
   FinTFNewIndAlg a ->
   (n : Nat) ->
-  ((m : Nat) -> LTE m n -> FinTFNew m -> a) ->
-  FinTFNew (S n) ->
-  a
+  ((m : Nat) -> LTE m n -> (type : FinTFNew m) -> a m type) ->
+  (type : FinTFNew (S n)) ->
+  a (S n) type
 FinTFNewIndAlgStrengthened alg n hyp =
   alg n $ \dtype => hyp (minDepth dtype) (depthLTE dtype) (FinType dtype)
 
 -- Induction on `FinTFNew`.
 public export
-finTFNewInd : {0 a : Type} -> FinTFNewIndAlg a -> (n : Nat) -> FinTFNew n -> a
-finTFNewInd alg = natDepGenInd (depth0ExFalso, FinTFNewIndAlgStrengthened alg)
+finTFNewInd : {0 a : (n : Nat) -> FinTFNew n -> Type} ->
+  FinTFNewIndAlg a -> (n : Nat) -> (type : FinTFNew n) -> a n type
+finTFNewInd {a} alg =
+  natDepGenInd (\type => depth0ExFalso type, FinTFNewIndAlgStrengthened alg)
 
 -- The directed colimit of the metalanguage functor that generates
 -- object-language types.  (The directed colimit is also known as the
@@ -1133,7 +1135,7 @@ TFDepthToMu {n} (m ** (lte, type)) = (m ** type)
 -- hom-set is isomorphic to the object itself.  From the perspective
 -- of (dependent) types, these are the terms of the object/type.
 public export
-data FinTFNewTermAlg : FinTFNewIndAlg Type where
+data FinTFNewTermAlg : FinTFNewIndAlg (\_, _ => Type) where
   FTTUnit :
     {0 hyp : FinTFDepth Z -> Type} ->
     FinTFNewTermAlg Z hyp FTFNTerminal
@@ -1167,7 +1169,7 @@ FinNewMorphF n morph type = ?FinNewMorphF_hole
 
 public export
 FinNewMorph : {n : Nat} -> FinTFNew n -> Type
-FinNewMorph {n} = finTFNewInd FinNewMorphF n
+FinNewMorph {n} = finTFNewInd {a=(\_, _ => Type)} FinNewMorphF n
 
 public export
 FinDepthMorph : {n : Nat} -> FinTFDepth n -> Type
