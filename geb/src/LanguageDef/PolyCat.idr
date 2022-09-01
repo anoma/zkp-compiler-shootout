@@ -1160,6 +1160,25 @@ public export
 FinTFNewTerm : (n : Nat) -> FinTFNew n -> Type
 FinTFNewTerm = finTFNewInd FinTFNewTermAlg
 
+-- Generate the exponential object of a pair of finite unrefined objects.
+public export
+FinExpObjF : (n : Nat) ->
+  (FinTFDepth n -> MuFinTF -> MuFinTF) -> FinTFNew (S n) -> MuFinTF -> MuFinTF
+FinExpObjF n morph type cod = ?FinExpObjF_hole
+
+public export
+FinNewExpObj : {m, n : Nat} -> FinTFNew m -> FinTFNew n -> MuFinTF
+FinNewExpObj {m} {n} tm tn =
+  finTFNewInd {a=(\_, _ => MuFinTF -> MuFinTF)} FinExpObjF m tm (n ** tn)
+
+public export
+FinDepthExpObj : {m, n : Nat} -> FinTFDepth m -> FinTFDepth n -> MuFinTF
+FinDepthExpObj (m ** (_, tm)) (n ** (_, tn)) = FinNewExpObj tm tn
+
+public export
+MuFinExpObj : MuFinTF -> MuFinTF -> MuFinTF
+MuFinExpObj (m ** tm) (n ** tn) = FinNewExpObj tm tn
+
 -- Generate the morphisms out of a given finite unrefined type of
 -- a given depth, given the morphisms out of all unrefined types of
 -- lesser depths.
