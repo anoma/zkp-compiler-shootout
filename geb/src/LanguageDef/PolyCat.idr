@@ -94,6 +94,12 @@ natDepCata (z, s) n = replace {p} (plusZeroRightNeutral n) $
   natDepFoldIdx s n 0 z
 
 public export
+natDepCataZ : {0 p : NatSliceObj} ->
+  {0 alg : NatDepAlgebra p} ->
+  natDepCata {p} alg Z = fst alg
+natDepCataZ {p} {alg=(_, _)} = Refl
+
+public export
 NatDepCoalgebra : NatSliceObj -> Type
 NatDepCoalgebra p = NatSliceMorphism p (Maybe . p . S)
 
@@ -3894,6 +3900,41 @@ BUNat : Nat -> Type
 BUNat Z = Void
 BUNat (S n) = Either Unit (BUNat n)
 
+public export
+BUNatDepAlg :
+  {0 p : (n : Nat) -> BUNat n -> Type} ->
+  ((n : Nat) -> p (S n) (Left ())) ->
+  ((n : Nat) ->
+   ((bu : BUNat n) -> p n bu) ->
+   (bu : BUNat n) -> p (S n) (Right bu)) ->
+  NatDepAlgebra (\n => (bu : BUNat n) -> p n bu)
+BUNatDepAlg {p} z s =
+  (\bu => void bu,
+   \n, hyp, bu => case bu of
+    Left () => z n
+    Right bu' => s n hyp bu')
+
+public export
+buNatDepCata :
+  {0 p : (n : Nat) -> BUNat n -> Type} ->
+  ((n : Nat) -> p (S n) (Left ())) ->
+  ((n : Nat) ->
+   ((bu : BUNat n) -> p n bu) ->
+   (bu : BUNat n) -> p (S n) (Right bu)) ->
+  (n : Nat) -> (bu : BUNat n) -> p n bu
+buNatDepCata {p} z s = natDepCata (BUNatDepAlg {p} z s)
+
+public export
+buNatDepCataZ :
+  {0 p : (n : Nat) -> BUNat n -> Type} ->
+  {0 z : (n : Nat) -> p (S n) (Left ())} ->
+  {0 s : (n : Nat) ->
+   ((bu : BUNat n) -> p n bu) ->
+   (bu : BUNat n) -> p (S n) (Right bu)} ->
+  {n : Nat} ->
+  buNatDepCata {p} z s (S n) (Left ()) = z n
+buNatDepCataZ {p} {z} {s} = ?hmm -- natDepCataZ {p=(\n => (bu : BUNat n) -> p n bu)} {alg=(BUNatDepAlg {p} z s)}
+
 --------------------------------------------
 ---- Bounded arithmetic natural numbers ----
 --------------------------------------------
@@ -3923,8 +3964,27 @@ MkBANat : {0 n : Nat} -> (m : Nat) -> {auto 0 satisfies : IsBoundedBy n m} ->
 MkBANat = MkRefinement
 
 public export
+baS : {0 n : Nat} -> BANat n -> BANat (S n)
+baS (Element0 m lt) = Element0 (S m) lt
+
+public export
 baShowLong : {n : Nat} -> BANat n -> String
 baShowLong {n} m = show m ++ "[<" ++ show n ++ "]"
+
+public export
+baNatDepCata :
+  {0 p : (n : Nat) -> BANat n -> Type} ->
+  ((n : Nat) -> p (S n) (Element0 0 Refl)) ->
+  ((n : Nat) ->
+   ((ba : BANat n) -> p n ba) ->
+   (ba : BANat n) -> p (S n) (baS {n} ba)) ->
+  (n : Nat) -> (ba : BANat n) -> p n ba
+baNatDepCata {p} z s =
+  natDepCata {p=(\n' => (ba' : BANat n') -> p n' ba')}
+    (\ba => case ba of Element0 ba' Refl impossible,
+     \n, hyp, ba => case ba of
+      Element0 Z lt => rewrite uip {eq=lt} {eq'=Refl} in z n
+      Element0 (S ba') lt => s n hyp (Element0 ba' lt))
 
 -------------------------------------------------------------------
 ---- Translation between unary and arithmetic bounded naturals ----
@@ -3932,38 +3992,57 @@ baShowLong {n} m = show m ++ "[<" ++ show n ++ "]"
 
 public export
 u2a : {n : Nat} -> BUNat n -> BANat n
-u2a {n=Z} v = void v
-u2a {n=(S n)} (Left ()) = Element0 0 Refl
-u2a {n=(S n)} (Right bu) with (u2a bu)
-  u2a {n=(S n)} (Right bu) | Element0 bu' lt = Element0 (S bu') lt
+u2a {n} =
+  buNatDepCata {p=(\n, _ => BANat n)}
+    (\_ => Element0 0 Refl)
+    (\n, hyp, bu => let Element0 bu' lt = hyp bu in Element0 (S bu') lt)
+    n
 
 public export
 a2u : {n : Nat} -> BANat n -> BUNat n
-a2u {n=Z} (Element0 ba Refl) impossible
-a2u {n=(S n)} (Element0 Z lt) = Left ()
-a2u {n=(S n)} (Element0 (S ba) lt) = Right $ a2u $ Element0 ba lt
+a2u {n} =
+  baNatDepCata {p=(\n, _ => BUNat n)}
+    (\_ => Left ())
+    (\n, hyp, ba => Right $ hyp ba)
+    n
 
 public export
 u2a2u_correct : {n : Nat} -> {bu : BUNat n} -> bu = a2u {n} (u2a {n} bu)
+u2a2u_correct {n} {bu} =
+  buNatDepCata {p=(\n', bu' => bu' = a2u {n=n'} (u2a {n=n'} bu'))}
+    (\n' => ?h1)
+    ?h2
+    n
+    bu
+{-
 u2a2u_correct {n=Z} {bu} = void bu
 u2a2u_correct {n=(S n)} {bu=(Left ())} = Refl
 u2a2u_correct {n=(S n)} {bu=(Right bu)} with (u2a bu) proof eq
   u2a2u_correct {n=(S n)} {bu=(Right bu)} | Element0 m lt =
     rewrite (sym eq) in cong Right $ u2a2u_correct {n} {bu}
+    -}
 
 public export
-a2u2a_fst_correct : {n : Nat} -> {ba : BANat n} ->
-  fst0 ba = fst0 (u2a {n} (a2u {n} ba))
+a2u2a_correct : {n : Nat} -> {ba : BANat n} -> ba = u2a {n} (a2u {n} ba)
+a2u2a_correct {n} {ba} =
+  baNatDepCata {p=(\n', ba' => ba' = u2a {n=n'} (a2u {n=n'} ba'))}
+    ?h3
+    ?h4
+    n
+    ba
+    {-
 a2u2a_fst_correct {n=Z} {ba=(Element0 ba Refl)} impossible
 a2u2a_fst_correct {n=(S n)} {ba=(Element0 Z lt)} = Refl
 a2u2a_fst_correct {n=(S n)} {ba=(Element0 (S ba) lt)}
   with (u2a (a2u (Element0 ba lt))) proof p
     a2u2a_fst_correct {n=(S n)} {ba=(Element0 (S ba) lt)} | Element0 ba' lt' =
       cong S $ trans (a2u2a_fst_correct {ba=(Element0 ba lt)}) $ cong fst0 p
-
+      -}
+{-
 public export
 a2u2a_correct : {n : Nat} -> {ba : BANat n} -> ba = u2a {n} (a2u {n} ba)
 a2u2a_correct {n} {ba} = refinementFstEq $ a2u2a_fst_correct {n} {ba}
+-}
 
 public export
 MkBUNat : {n : Nat} -> (m : Nat) -> {auto 0 satisfies : IsBoundedBy n m} ->
