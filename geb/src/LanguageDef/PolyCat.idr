@@ -1164,20 +1164,22 @@ FinTFNewTerm = finTFNewInd FinTFNewTermAlg
 -- a given depth, given the morphisms out of all unrefined types of
 -- lesser depths.
 public export
-FinNewMorphF : (n : Nat) -> (FinTFDepth n -> Type) -> FinTFNew (S n) -> Type
-FinNewMorphF n morph type = ?FinNewMorphF_hole
+FinNewMorphF : (n : Nat) ->
+  (FinTFDepth n -> MuFinTF -> Type) -> FinTFNew (S n) -> MuFinTF -> Type
+FinNewMorphF n morph type cod = ?FinNewMorphF_hole
 
 public export
-FinNewMorph : {n : Nat} -> FinTFNew n -> Type
-FinNewMorph {n} = finTFNewInd {a=(\_, _ => Type)} FinNewMorphF n
+FinNewMorph : {m, n : Nat} -> FinTFNew m -> FinTFNew n -> Type
+FinNewMorph {m} {n} tm tn =
+  finTFNewInd {a=(\_, _ => MuFinTF -> Type)} FinNewMorphF m tm (n ** tn)
 
 public export
-FinDepthMorph : {n : Nat} -> FinTFDepth n -> Type
-FinDepthMorph {n} (m ** (lte, type)) = FinNewMorph {n=m} type
+FinDepthMorph : {m, n : Nat} -> FinTFDepth m -> FinTFDepth n -> Type
+FinDepthMorph (m ** (_, tm)) (n ** (_, tn)) = FinNewMorph tm tn
 
 public export
-MuFinMorph : MuFinTF -> Type
-MuFinMorph (n ** type) = FinNewMorph {n} type
+MuFinMorph : MuFinTF -> MuFinTF -> Type
+MuFinMorph (m ** tm) (n ** tn) = FinNewMorph tm tn
 
 ------------------------
 ------------------------
