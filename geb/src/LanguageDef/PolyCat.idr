@@ -81,6 +81,19 @@ NatDepAlgebra : NatSliceObj -> Type
 NatDepAlgebra p = (p Z, NatSliceFMorphism p S)
 
 public export
+natNonTailRecursiveIter : {0 p : Nat -> Type} ->
+  NatSliceFMorphism p S -> (n, i : Nat) -> p i -> p (n + i)
+natNonTailRecursiveIter {p} op Z i acc = acc
+natNonTailRecursiveIter {p} op (S n) i acc =
+  op (n + i) $ natNonTailRecursiveIter op n i acc
+
+public export
+natNonTailRecursiveCata : {0 p : NatSliceObj} ->
+  NatDepAlgebra p -> NatPi p
+natNonTailRecursiveCata (z, s) n = replace {p} (plusZeroRightNeutral n) $
+  natNonTailRecursiveIter {p} s n 0 z
+
+public export
 natDepFoldIdx : {0 p : Nat -> Type} ->
   NatSliceFMorphism p S -> (n, i : Nat) -> p i -> p (n + i)
 natDepFoldIdx op Z i acc = acc
