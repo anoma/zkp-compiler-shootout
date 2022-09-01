@@ -3924,17 +3924,6 @@ buNatDepCata :
   (n : Nat) -> (bu : BUNat n) -> p n bu
 buNatDepCata {p} z s = natDepCata (BUNatDepAlg {p} z s)
 
-public export
-buNatDepCataZ :
-  {0 p : (n : Nat) -> BUNat n -> Type} ->
-  {0 z : (n : Nat) -> p (S n) (Left ())} ->
-  {0 s : (n : Nat) ->
-   ((bu : BUNat n) -> p n bu) ->
-   (bu : BUNat n) -> p (S n) (Right bu)} ->
-  {n : Nat} ->
-  buNatDepCata {p} z s (S n) (Left ()) = z n
-buNatDepCataZ {p} {z} {s} = ?hmm -- natDepCataZ {p=(\n => (bu : BUNat n) -> p n bu)} {alg=(BUNatDepAlg {p} z s)}
-
 --------------------------------------------
 ---- Bounded arithmetic natural numbers ----
 --------------------------------------------
