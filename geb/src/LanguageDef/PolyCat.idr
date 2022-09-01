@@ -3992,57 +3992,38 @@ baNatDepCata {p} z s =
 
 public export
 u2a : {n : Nat} -> BUNat n -> BANat n
-u2a {n} =
-  buNatDepCata {p=(\n, _ => BANat n)}
-    (\_ => Element0 0 Refl)
-    (\n, hyp, bu => let Element0 bu' lt = hyp bu in Element0 (S bu') lt)
-    n
+u2a {n=Z} v = void v
+u2a {n=(S n)} (Left ()) = Element0 0 Refl
+u2a {n=(S n)} (Right bu) with (u2a bu)
+  u2a {n=(S n)} (Right bu) | Element0 bu' lt = Element0 (S bu') lt
 
 public export
 a2u : {n : Nat} -> BANat n -> BUNat n
-a2u {n} =
-  baNatDepCata {p=(\n, _ => BUNat n)}
-    (\_ => Left ())
-    (\n, hyp, ba => Right $ hyp ba)
-    n
+a2u {n=Z} (Element0 ba Refl) impossible
+a2u {n=(S n)} (Element0 Z lt) = Left ()
+a2u {n=(S n)} (Element0 (S ba) lt) = Right $ a2u $ Element0 ba lt
 
 public export
 u2a2u_correct : {n : Nat} -> {bu : BUNat n} -> bu = a2u {n} (u2a {n} bu)
-u2a2u_correct {n} {bu} =
-  buNatDepCata {p=(\n', bu' => bu' = a2u {n=n'} (u2a {n=n'} bu'))}
-    (\n' => ?h1)
-    ?h2
-    n
-    bu
-{-
 u2a2u_correct {n=Z} {bu} = void bu
 u2a2u_correct {n=(S n)} {bu=(Left ())} = Refl
 u2a2u_correct {n=(S n)} {bu=(Right bu)} with (u2a bu) proof eq
   u2a2u_correct {n=(S n)} {bu=(Right bu)} | Element0 m lt =
     rewrite (sym eq) in cong Right $ u2a2u_correct {n} {bu}
-    -}
 
 public export
-a2u2a_correct : {n : Nat} -> {ba : BANat n} -> ba = u2a {n} (a2u {n} ba)
-a2u2a_correct {n} {ba} =
-  baNatDepCata {p=(\n', ba' => ba' = u2a {n=n'} (a2u {n=n'} ba'))}
-    ?h3
-    ?h4
-    n
-    ba
-    {-
+a2u2a_fst_correct : {n : Nat} -> {ba : BANat n} ->
+  fst0 ba = fst0 (u2a {n} (a2u {n} ba))
 a2u2a_fst_correct {n=Z} {ba=(Element0 ba Refl)} impossible
 a2u2a_fst_correct {n=(S n)} {ba=(Element0 Z lt)} = Refl
 a2u2a_fst_correct {n=(S n)} {ba=(Element0 (S ba) lt)}
   with (u2a (a2u (Element0 ba lt))) proof p
     a2u2a_fst_correct {n=(S n)} {ba=(Element0 (S ba) lt)} | Element0 ba' lt' =
       cong S $ trans (a2u2a_fst_correct {ba=(Element0 ba lt)}) $ cong fst0 p
-      -}
-{-
+
 public export
 a2u2a_correct : {n : Nat} -> {ba : BANat n} -> ba = u2a {n} (a2u {n} ba)
 a2u2a_correct {n} {ba} = refinementFstEq $ a2u2a_fst_correct {n} {ba}
--}
 
 public export
 MkBUNat : {n : Nat} -> (m : Nat) -> {auto 0 satisfies : IsBoundedBy n m} ->
