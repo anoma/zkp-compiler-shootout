@@ -247,8 +247,8 @@ pntOnDir {p=(_ ** _)} {q=(_ ** _)} (onPos ** onDir) = onDir
 
 public export
 InterpPolyNT : {0 p, q : PolyFunc} -> PolyNatTrans p q ->
-  {0 a : Type} -> InterpPolyFunc p a -> InterpPolyFunc q a
-InterpPolyNT {p=(_ ** _)} {q=(_ ** _)} (onPos ** onDir) (pi ** pd) =
+  SliceMorphism (InterpPolyFunc p) (InterpPolyFunc q)
+InterpPolyNT {p=(_ ** _)} {q=(_ ** _)} (onPos ** onDir) a (pi ** pd) =
   (onPos pi ** (pd . onDir pi))
 
 -- A slice morphism can be viewed as a special case of a natural transformation
@@ -362,9 +362,8 @@ spntOnPos = pntOnPos . spntPnt
 
 public export
 spntOnDir : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} ->
-  (alpha : SPNatTrans p q) -> (i : spfPos p) ->
-  spfDir {spf=q} (spntOnPos {p} {q} alpha i) ->
-  spfDir {spf=p} i
+  (alpha : SPNatTrans p q) ->
+  SliceMorphism (spfDir {spf=q} . spntOnPos {p} {q} alpha) (spfDir {spf=p})
 spntOnDir alpha i = pntOnDir (spntPnt alpha) i
 
 public export
