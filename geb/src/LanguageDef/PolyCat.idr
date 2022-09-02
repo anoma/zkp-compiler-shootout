@@ -511,6 +511,46 @@ PolyFuncFreeMFromTranslate : PolyFunc -> Type -> Type
 PolyFuncFreeMFromTranslate = PolyFuncMu .* PFTranslate
 
 public export
+PolyFuncFreeMPos : PolyFunc -> Type
+PolyFuncFreeMPos = PolyFuncMu
+
+public export
+PolyFuncFreeMDirAlg : (p : PolyFunc) -> PFAlg p Type
+PolyFuncFreeMDirAlg (pos ** dir) = \i, d => Either (dir i) (DPair (dir i) d)
+
+public export
+PolyFuncFreeMDir : (p : PolyFunc) -> PolyFuncFreeMPos p -> Type
+PolyFuncFreeMDir p = pfCata $ PolyFuncFreeMDirAlg p
+
+public export
+PolyFuncFreeM : PolyFunc -> PolyFunc
+PolyFuncFreeM p = (PolyFuncFreeMPos p ** PolyFuncFreeMDir p)
+
+public export
+InterpPolyFuncFreeM : PolyFunc -> Type -> Type
+InterpPolyFuncFreeM = InterpPolyFunc . PolyFuncFreeM
+
+public export
+PolyFMInterpToTranslate : (p : PolyFunc) -> (a : Type) ->
+  InterpPolyFuncFreeM p a -> PolyFuncFreeMFromTranslate p a
+PolyFMInterpToTranslate (pos ** dir) a (i ** d) =
+  ?PolyFMInterpToTranslate_hole
+
+public export
+PolyFMTranslateToInterpAlg : (p : PolyFunc) -> (a : Type) ->
+  (i : PFTranslatePos p a) ->
+  (PFTranslateDir p a i -> InterpPolyFuncFreeM p a) ->
+  InterpPolyFuncFreeM p a
+PolyFMTranslateToInterpAlg (pos ** dir) a (PFVar _) hyp = hyp ()
+PolyFMTranslateToInterpAlg (pos ** dir) a (PFCom i) hyp =
+  ?PolyFMTranslateToInterpAlg_hole_1
+
+public export
+PolyFMTranslateToInterp : (p : PolyFunc) -> (a : Type) ->
+  PolyFuncFreeMFromTranslate p a -> InterpPolyFuncFreeM p a
+PolyFMTranslateToInterp p a = pfCata $ PolyFMTranslateToInterpAlg p a
+
+public export
 data PFScalePos : PolyFunc -> Type -> Type where
   PFNode : {0 p : PolyFunc} -> {0 a : Type} -> a -> pfPos p -> PFScalePos p a
 
@@ -523,8 +563,8 @@ PFScale : PolyFunc -> Type -> PolyFunc
 PFScale p a = (PFScalePos p a ** PFScaleDir p a)
 
 public export
-PolyFuncCofreeCMFromNu : PolyFunc -> Type -> Type
-PolyFuncCofreeCMFromNu = PolyFuncNu .* PFScale
+PolyFuncCofreeCMFromScale : PolyFunc -> Type -> Type
+PolyFuncCofreeCMFromScale = PolyFuncNu .* PFScale
 
 --------------------------------------------------
 ---- Dependent polynomial (co)free (co)monads ----
