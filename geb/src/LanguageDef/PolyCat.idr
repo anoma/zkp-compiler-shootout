@@ -233,7 +233,7 @@ SliceToPolyFunc {a} sl = (a ** sl)
 public export
 PolyNatTrans : PolyFunc -> PolyFunc -> Type
 PolyNatTrans (ppos ** pdir) (qpos ** qdir) =
-  (onPos : ppos -> qpos ** ((i : ppos) -> qdir (onPos i) -> pdir i))
+  (onPos : ppos -> qpos ** SliceMorphism (qdir . onPos) pdir)
 
 public export
 pntOnPos : {0 p, q : PolyFunc} -> PolyNatTrans p q ->
@@ -1139,8 +1139,8 @@ finTFNewInd {a} alg =
   natDepGenInd (\type => depth0ExFalso type, FinTFNewIndAlgStrengthened alg)
 
 -- The directed colimit of the metalanguage functor that generates
--- object-language types.  (The directed colimit is also known as the
--- initial algebra.)
+-- depth-indexed object-language types.  (The directed colimit is also known
+-- as the initial algebra.)
 public export
 MuFinTF : Type
 MuFinTF = DPair Nat FinTFNew
