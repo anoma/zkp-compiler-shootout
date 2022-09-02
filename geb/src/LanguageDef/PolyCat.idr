@@ -341,10 +341,9 @@ public export
 SPNatTransOnIdx : {x, y : Type} -> (p, q : SlicePolyFunc x y) ->
   PolyNatTrans (spfFunc p) (spfFunc q) -> Type
 SPNatTransOnIdx {x} p q pnt =
-  (pi : spfPos p) ->
-    ExtEq
-      (spfIdx {spf=q} (pntOnPos pnt pi) . (|>) (pntOnDir pnt pi))
-      (spfIdx {spf=p} pi)
+  (pi : spfPos p) -> (pparam : spfDir {spf=p} pi -> x) ->
+  spfIdx {spf=q} (pntOnPos pnt pi) (pparam . pntOnDir pnt pi) =
+  spfIdx {spf=p} pi pparam
 
 public export
 SPNatTrans : {x, y : Type} -> SlicePolyFunc x y -> SlicePolyFunc x y -> Type
