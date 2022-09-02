@@ -422,72 +422,6 @@ pfAna : {0 p : PolyFunc} -> {0 a : Type} -> PFCoalg p a -> a -> PolyFuncNu p
 pfAna {p=p@(pos ** dir)} {a} coalg e = case coalg e of
   (i ** da) => InPFN i $ \d : dir i => pfAna coalg $ da d
 
----------------------------------------------------------------------------
----- Initial algebras and terminal coalgebras of dependent polynomials ----
----------------------------------------------------------------------------
-
-public export
-spfMu : {0 a : Type} -> SlicePolyEndoF a -> Type
-spfMu = PolyFuncMu . spfFunc
-
-public export
-spfMuIdx : {0 a : Type} -> (spf : SlicePolyEndoF a) -> spfMu spf -> a
-spfMuIdx (p@(pos ** dir) ** sli) = pfCata {p} sli
-
-public export
-SPFMu : {0 a : Type} -> SlicePolyEndoF a -> SliceObj a
-SPFMu {a} spf@(p ** sli) ea =
-  (em : PolyFuncMu p ** FunExt -> spfMuIdx spf em = ea)
-
-public export
-InSPFM : {0 a : Type} -> {spf : SlicePolyEndoF a} ->
-  (i : spfPos spf) ->
-  (param : spfDir {spf} i -> a) ->
-  ((di : spfDir {spf} i) -> SPFMu {a} spf (param di)) ->
-  SPFMu {a} spf (spfIdx {spf} i param)
-InSPFM {a} {spf=spf@((pos ** dir) ** slidx)} i param sli =
-  (InPFM i (\di => fst (sli di)) **
-   (\funext => cong (slidx i) $ funExt $ \di => snd (sli di) funext))
-
-public export
-data SPFNu : {0 a : Type} -> SlicePolyEndoF a -> SliceObj a where
-  InSPFN : {0 a : Type} -> {0 spf : SlicePolyEndoF a} ->
-    (i : spfPos spf) ->
-    (param : spfDir {spf} i -> a) ->
-    ((di : spfDir {spf} i) -> Inf (SPFNu {a} spf (param di))) ->
-    SPFNu {a} spf (spfIdx {spf} i param)
-
--------------------------------------------------------------------------
----- Catamorphisms and anamorphisms of dependent polynomial functors ----
--------------------------------------------------------------------------
-
-public export
-spfCata : {0 a : Type} -> {spf : SlicePolyEndoF a} -> {0 sa : SliceObj a} ->
-  {funext : FunExt} -> SPFAlg spf sa -> (ea : a) -> SPFMu spf ea -> sa ea
-spfCata {a} {spf=((pos ** dir) ** idx)} {sa} {funext} alg ea ((InPFM i param) ** slieq) =
-  case slieq funext of
-    Refl =>
-      alg
-        ea
-        (i **
-         pfCata {p=(pos ** dir)} idx . param **
-         (slieq, ?spfCata_hole))
-         {-
-          \di : dir i =>
-            spfCata {spf=((pos ** dir) ** idx)} {funext} alg
-              (pfCata idx (param di)) (param di ** \_ => Refl)
-              -}
-
-public export
-spfAna : {0 a : Type} -> {spf : SlicePolyEndoF a} -> {0 sa : SliceObj a} ->
-  {funext : FunExt} -> SPFCoalg spf sa -> (ea : a) -> sa ea -> SPFNu spf ea
-spfAna {a} {spf=((pos ** dir) ** idx)} {sa} {funext} coalg ea esa =
-  case coalg ea esa of
-    (i ** param ** (extEq, da)) => case (extEq funext) of
-      Refl =>
-        InSPFN {spf=((pos ** dir) ** idx)} i param $
-          \di : dir i => spfAna {funext} coalg (param di) (da di)
-
 ----------------------------------------
 ---- Polynomial (co)free (co)monads ----
 ----------------------------------------
@@ -569,6 +503,72 @@ PFScale p a = (PFScalePos p a ** PFScaleDir p a)
 public export
 PolyFuncCofreeCMFromScale : PolyFunc -> Type -> Type
 PolyFuncCofreeCMFromScale = PolyFuncNu .* PFScale
+
+---------------------------------------------------------------------------
+---- Initial algebras and terminal coalgebras of dependent polynomials ----
+---------------------------------------------------------------------------
+
+public export
+spfMu : {0 a : Type} -> SlicePolyEndoF a -> Type
+spfMu = PolyFuncMu . spfFunc
+
+public export
+spfMuIdx : {0 a : Type} -> (spf : SlicePolyEndoF a) -> spfMu spf -> a
+spfMuIdx (p@(pos ** dir) ** sli) = pfCata {p} sli
+
+public export
+SPFMu : {0 a : Type} -> SlicePolyEndoF a -> SliceObj a
+SPFMu {a} spf@(p ** sli) ea =
+  (em : PolyFuncMu p ** FunExt -> spfMuIdx spf em = ea)
+
+public export
+InSPFM : {0 a : Type} -> {spf : SlicePolyEndoF a} ->
+  (i : spfPos spf) ->
+  (param : spfDir {spf} i -> a) ->
+  ((di : spfDir {spf} i) -> SPFMu {a} spf (param di)) ->
+  SPFMu {a} spf (spfIdx {spf} i param)
+InSPFM {a} {spf=spf@((pos ** dir) ** slidx)} i param sli =
+  (InPFM i (\di => fst (sli di)) **
+   (\funext => cong (slidx i) $ funExt $ \di => snd (sli di) funext))
+
+public export
+data SPFNu : {0 a : Type} -> SlicePolyEndoF a -> SliceObj a where
+  InSPFN : {0 a : Type} -> {0 spf : SlicePolyEndoF a} ->
+    (i : spfPos spf) ->
+    (param : spfDir {spf} i -> a) ->
+    ((di : spfDir {spf} i) -> Inf (SPFNu {a} spf (param di))) ->
+    SPFNu {a} spf (spfIdx {spf} i param)
+
+-------------------------------------------------------------------------
+---- Catamorphisms and anamorphisms of dependent polynomial functors ----
+-------------------------------------------------------------------------
+
+public export
+spfCata : {0 a : Type} -> {spf : SlicePolyEndoF a} -> {0 sa : SliceObj a} ->
+  {funext : FunExt} -> SPFAlg spf sa -> (ea : a) -> SPFMu spf ea -> sa ea
+spfCata {a} {spf=((pos ** dir) ** idx)} {sa} {funext} alg ea ((InPFM i param) ** slieq) =
+  case slieq funext of
+    Refl =>
+      alg
+        ea
+        (i **
+         pfCata {p=(pos ** dir)} idx . param **
+         (slieq, ?spfCata_hole))
+         {-
+          \di : dir i =>
+            spfCata {spf=((pos ** dir) ** idx)} {funext} alg
+              (pfCata idx (param di)) (param di ** \_ => Refl)
+              -}
+
+public export
+spfAna : {0 a : Type} -> {spf : SlicePolyEndoF a} -> {0 sa : SliceObj a} ->
+  {funext : FunExt} -> SPFCoalg spf sa -> (ea : a) -> sa ea -> SPFNu spf ea
+spfAna {a} {spf=((pos ** dir) ** idx)} {sa} {funext} coalg ea esa =
+  case coalg ea esa of
+    (i ** param ** (extEq, da)) => case (extEq funext) of
+      Refl =>
+        InSPFN {spf=((pos ** dir) ** idx)} i param $
+          \di : dir i => spfAna {funext} coalg (param di) (da di)
 
 --------------------------------------------------
 ---- Dependent polynomial (co)free (co)monads ----
