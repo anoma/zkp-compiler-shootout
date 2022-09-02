@@ -404,33 +404,9 @@ data PolyFuncMu : PolyFunc -> Type where
     (i : pfPos p) -> (pfDir {p} i -> PolyFuncMu p) -> PolyFuncMu p
 
 public export
-InPFMInterp : {0 pos : Type} -> {0 dir : pos -> Type} ->
-  InterpPolyFunc (pos ** dir) (PolyFuncMu (pos ** dir)) ->
-  PolyFuncMu (pos ** dir)
-InPFMInterp {pos} {dir} (i ** d) = InPFM {p=(pos ** dir)} i d
-
-public export
-InterpInPFM : {0 pos : Type} -> {0 dir : pos -> Type} ->
-  PolyFuncMu (pos ** dir) ->
-  InterpPolyFunc (pos ** dir) (PolyFuncMu (pos ** dir))
-InterpInPFM {pos} {dir} (InPFM {p=(pos ** dir)} i d) = (i ** d)
-
-public export
 data PolyFuncNu : PolyFunc -> Type where
   InPFN : {0 p : PolyFunc} ->
     (i : pfPos p) -> (pfDir {p} i -> Inf (PolyFuncNu p)) -> PolyFuncNu p
-
-public export
-InPFNInterp : {0 pos : Type} -> {0 dir : pos -> Type} ->
-  InterpPolyFunc (pos ** dir) (Inf (PolyFuncNu (pos ** dir))) ->
-  PolyFuncNu (pos ** dir)
-InPFNInterp {pos} {dir} (i ** d) = InPFN {p=(pos ** dir)} i d
-
-public export
-InterpInPFN : {0 pos : Type} -> {0 dir : pos -> Type} ->
-  PolyFuncNu (pos ** dir) ->
-  InterpPolyFunc (pos ** dir) (Inf (PolyFuncNu (pos ** dir)))
-InterpInPFN {pos} {dir} (InPFN {p=(pos ** dir)} i d) = (i ** d)
 
 ---------------------------------------------------------------
 ---- Catamorphisms and anamorphisms of polynomial functors ----
