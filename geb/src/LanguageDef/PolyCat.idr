@@ -471,10 +471,12 @@ spfCata {a} {spf=((pos ** dir) ** idx)} {sa} {funext} alg ea ((InPFM i param) **
         ea
         (i **
          pfCata {p=(pos ** dir)} idx . param **
-         (slieq,
+         (slieq, ?spfCata_hole))
+         {-
           \di : dir i =>
             spfCata {spf=((pos ** dir) ** idx)} {funext} alg
-              (pfCata idx (param di)) (param di ** \_ => Refl)))
+              (pfCata idx (param di)) (param di ** \_ => Refl)
+              -}
 
 public export
 spfAna : {0 a : Type} -> {spf : SlicePolyEndoF a} -> {0 sa : SliceObj a} ->
