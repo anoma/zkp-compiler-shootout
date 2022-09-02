@@ -1005,6 +1005,11 @@ BinBoolTreeF = InterpPolyFunc BinBoolTreePF
 InBBLeaf : {ty : Type} -> Bool -> BinBoolTreeF ty
 InBBLeaf b = (BBLeaf b ** BinBoolTreeLeafVoid)
 
+InBBDir : {0 ty : BinBoolTreeDir BBNode -> Type} ->
+  ty BBLeft -> ty BBRight -> (d : BinBoolTreeDir BBNode) -> ty d
+InBBDir l r BBLeft = l
+InBBDir l r BBRight = r
+
 BinBoolTree1 : Type
 BinBoolTree1 = BinBoolTreeF Void
 
@@ -1013,6 +1018,27 @@ binBoolTree1False = InBBLeaf False
 
 binBoolTree1True : BinBoolTree1
 binBoolTree1True = InBBLeaf True
+
+BinBoolTree2 : Type
+BinBoolTree2 = BinBoolTreeF BinBoolTree1
+
+binBoolTree1Test : BinBoolTree2
+binBoolTree1Test = (BBNode ** InBBDir (InBBLeaf True) (InBBLeaf False))
+
+BBFMFT : Type
+BBFMFT = PolyFuncFreeMFromTranslate BinBoolTreePF Nat
+
+BBFM : PolyFunc
+BBFM = PolyFuncFreeM BinBoolTreePF
+
+BBFMFF : Type
+BBFMFF = InterpPolyFuncFreeM BinBoolTreePF Nat
+
+bbftTest1 : BBFMFT
+bbftTest1 = InPFM (PFCom BBNode) (InBBDir (InPFM (PFCom BBNode) (InBBDir (InPFM (PFVar 3) ?bbft1_a) ?bbft1_b)) ?bbft1_c)
+
+bbffTest1 : BBFMFF
+bbffTest1 = (InPFM ?bbff1_a ?bbff1_b ** ?bbff1_c)
 
 ----------------------------------
 ----------------------------------

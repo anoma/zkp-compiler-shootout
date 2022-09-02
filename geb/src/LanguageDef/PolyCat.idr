@@ -499,7 +499,7 @@ data PFTranslatePos : PolyFunc -> Type -> Type where
 
 public export
 PFTranslateDir : (p : PolyFunc) -> (a : Type) -> PFTranslatePos p a -> Type
-PFTranslateDir (pos ** dir) a (PFVar _) = ()
+PFTranslateDir (pos ** dir) a (PFVar ea) = Void
 PFTranslateDir (pos ** dir) a (PFCom i) = dir i
 
 public export
@@ -512,11 +512,12 @@ PolyFuncFreeMFromTranslate = PolyFuncMu .* PFTranslate
 
 public export
 PolyFuncFreeMPos : PolyFunc -> Type
-PolyFuncFreeMPos = PolyFuncMu
+PolyFuncFreeMPos p = PolyFuncFreeMFromTranslate p ()
 
 public export
-PolyFuncFreeMDirAlg : (p : PolyFunc) -> PFAlg p Type
-PolyFuncFreeMDirAlg (pos ** dir) = \i, d => Either (dir i) (DPair (dir i) d)
+PolyFuncFreeMDirAlg : (p : PolyFunc) -> PFAlg (PFTranslate p ()) Type
+PolyFuncFreeMDirAlg (pos ** dir) (PFVar ()) d = ()
+PolyFuncFreeMDirAlg (pos ** dir) (PFCom i) d = DPair (dir i) d
 
 public export
 PolyFuncFreeMDir : (p : PolyFunc) -> PolyFuncFreeMPos p -> Type
@@ -533,17 +534,20 @@ InterpPolyFuncFreeM = InterpPolyFunc . PolyFuncFreeM
 public export
 PolyFMInterpToTranslate : (p : PolyFunc) -> (a : Type) ->
   InterpPolyFuncFreeM p a -> PolyFuncFreeMFromTranslate p a
-PolyFMInterpToTranslate (pos ** dir) a (i ** d) =
-  ?PolyFMInterpToTranslate_hole
+PolyFMInterpToTranslate (pos ** dir) a ((InPFM (PFVar ()) f) ** d) =
+  InPFM (PFVar $ d ()) (voidF _)
+PolyFMInterpToTranslate (pos ** dir) a ((InPFM (PFCom i) f) ** d) =
+  InPFM (PFCom i) $ ?PolyFMInterpToTranslate_hole_com
 
 public export
 PolyFMTranslateToInterpAlg : (p : PolyFunc) -> (a : Type) ->
   (i : PFTranslatePos p a) ->
   (PFTranslateDir p a i -> InterpPolyFuncFreeM p a) ->
   InterpPolyFuncFreeM p a
-PolyFMTranslateToInterpAlg (pos ** dir) a (PFVar _) hyp = hyp ()
+PolyFMTranslateToInterpAlg (pos ** dir) a (PFVar ea) hyp =
+  (InPFM (PFVar ()) (voidF _) ** const ea)
 PolyFMTranslateToInterpAlg (pos ** dir) a (PFCom i) hyp =
-  ?PolyFMTranslateToInterpAlg_hole_1
+  (InPFM (PFCom i) (fst . hyp) ** \dp => case dp of (d ** c) => snd (hyp d) c)
 
 public export
 PolyFMTranslateToInterp : (p : PolyFunc) -> (a : Type) ->
@@ -586,19 +590,19 @@ SPFTranslateFunc spf a = (SPFTranslatePos spf a ** SPFTranslateDir spf a)
 
 public export
 SPFTranslateIdx : {0 x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
-  (a -> x -> y) -> SliceIdx (SPFTranslateFunc spf a) x y
-SPFTranslateIdx ((_ ** _) ** idx) _ f (PFVar v) di = f v (di ())
-SPFTranslateIdx ((_ ** _) ** idx) _ f (PFCom i) di = idx i di
+  (a -> y) -> SliceIdx (SPFTranslateFunc spf a) x y
+SPFTranslateIdx ((pos ** dir) ** idx) a f (PFVar v) di = f v
+SPFTranslateIdx ((pos ** dir) ** idx) a f (PFCom i) di = idx i di
 
 public export
 SPFTranslate : {x, y : Type} -> SlicePolyFunc x y -> (a : Type) ->
-  (a -> x -> y) -> SlicePolyFunc x y
+  (a -> y) -> SlicePolyFunc x y
 SPFTranslate spf a f = (SPFTranslateFunc spf a ** SPFTranslateIdx spf a f)
 
 public export
 SPFFreeMFromMu : {x : Type} -> SlicePolyEndoF x -> SliceObj x -> SliceObj x
 SPFFreeMFromMu spf sx =
-  SPFMu {a=x} (SPFTranslate {x} {y=x} spf (Sigma sx) (const id))
+  SPFMu {a=x} (SPFTranslate {x} {y=x} spf (Sigma sx) DPair.fst)
 
 public export
 SPFScalePos : {0 x, y : Type} -> SlicePolyFunc x y -> Type -> Type
