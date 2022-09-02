@@ -315,11 +315,11 @@ spfIdx {spf} = DPair.snd spf
 
 public export
 InterpSPFunc : {a, b : Type} -> SlicePolyFunc a b -> SliceObj a -> SliceObj b
-InterpSPFunc {a} {b} ((pos ** dir) ** idx) fa eb =
+InterpSPFunc {a} {b} ((pos ** dir) ** idx) sa eb =
   (i : pos **
    param : dir i -> a **
-   (idx i param = eb,
-    (d : dir i) -> fa $ param d))
+   (FunExt -> idx i param = eb,
+    (d : dir i) -> sa $ param d))
 
 public export
 InterpSPFMap : {0 a, b : Type} -> (spf : SlicePolyFunc a b) ->
@@ -376,10 +376,10 @@ InterpSPNT : {0 x, y : Type} -> {p, q : SlicePolyFunc x y} ->
   SPNatTrans p q -> {0 sx : SliceObj x} ->
   SliceMorphism {a=y} (InterpSPFunc p sx) (InterpSPFunc q sx)
 InterpSPNT {x} {y} {p=((ppos ** pdir) ** pidx)} {q=((qpos ** qdir) ** qidx)}
-  ((onPos ** onDir) ** onIdx) {sx} _ (pi ** pparam ** (Refl, pda)) =
+  ((onPos ** onDir) ** onIdx) {sx} ey (pi ** pparam ** (extEq, pda)) =
     (onPos pi **
      pparam . onDir pi **
-     (onIdx pi pparam,
+     (\funext => trans (onIdx pi pparam) (extEq funext),
       \qd : qdir (onPos pi) => pda $ onDir pi qd))
 
 ------------------------------------------------------------------
@@ -427,12 +427,27 @@ pfAna {p=p@(pos ** dir)} {a} coalg e = case coalg e of
 ---------------------------------------------------------------------------
 
 public export
-data SPFMu : {0 a : Type} -> SlicePolyEndoF a -> SliceObj a where
-  InSPFM : {0 a : Type} -> {0 spf : SlicePolyEndoF a} ->
-    (i : spfPos spf) ->
-    (param : spfDir {spf} i -> a) ->
-    ((di : spfDir {spf} i) -> SPFMu {a} spf (param di)) ->
-    SPFMu {a} spf (spfIdx {spf} i param)
+spfMu : {0 a : Type} -> SlicePolyEndoF a -> Type
+spfMu = PolyFuncMu . spfFunc
+
+public export
+spfMuIdx : {0 a : Type} -> (spf : SlicePolyEndoF a) -> spfMu spf -> a
+spfMuIdx (p@(pos ** dir) ** sli) = pfCata {p} sli
+
+public export
+SPFMu : {0 a : Type} -> SlicePolyEndoF a -> SliceObj a
+SPFMu {a} spf@(p ** sli) ea =
+  (em : PolyFuncMu p ** FunExt -> spfMuIdx spf em = ea)
+
+public export
+InSPFM : {0 a : Type} -> {spf : SlicePolyEndoF a} ->
+  (i : spfPos spf) ->
+  (param : spfDir {spf} i -> a) ->
+  ((di : spfDir {spf} i) -> SPFMu {a} spf (param di)) ->
+  SPFMu {a} spf (spfIdx {spf} i param)
+InSPFM {a} {spf=spf@((pos ** dir) ** slidx)} i param sli =
+  (InPFM i (\di => fst (sli di)) **
+   (\funext => cong (slidx i) $ funExt $ \di => snd (sli di) funext))
 
 public export
 data SPFNu : {0 a : Type} -> SlicePolyEndoF a -> SliceObj a where
@@ -448,18 +463,28 @@ data SPFNu : {0 a : Type} -> SlicePolyEndoF a -> SliceObj a where
 
 public export
 spfCata : {0 a : Type} -> {spf : SlicePolyEndoF a} -> {0 sa : SliceObj a} ->
-  SPFAlg spf sa -> (ea : a) -> SPFMu spf ea -> sa ea
-spfCata {a} {spf=spf@((pos ** dir) ** idx)} {sa} alg _ (InSPFM i param da) =
-  alg (idx i param)
-    (i ** param ** (Refl, \di : dir i => spfCata alg (param di) (da di)))
+  {funext : FunExt} -> SPFAlg spf sa -> (ea : a) -> SPFMu spf ea -> sa ea
+spfCata {a} {spf=((pos ** dir) ** idx)} {sa} {funext} alg ea ((InPFM i param) ** slieq) =
+  case slieq funext of
+    Refl =>
+      alg
+        ea
+        (i **
+         pfCata {p=(pos ** dir)} idx . param **
+         (slieq,
+          \di : dir i =>
+            spfCata {spf=((pos ** dir) ** idx)} {funext} alg
+              (pfCata idx (param di)) (param di ** \_ => Refl)))
 
 public export
 spfAna : {0 a : Type} -> {spf : SlicePolyEndoF a} -> {0 sa : SliceObj a} ->
-  SPFCoalg spf sa -> (ea : a) -> sa ea -> SPFNu spf ea
-spfAna {a} {spf=spf@((pos ** dir) ** idx)} {sa} coalg ea esa =
+  {funext : FunExt} -> SPFCoalg spf sa -> (ea : a) -> sa ea -> SPFNu spf ea
+spfAna {a} {spf=((pos ** dir) ** idx)} {sa} {funext} coalg ea esa =
   case coalg ea esa of
-    (i ** param ** (Refl, da)) =>
-      InSPFN i param $ \di : dir i => spfAna coalg (param di) (da di)
+    (i ** param ** (extEq, da)) => case (extEq funext) of
+      Refl =>
+        InSPFN {spf=((pos ** dir) ** idx)} i param $
+          \di : dir i => spfAna {funext} coalg (param di) (da di)
 
 ----------------------------------------
 ---- Polynomial (co)free (co)monads ----
@@ -1012,26 +1037,25 @@ FinTFNew : SliceObj Nat
 FinTFNew = SPFMu FinTSPF
 
 -- Utility functions for producing terms of type `FinTFNew`.
-
 public export
 FTFNInitial : FinTFNew 1
-FTFNInitial = InSPFM FTPInitial FTDirInitial FTDirInitial
+FTFNInitial = ?ftfninit_hole -- InSPFM FTPInitial FTDirInitial FTDirInitial
 
 public export
 FTFNTerminal : FinTFNew 1
-FTFNTerminal = InSPFM FTPTerminal FTDirTerminal FTDirTerminal
+FTFNTerminal = ?ftfnterm_hole -- InSPFM FTPTerminal FTDirTerminal FTDirTerminal
 
 public export
 FTFNCoproduct : {m, n : Nat} ->
   FinTFNew m -> FinTFNew n -> FinTFNew (smax m n)
-FTFNCoproduct {m} {n} x y =
-  InSPFM FTPCoproduct (FTDirCoproduct m n) (FTDirCoproduct x y)
+FTFNCoproduct {m} {n} x y = ?ftfncop_hole
+  -- InSPFM FTPCoproduct (FTDirCoproduct m n) (FTDirCoproduct x y)
 
 public export
 FTFNProduct : {m, n : Nat} ->
   FinTFNew m -> FinTFNew n -> FinTFNew (smax m n)
-FTFNProduct {m} {n} x y =
-  InSPFM FTPProduct (FTDirProduct m n) (FTDirProduct x y)
+FTFNProduct {m} {n} x y = ?ftfnprod_hole
+  -- InSPFM FTPProduct (FTDirProduct m n) (FTDirProduct x y)
 
 -- The type of types generated by any of up to `N` iterations of
 -- the object-language-type-generating metalanguage functor.
@@ -1073,10 +1097,13 @@ FinPromoteRight type = (n ** (maxLTERight m n, type))
 
 public export
 depthNotZero : {0 n : Nat} -> FinTFNew n -> Not (n = 0)
+depthNotZero (em ** sleq) = ?depthNonZero_hole
+{-
 depthNotZero (InSPFM FTPInitial _ _) eqz = case eqz of Refl impossible
 depthNotZero (InSPFM FTPTerminal _ _) eqz = case eqz of Refl impossible
 depthNotZero (InSPFM FTPCoproduct _ _) eqz = case eqz of Refl impossible
 depthNotZero (InSPFM FTPProduct _ _) eqz = case eqz of Refl impossible
+-}
 
 public export
 depth0Void : FinTFNew 0 -> Void
@@ -3816,7 +3843,6 @@ MetaPolyMu p = MetaPolyFreeM p Void
 ---- Exponentiation (hom-objects) of polynomial types ----
 ----------------------------------------------------------
 
--- Compute `p(Void) -> q(Void)`, also known as `q(Void) ^ p(Void)`.
 public export
 PolyHomObj : PolyMu -> PolyMu -> PolyMu
 PolyHomObj (InPVar v) _ = void v
@@ -3836,7 +3862,6 @@ PolyHomObj (InPCom (p $$+ q)) (InPCom r) =
 PolyHomObj (InPCom (p $$* q)) (InPCom r) =
   PolyHomObj p (PolyHomObj q (InPCom r))
 
--- `p(Void) ^ q(Void)`.
 public export
 PolyExp : PolyMu -> PolyMu -> PolyMu
 PolyExp = flip PolyHomObj

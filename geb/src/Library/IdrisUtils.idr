@@ -11,6 +11,7 @@ import public Data.Bool
 import public Decidable.Decidable
 import public Decidable.Equality
 import public Control.Function
+import public Control.Function.FunExt
 import public Control.Relation
 import public Control.Order
 import public Control.Monad.Identity
