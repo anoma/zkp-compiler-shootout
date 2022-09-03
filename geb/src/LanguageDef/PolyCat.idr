@@ -3950,6 +3950,31 @@ public export
 MetaPolyMu : PolyMu -> Type
 MetaPolyMu p = MetaPolyFreeM p Void
 
+---------------------------------
+---- Natural transformations ----
+---------------------------------
+
+public export
+data PolyMuNT : PolyMu -> PolyMu -> Type where
+
+----------------------------------------
+---- Polynomial monads and comonads ----
+----------------------------------------
+
+public export
+record PolyMonad where
+  constructor MkPolyMonad
+  pmFunctor : PolyMu
+  pmUnit : PolyMuNT PolyI pmFunctor
+  pmMul : PolyMuNT (pmFunctor $.^ 2) pmFunctor
+
+public export
+record PolyComonad where
+  constructor MkPolyComonad
+  pmFunctor : PolyMu
+  pmEraser : PolyMuNT pmFunctor PolyI
+  pmDuplicator : PolyMuNT pmFunctor (pmFunctor $.^ 2)
+
 ----------------------------------------------------------
 ---- Exponentiation (hom-objects) of polynomial types ----
 ----------------------------------------------------------
@@ -3976,31 +4001,6 @@ PolyHomObj = metaPolyCata PolyHomObjAlg
 public export
 PolyExp : PolyMu -> PolyMu -> PolyMu
 PolyExp = flip PolyHomObj
-
----------------------------------
----- Natural transformations ----
----------------------------------
-
-public export
-data PolyMuNT : PolyMu -> PolyMu -> Type where
-
-----------------------------------------
----- Polynomial monads and comonads ----
-----------------------------------------
-
-public export
-record PolyMonad where
-  constructor MkPolyMonad
-  pmFunctor : PolyMu
-  pmUnit : PolyMuNT PolyI pmFunctor
-  pmMul : PolyMuNT (pmFunctor $.^ 2) pmFunctor
-
-public export
-record PolyComonad where
-  constructor MkPolyComonad
-  pmFunctor : PolyMu
-  pmEraser : PolyMuNT pmFunctor PolyI
-  pmDuplicator : PolyMuNT pmFunctor (pmFunctor $.^ 2)
 
 -------------------------------------------------------------
 -------------------------------------------------------------
