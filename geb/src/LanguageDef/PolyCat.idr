@@ -3601,15 +3601,19 @@ public export
 
 public export
 metaPolyCata : MetaPolyAlg x -> PolyMu -> x
-metaPolyCata alg p = metaPolyFold alg p
-  where
-  metaPolyFold : MetaPolyAlg x -> PolyMu -> x
-  metaPolyFold alg (InPCom p) = alg $ case p of
-    PFI => PFI
-    PF0 => PF0
-    PF1 => PF1
-    p $$+ q => metaPolyFold alg p $$+ metaPolyFold alg q
-    p $$* q => metaPolyFold alg p $$* metaPolyFold alg q
+metaPolyCata alg = metaPolyFold id where
+  mutual
+    metaPolyCont : (x -> x -> PolyF x) -> (x -> x) -> PolyMu -> PolyMu -> x
+    metaPolyCont op cont p q =
+      metaPolyFold (\p' => metaPolyFold (\q' => cont $ alg $ op p' q') q) p
+
+    metaPolyFold : (x -> x) -> PolyMu -> x
+    metaPolyFold cont (InPCom p) = case p of
+      PFI => cont (alg PFI)
+      PF0 => cont (alg PF0)
+      PF1 => cont (alg PF1)
+      p $$+ q => metaPolyCont ($$+) cont p q
+      p $$* q => metaPolyCont ($$*) cont p q
 
 public export
 data PolyNu : Type where
