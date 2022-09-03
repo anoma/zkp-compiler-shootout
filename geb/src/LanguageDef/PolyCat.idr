@@ -255,6 +255,7 @@ InterpPolyNT {p=(_ ** _)} {q=(_ ** _)} (onPos ** onDir) a (pi ** pd) =
 -- between the polynomial endofunctors as which the codomain and domain slices
 -- may be viewed.  (The special case is that the on-positions function is the
 -- identity.)
+
 public export
 SliceMorphismToPolyNatTrans : {0 a : Type} -> {0 s, s' : SliceObj a} ->
   SliceMorphism s s' -> PolyNatTrans (SliceToPolyFunc s') (SliceToPolyFunc s)
@@ -272,49 +273,41 @@ PolyNatTransToSliceMorphism : {0 p, q : PolyFunc} ->
 PolyNatTransToSliceMorphism {p=(_ ** _)} {q=(_ ** qdir)}
   (_ ** ondir) onPosId i sp = ondir i $ replace {p=qdir} (sym (onPosId i)) sp
 
---------------------------------------------------------
----- Algebras and coalgebras of polynomial functors ----
---------------------------------------------------------
+------------------------------------
+------------------------------------
+---- Polynomial-functor algebra ----
+------------------------------------
+------------------------------------
+
+-----------------------------------------
+---- Algebras of polynomial functors ----
+-----------------------------------------
 
 public export
 PFAlg : PolyFunc -> Type -> Type
 PFAlg (pos ** dir) a = (i : pos) -> (dir i -> a) -> a
 
-public export
-PFCoalg : PolyFunc -> Type -> Type
-PFCoalg (pos ** dir) a = a -> (i : pos ** (dir i -> a))
-
--------------------------------------------------------------------------
----- Initial algebras and terminal coalgebras of polynomial functors ----
--------------------------------------------------------------------------
+-------------------------------------------------
+---- Initial algebras of polynomial functors ----
+-------------------------------------------------
 
 public export
 data PolyFuncMu : PolyFunc -> Type where
   InPFM : {0 p : PolyFunc} ->
     (i : pfPos p) -> (pfDir {p} i -> PolyFuncMu p) -> PolyFuncMu p
 
-public export
-data PolyFuncNu : PolyFunc -> Type where
-  InPFN : {0 p : PolyFunc} ->
-    (i : pfPos p) -> (pfDir {p} i -> Inf (PolyFuncNu p)) -> PolyFuncNu p
-
----------------------------------------------------------------
----- Catamorphisms and anamorphisms of polynomial functors ----
----------------------------------------------------------------
+----------------------------------------------
+---- Catamorphisms of polynomial functors ----
+----------------------------------------------
 
 public export
 pfCata : {0 p : PolyFunc} -> {0 a : Type} -> PFAlg p a -> PolyFuncMu p -> a
 pfCata {p=p@(pos ** dir)} {a} alg (InPFM i da) =
   alg i $ \d : dir i => pfCata {p} alg $ da d
 
-public export
-pfAna : {0 p : PolyFunc} -> {0 a : Type} -> PFCoalg p a -> a -> PolyFuncNu p
-pfAna {p=p@(pos ** dir)} {a} coalg e = case coalg e of
-  (i ** da) => InPFN i $ \d : dir i => pfAna coalg $ da d
-
-----------------------------------------
----- Polynomial (co)free (co)monads ----
-----------------------------------------
+----------------------------------
+---- Polynomial (free) monads ----
+----------------------------------
 
 public export
 data PFTranslatePos : PolyFunc -> Type -> Type where
@@ -387,6 +380,42 @@ PolyFMTranslateToInterp : (p : PolyFunc) -> (a : Type) ->
   PolyFuncFreeMFromTranslate p a -> InterpPolyFuncFreeM p a
 PolyFMTranslateToInterp p a = pfCata $ PolyFMTranslateToInterpAlg p a
 
+--------------------------------------
+--------------------------------------
+---- Polynomial-functor coalgebra ----
+--------------------------------------
+--------------------------------------
+
+-------------------------------------------
+---- Coalgebras of polynomial functors ----
+-------------------------------------------
+
+public export
+PFCoalg : PolyFunc -> Type -> Type
+PFCoalg (pos ** dir) a = a -> (i : pos ** (dir i -> a))
+
+----------------------------------------------------
+---- Terminal coalgebras of polynomial functors ----
+----------------------------------------------------
+
+public export
+data PolyFuncNu : PolyFunc -> Type where
+  InPFN : {0 p : PolyFunc} ->
+    (i : pfPos p) -> (pfDir {p} i -> Inf (PolyFuncNu p)) -> PolyFuncNu p
+
+---------------------------------------------
+---- Anamorphisms of polynomial functors ----
+---------------------------------------------
+
+public export
+pfAna : {0 p : PolyFunc} -> {0 a : Type} -> PFCoalg p a -> a -> PolyFuncNu p
+pfAna {p=p@(pos ** dir)} {a} coalg e = case coalg e of
+  (i ** da) => InPFN i $ \d : dir i => pfAna coalg $ da d
+
+--------------------------------------
+---- Polynomial (cofree) comonads ----
+--------------------------------------
+
 public export
 data PFScalePos : PolyFunc -> Type -> Type where
   PFNode : {0 p : PolyFunc} -> {0 a : Type} -> a -> pfPos p -> PFScalePos p a
@@ -404,8 +433,14 @@ PolyFuncCofreeCMFromScale : PolyFunc -> Type -> Type
 PolyFuncCofreeCMFromScale = PolyFuncNu .* PFScale
 
 ---------------------------------------
+---------------------------------------
 ---- Dependent polynomial functors ----
 ---------------------------------------
+---------------------------------------
+
+--------------------------------------------------------------------
+---- Dependent polynomials as functors between slice categories ----
+--------------------------------------------------------------------
 
 public export
 SliceIdx : PolyFunc -> Type -> Type -> Type
@@ -500,6 +535,12 @@ InterpSPNT {x} {y} {p=((ppos ** pdir) ** pidx)} {q=((qpos ** qdir) ** qidx)}
      pparam . onDir pi **
      (\funext => trans (onIdx pi pparam) (extEq funext),
       \qd : qdir (onPos pi) => pda $ onDir pi qd))
+
+-----------------------------------------------
+-----------------------------------------------
+---- Dependent-polynomial-functors algebra ----
+-----------------------------------------------
+-----------------------------------------------
 
 ---------------------------------------------------
 ---- Algebras of dependent polynomial functors ----
@@ -599,6 +640,12 @@ public export
 SPFFreeMFromMu : {x : Type} -> SlicePolyEndoF x -> SliceObj x -> SliceObj x
 SPFFreeMFromMu spf sx =
   SPFMu {a=x} (SPFTranslate {x} {y=x} spf (Sigma sx) DPair.fst)
+
+-------------------------------------------------
+-------------------------------------------------
+---- Dependent-polynomial-functors coalgebra ----
+-------------------------------------------------
+-------------------------------------------------
 
 -----------------------------------------------------
 ---- Coalgebras of dependent polynomial functors ----
