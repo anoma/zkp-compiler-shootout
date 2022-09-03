@@ -3522,84 +3522,43 @@ public export
 PolyOp : Type
 PolyOp = InitialColimit PolyOpF
 
-----------------------------------------------------
-----------------------------------------------------
----- Object-language inductive polynomial types ----
-----------------------------------------------------
-----------------------------------------------------
-
---------------------------------------------------
----- Functor which generates polynomial types ----
---------------------------------------------------
-
-infixr 8 ##+
-infixr 9 ##*
-
-public export
-data FinADTF : Type -> Type where
-  -- Initial
-  FA0 : FinADTF carrier
-
-  -- Terminal
-  FA1 : FinADTF carrier
-
-  -- Coproduct
-  (##+) : carrier -> carrier -> FinADTF carrier
-
-  -- Product
-  (##*) : carrier -> carrier -> FinADTF carrier
-
-public export
-Functor FinADTF where
-  map m FA0 = FA0
-  map m FA1 = FA1
-  map m (p ##+ q) = m p ##+ m q
-  map m (p ##* q) = m p ##* m q
-
-public export
-data FinADT : Type where
-  InFADT : FinADTF FinADT -> FinADT
-
------------------------------------------------------------
------------------------------------------------------------
----- Object-language inductive polynomial endofunctors ----
------------------------------------------------------------
------------------------------------------------------------
+--------------------------------------------
+--------------------------------------------
+---- Simplest inductive polynomial form ----
+--------------------------------------------
+--------------------------------------------
 
 -----------------------------------------------------
 ---- Functor which generates polynomial functors ----
 -----------------------------------------------------
+
+infixr 8 $$+
+infixr 9 $$*
 
 public export
 data PolyF : Type -> Type where
   -- Identity
   PFI : PolyF carrier
 
-  -- Analogue of `FinADTF`
-  PFA : FinADTF carrier -> PolyF carrier
+  -- Initial
+  PF0 : PolyF carrier
+
+  -- Terminal
+  PF1 : PolyF carrier
+
+  -- Coproduct
+  ($$+) : carrier -> carrier -> PolyF carrier
+
+  -- Product
+  ($$*) : carrier -> carrier -> PolyF carrier
 
 public export
 Functor PolyF where
   map m PFI = PFI
-  map m (PFA a) = PFA (map m a)
-
-public export
-PF0: {0 carrier : Type} -> PolyF carrier
-PF0 = PFA FA0
-
-public export
-PF1: {0 carrier : Type} -> PolyF carrier
-PF1 = PFA FA1
-
-infixr 8 $$+
-public export
-($$+) : {0 carrier : Type} -> carrier -> carrier -> PolyF carrier
-($$+) = PFA .* (##+)
-
-infixr 9 $$*
-public export
-($$*) : {0 carrier : Type} -> carrier -> carrier -> PolyF carrier
-($$*) = PFA .* (##*)
+  map m PF0 = PF0
+  map m PF1 = PF1
+  map m (p $$+ q) = m p $$+ m q
+  map m (p $$* q) = m p $$* m q
 
 public export
 MetaPolyAlg : Type -> Type
@@ -3650,10 +3609,10 @@ metaPolyEval : MetaPolyAlg x -> (a -> x) -> PolyFM a -> x
 metaPolyEval alg subst (InPVar v) = subst v
 metaPolyEval alg subst (InPCom p) = alg $ case p of
   PFI => PFI
-  PFA FA0 => PF0
-  PFA FA1 => PF1
-  PFA (p ##+ q) => metaPolyEval alg subst p $$+ metaPolyEval alg subst q
-  PFA (p ##* q) => metaPolyEval alg subst p $$* metaPolyEval alg subst q
+  PF0 => PF0
+  PF1 => PF1
+  p $$+ q => metaPolyEval alg subst p $$+ metaPolyEval alg subst q
+  p $$* q => metaPolyEval alg subst p $$* metaPolyEval alg subst q
 
 public export
 metaPolyCata : MetaPolyAlg x -> PolyMu -> x
@@ -3668,24 +3627,22 @@ PolyNu : Type
 PolyNu = PolyCM Unit
 
 public export
-metaPolyCoeval : MetaPolyCoalg x -> (a -> a -> a) -> (x -> a) -> x ->
-  Inf (PolyCM a)
+metaPolyCoeval : MetaPolyCoalg x -> (a -> a -> a) -> (x -> a) -> x -> PolyCM a
 metaPolyCoeval coalg mula subst t = case coalg t of
   PFI => InPLabel (subst t) PFI
-  PFA a => case a of
-    FA0 => InPLabel (subst t) PF0
-    FA1 => InPLabel (subst t) PF1
-    (p ##+ q) =>
-      InPLabel (mula (subst p) (subst q)) $
-        (metaPolyCoeval coalg mula subst p) $$+
-        (metaPolyCoeval coalg mula subst q)
-    (p ##* q) =>
-      InPLabel (mula (subst p) (subst q)) $
-        (metaPolyCoeval coalg mula subst p) $$*
-        (metaPolyCoeval coalg mula subst q)
+  PF0 => InPLabel (subst t) PF0
+  PF1 => InPLabel (subst t) PF1
+  p $$+ q =>
+    InPLabel (mula (subst p) (subst q)) $
+      (metaPolyCoeval coalg mula subst p) $$+
+      (metaPolyCoeval coalg mula subst q)
+  p $$* q =>
+    InPLabel (mula (subst p) (subst q)) $
+      (metaPolyCoeval coalg mula subst p) $$*
+      (metaPolyCoeval coalg mula subst q)
 
 public export
-metaPolyAna : MetaPolyCoalg x -> x -> Inf PolyNu
+metaPolyAna : MetaPolyCoalg x -> x -> PolyNu
 metaPolyAna coalg = metaPolyCoeval {a=Unit} coalg (const $ const ()) (const ())
 
 -------------------
@@ -3695,10 +3652,10 @@ metaPolyAna coalg = metaPolyCoeval {a=Unit} coalg (const $ const ()) (const ())
 public export
 PolySizeAlg : MetaPolyAlg Nat
 PolySizeAlg PFI = 1
-PolySizeAlg (PFA FA0) = 1
-PolySizeAlg (PFA FA1) = 1
-PolySizeAlg (PFA (p ##+ q)) = p + q
-PolySizeAlg (PFA (p ##* q)) = p + q
+PolySizeAlg PF0 = 1
+PolySizeAlg PF1 = 1
+PolySizeAlg (p $$+ q) = p + q
+PolySizeAlg (p $$* q) = p + q
 
 public export
 polySize : PolyMu -> Nat
@@ -3707,10 +3664,10 @@ polySize = metaPolyCata PolySizeAlg
 public export
 PolyDepthAlg : MetaPolyAlg Nat
 PolyDepthAlg PFI = 0
-PolyDepthAlg (PFA FA0) = 0
-PolyDepthAlg (PFA FA1) = 0
-PolyDepthAlg (PFA (p ##+ q)) = smax p q
-PolyDepthAlg (PFA (p ##* q)) = smax p q
+PolyDepthAlg PF0 = 0
+PolyDepthAlg PF1 = 0
+PolyDepthAlg (p $$+ q) = smax p q
+PolyDepthAlg (p $$* q) = smax p q
 
 public export
 polyDepth : PolyMu -> Nat
@@ -3719,10 +3676,10 @@ polyDepth = metaPolyCata PolyDepthAlg
 public export
 PolyCardAlg : Nat -> MetaPolyAlg Nat
 PolyCardAlg n PFI = n
-PolyCardAlg n (PFA FA0) = 0
-PolyCardAlg n (PFA FA1) = 1
-PolyCardAlg n (PFA (p ##+ q)) = p + q
-PolyCardAlg n (PFA (p ##* q)) = p * q
+PolyCardAlg n PF0 = 0
+PolyCardAlg n PF1 = 1
+PolyCardAlg n (p $$+ q) = p + q
+PolyCardAlg n (p $$* q) = p * q
 
 public export
 polyCard : Nat -> PolyMu -> Nat
@@ -3735,10 +3692,10 @@ polyCard = metaPolyCata . PolyCardAlg
 public export
 PolyShowAlg : MetaPolyAlg String
 PolyShowAlg PFI = "id"
-PolyShowAlg (PFA FA0) = "0"
-PolyShowAlg (PFA FA1) = "1"
-PolyShowAlg (PFA (x ##+ y)) = "(" ++ x ++ " + " ++ y ++ ")"
-PolyShowAlg (PFA (x ##* y)) = x ++ " * " ++ y
+PolyShowAlg PF0 = "0"
+PolyShowAlg PF1 = "1"
+PolyShowAlg (x $$+ y) = "(" ++ x ++ " + " ++ y ++ ")"
+PolyShowAlg (x $$* y) = x ++ " * " ++ y
 
 public export
 Show a => Show (PolyFM a) where
@@ -3754,30 +3711,30 @@ Eq a => Eq (PolyFM a) where
   (InPVar x) == (InPCom y) = False
   (InPCom x) == (InPVar y) = False
   (InPCom PFI) == (InPCom PFI) = True
-  (InPCom PFI) == (InPCom (PFA FA0)) = False
-  (InPCom PFI) == (InPCom (PFA FA1)) = False
-  (InPCom PFI) == (InPCom (PFA (_ ##+ _))) = False
-  (InPCom PFI) == (InPCom (PFA (_ ##* _))) = False
-  (InPCom (PFA FA0)) == (InPCom PFI) = False
-  (InPCom (PFA FA0)) == (InPCom (PFA FA0)) = True
-  (InPCom (PFA FA0)) == (InPCom (PFA FA1)) = False
-  (InPCom (PFA FA0)) == (InPCom (PFA (_ ##+ _))) = False
-  (InPCom (PFA FA0)) == (InPCom (PFA (_ ##* _))) = False
-  (InPCom (PFA FA1)) == (InPCom PFI) = False
-  (InPCom (PFA FA1)) == (InPCom (PFA FA0)) = False
-  (InPCom (PFA FA1)) == (InPCom (PFA FA1)) = True
-  (InPCom (PFA FA1)) == (InPCom (PFA (_ ##+ _))) = False
-  (InPCom (PFA FA1)) == (InPCom (PFA (_ ##* _))) = False
-  (InPCom (PFA (_ ##+ _))) == (InPCom PFI) = False
-  (InPCom (PFA (_ ##+ _))) == (InPCom (PFA FA0)) = False
-  (InPCom (PFA (_ ##+ _))) == (InPCom (PFA FA1)) = False
-  (InPCom (PFA (p ##+ q))) == (InPCom (PFA (r ##+ s))) = p == r && q == s
-  (InPCom (PFA (_ ##+ _))) == (InPCom (PFA (_ ##* _))) = False
-  (InPCom (PFA (_ ##* _))) == (InPCom PFI) = False
-  (InPCom (PFA (_ ##* _))) == (InPCom (PFA FA0)) = False
-  (InPCom (PFA (_ ##* _))) == (InPCom (PFA FA1)) = False
-  (InPCom (PFA (_ ##* _))) == (InPCom (PFA (_ ##+ _))) = False
-  (InPCom (PFA (p ##* q))) == (InPCom (PFA (r ##* s))) = p == r && q == s
+  (InPCom PFI) == (InPCom PF0) = False
+  (InPCom PFI) == (InPCom PF1) = False
+  (InPCom PFI) == (InPCom (_ $$+ _)) = False
+  (InPCom PFI) == (InPCom (_ $$* _)) = False
+  (InPCom PF0) == (InPCom PFI) = False
+  (InPCom PF0) == (InPCom PF0) = True
+  (InPCom PF0) == (InPCom PF1) = False
+  (InPCom PF0) == (InPCom (_ $$+ _)) = False
+  (InPCom PF0) == (InPCom (_ $$* _)) = False
+  (InPCom PF1) == (InPCom PFI) = False
+  (InPCom PF1) == (InPCom PF0) = False
+  (InPCom PF1) == (InPCom PF1) = True
+  (InPCom PF1) == (InPCom (_ $$+ _)) = False
+  (InPCom PF1) == (InPCom (_ $$* _)) = False
+  (InPCom (_ $$+ _)) == (InPCom PFI) = False
+  (InPCom (_ $$+ _)) == (InPCom PF0) = False
+  (InPCom (_ $$+ _)) == (InPCom PF1) = False
+  (InPCom (p $$+ q)) == (InPCom (r $$+ s)) = p == r && q == s
+  (InPCom (_ $$+ _)) == (InPCom (_ $$* _)) = False
+  (InPCom (_ $$* _)) == (InPCom PFI) = False
+  (InPCom (_ $$* _)) == (InPCom PF0) = False
+  (InPCom (_ $$* _)) == (InPCom PF1) = False
+  (InPCom (_ $$* _)) == (InPCom (_ $$+ _)) = False
+  (InPCom (p $$* q)) == (InPCom (r $$* s)) = p == r && q == s
 
 -----------------------------------------------
 ---- Arithmetic on polynomial endofunctors ----
@@ -3786,25 +3743,25 @@ Eq a => Eq (PolyFM a) where
 public export
 PolyRemoveZeroAlg : MetaPolyAlg PolyMu
 PolyRemoveZeroAlg PFI = PolyI
-PolyRemoveZeroAlg (PFA FA0) = Poly0
-PolyRemoveZeroAlg (PFA FA1) = Poly1
-PolyRemoveZeroAlg (PFA (p ##+ q)) = case p of
+PolyRemoveZeroAlg PF0 = Poly0
+PolyRemoveZeroAlg PF1 = Poly1
+PolyRemoveZeroAlg (p $$+ q) = case p of
   InPVar v => void v
   InPCom p' => case p' of
-    (PFA FA0) => q
+    PF0 => q
     _ => case q of
       InPVar v' => void v'
       InPCom q' => case q' of
-        PFA FA0 => p
+        PF0 => p
         _ => p $+ q
-PolyRemoveZeroAlg (PFA (p ##* q)) = case p of
+PolyRemoveZeroAlg (p $$* q) = case p of
   InPVar v => void v
   InPCom p' => case p' of
-    (PFA FA0) => Poly0
+    PF0 => Poly0
     _ => case q of
       InPVar v' => void v'
       InPCom q' => case q' of
-        (PFA FA0) => Poly0
+        PF0 => Poly0
         _ => p $* q
 
 public export
@@ -3814,17 +3771,17 @@ polyRemoveZero = metaPolyCata PolyRemoveZeroAlg
 public export
 PolyRemoveOneAlg : MetaPolyAlg PolyMu
 PolyRemoveOneAlg PFI = PolyI
-PolyRemoveOneAlg (PFA FA0) = Poly0
-PolyRemoveOneAlg (PFA FA1) = Poly1
-PolyRemoveOneAlg (PFA (p ##+ q)) = p $+ q
-PolyRemoveOneAlg (PFA (p ##* q)) = case p of
+PolyRemoveOneAlg PF0 = Poly0
+PolyRemoveOneAlg PF1 = Poly1
+PolyRemoveOneAlg (p $$+ q) = p $+ q
+PolyRemoveOneAlg (p $$* q) = case p of
   InPVar v => void v
   InPCom p' => case p' of
-    PFA FA1 => q
+    PF1 => q
     _ => case q of
       InPVar v' => void v'
       InPCom q' => case q' of
-        PFA FA1 => p
+        PF1 => p
         _ => p $* q
 
 public export
@@ -3841,10 +3798,10 @@ public export
 (InPVar v) $. _ = void v
 (InPCom _) $. (InPVar v) = void v
 (InPCom PFI) $. q = q
-(InPCom (PFA FA0)) $. (InPCom _) = Poly0
-(InPCom (PFA FA1)) $. (InPCom _) = Poly1
-(InPCom (PFA (p ##+ q))) $. r = (p $. r) $+ (q $. r)
-(InPCom (PFA (p ##* q))) $. r = (p $. r) $* (q $. r)
+(InPCom PF0) $. (InPCom _) = Poly0
+(InPCom PF1) $. (InPCom _) = Poly1
+(InPCom (p $$+ q)) $. r = (p $. r) $+ (q $. r)
+(InPCom (p $$* q)) $. r = (p $. r) $* (q $. r)
 
 -----------------------------------------------------
 ---- Multiplication by a constant (via addition) ----
@@ -3902,10 +3859,10 @@ polyAppOne = polyRemoveOne . metaPolyCata PolyAppOneAlg
 public export
 CountOnesAlg : MetaPolyAlg Nat
 CountOnesAlg PFI = 0
-CountOnesAlg (PFA FA0) = 0
-CountOnesAlg (PFA FA1) = 1
-CountOnesAlg (PFA (p ##+ q)) = p + q
-CountOnesAlg (PFA (p ##* q)) = p + q
+CountOnesAlg PF0 = 0
+CountOnesAlg PF1 = 1
+CountOnesAlg (p $$+ q) = p + q
+CountOnesAlg (p $$* q) = p + q
 
 public export
 countOnes : PolyMu -> Nat
@@ -3914,10 +3871,10 @@ countOnes = metaPolyCata CountOnesAlg
 public export
 CountIdsAlg : MetaPolyAlg Nat
 CountIdsAlg PFI = 1
-CountIdsAlg (PFA FA0) = 0
-CountIdsAlg (PFA FA1) = 0
-CountIdsAlg (PFA (p ##+ q)) = p + q
-CountIdsAlg (PFA (p ##* q)) = p + q
+CountIdsAlg PF0 = 0
+CountIdsAlg PF1 = 0
+CountIdsAlg (p $$+ q) = p + q
+CountIdsAlg (p $$* q) = p + q
 
 public export
 countIds : PolyMu -> Nat
@@ -3926,10 +3883,10 @@ countIds = metaPolyCata CountIdsAlg
 public export
 ToPolyShapeAlg : MetaPolyAlg PolyShape
 ToPolyShapeAlg PFI = idPolyShape
-ToPolyShapeAlg (PFA FA0) = initialPolyShape
-ToPolyShapeAlg (PFA FA1) = terminalPolyShape
-ToPolyShapeAlg (PFA (p ##+ q)) = addPolyShape p q
-ToPolyShapeAlg (PFA (p ##* q)) = mulPolyShape p q
+ToPolyShapeAlg PF0 = initialPolyShape
+ToPolyShapeAlg PF1 = terminalPolyShape
+ToPolyShapeAlg (p $$+ q) = addPolyShape p q
+ToPolyShapeAlg (p $$* q) = mulPolyShape p q
 
 public export
 toPolyShape : PolyMu -> PolyShape
@@ -3961,10 +3918,10 @@ polyDistrib = fromPolyShape . toPolyShape
 public export
 MetaPolyFNatAlg : MetaPolyAlg (Nat -> Nat)
 MetaPolyFNatAlg PFI = id
-MetaPolyFNatAlg (PFA FA0) = const 0
-MetaPolyFNatAlg (PFA FA1) = const 1
-MetaPolyFNatAlg (PFA (p ##+ q)) = \n => p n + q n
-MetaPolyFNatAlg (PFA (p ##* q)) = \n => p n * q n
+MetaPolyFNatAlg PF0 = const 0
+MetaPolyFNatAlg PF1 = const 1
+MetaPolyFNatAlg (p $$+ q) = \n => p n + q n
+MetaPolyFNatAlg (p $$* q) = \n => p n * q n
 
 public export
 MetaPolyFMNat : (a -> Nat -> Nat) -> PolyFM a -> Nat -> Nat
@@ -3981,10 +3938,10 @@ MetaPolyFNat = metaPolyCata MetaPolyFNatAlg
 public export
 MetaPolyMetaFAlg : MetaPolyAlg (Type -> Type)
 MetaPolyMetaFAlg PFI = id
-MetaPolyMetaFAlg (PFA FA0) = const Void
-MetaPolyMetaFAlg (PFA FA1) = const Unit
-MetaPolyMetaFAlg (PFA (p ##+ q)) = CoproductF p q
-MetaPolyMetaFAlg (PFA (p ##* q)) = ProductF p q
+MetaPolyMetaFAlg PF0 = const Void
+MetaPolyMetaFAlg PF1 = const Unit
+MetaPolyMetaFAlg (p $$+ q) = CoproductF p q
+MetaPolyMetaFAlg (p $$* q) = ProductF p q
 
 public export
 MetaPolyFMMetaF : (a -> Type -> Type) -> PolyFM a -> Type -> Type
@@ -4027,15 +3984,15 @@ PolyHomObj _ (InPVar v) = void v
 -- Theory of Interaction_)
 PolyHomObj (InPCom PFI) r = r $. (PolyI $+ Poly1)
 -- `0 -> x == 1` (the universal property of the initial object)
-PolyHomObj (InPCom (PFA FA0)) (InPCom q) = Poly1
+PolyHomObj (InPCom PF0) (InPCom q) = Poly1
 -- `1 -> x == x` (a special case of the Yoneda lemma, together with
 -- the universal property of the terminal object)
-PolyHomObj (InPCom (PFA FA1)) (InPCom q) = InPCom q
+PolyHomObj (InPCom PF1) (InPCom q) = InPCom q
 -- (p + q) -> r == (p -> r) * (q -> r)
-PolyHomObj (InPCom (PFA (p ##+ q))) (InPCom r) =
+PolyHomObj (InPCom (p $$+ q)) (InPCom r) =
   PolyHomObj p (InPCom r) $* PolyHomObj q (InPCom r)
 -- (p * q) -> r == p -> q -> r
-PolyHomObj (InPCom (PFA (p ##* q))) (InPCom r) =
+PolyHomObj (InPCom (p $$* q)) (InPCom r) =
   PolyHomObj p (PolyHomObj q (InPCom r))
 
 public export
