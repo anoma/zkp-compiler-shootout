@@ -1033,18 +1033,12 @@ data FinTDir : FinTPos -> Type where
 public export
 FTDirInitial : {0 a : FinTDir FTPInitial -> Type} ->
   (d : FinTDir FTPInitial) -> a d
-FTDirInitial FTDLeft impossible
-FTDirInitial FTDRight impossible
-FTDirInitial FTDFst impossible
-FTDirInitial FTDSnd impossible
+FTDirInitial _ impossible
 
 public export
 FTDirTerminal : {0 a : FinTDir FTPTerminal -> Type} ->
   (d : FinTDir FTPTerminal) -> a d
-FTDirTerminal FTDLeft impossible
-FTDirTerminal FTDRight impossible
-FTDirTerminal FTDFst impossible
-FTDirTerminal FTDSnd impossible
+FTDirTerminal _ impossible
 
 public export
 FTDirCoproduct : {0 a : FinTDir FTPCoproduct -> Type} ->
