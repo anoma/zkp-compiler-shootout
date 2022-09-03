@@ -3612,31 +3612,19 @@ metaPolyCata alg p = metaPolyFold alg p
     p $$* q => metaPolyFold alg p $$* metaPolyFold alg q
 
 public export
-data PolyCM : Type -> Type where
-  InPLabel : a -> Inf (PolyF (PolyCM a)) -> PolyCM a
-
-public export
-PolyNu : Type
-PolyNu = PolyCM Unit
-
-public export
-metaPolyCoeval : MetaPolyCoalg x -> (a -> a -> a) -> (x -> a) -> x -> PolyCM a
-metaPolyCoeval coalg mula subst t = case coalg t of
-  PFI => InPLabel (subst t) PFI
-  PF0 => InPLabel (subst t) PF0
-  PF1 => InPLabel (subst t) PF1
-  p $$+ q =>
-    InPLabel (mula (subst p) (subst q)) $
-      (metaPolyCoeval coalg mula subst p) $$+
-      (metaPolyCoeval coalg mula subst q)
-  p $$* q =>
-    InPLabel (mula (subst p) (subst q)) $
-      (metaPolyCoeval coalg mula subst p) $$*
-      (metaPolyCoeval coalg mula subst q)
+data PolyNu : Type where
+  InPLabel : Inf (PolyF PolyNu) -> PolyNu
 
 public export
 metaPolyAna : MetaPolyCoalg x -> x -> PolyNu
-metaPolyAna coalg = metaPolyCoeval {a=Unit} coalg (const $ const ()) (const ())
+metaPolyAna coalg t = case coalg t of
+  PFI => InPLabel PFI
+  PF0 => InPLabel PF0
+  PF1 => InPLabel PF1
+  p $$+ q =>
+    InPLabel $ (metaPolyAna coalg p) $$+ (metaPolyAna coalg q)
+  p $$* q =>
+    InPLabel $ (metaPolyAna coalg p) $$* (metaPolyAna coalg q)
 
 -------------------
 ---- Utilities ----
