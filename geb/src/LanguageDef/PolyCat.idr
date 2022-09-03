@@ -578,16 +578,6 @@ spfCata : {0 a : Type} -> {spf : SlicePolyEndoF a} -> {0 sa : SliceObj a} ->
 spfCata {a} {spf=spf@((_ ** _) ** _)} {sa} {funext} alg ea (em ** slieq) =
   spfCataCurried {a} {spf} {funext} alg ea em slieq
 
-public export
-spfAna : {0 a : Type} -> {spf : SlicePolyEndoF a} -> {0 sa : SliceObj a} ->
-  {funext : FunExt} -> SPFCoalg spf sa -> (ea : a) -> sa ea -> SPFNu spf ea
-spfAna {a} {spf=((pos ** dir) ** idx)} {sa} {funext} coalg ea esa =
-  case coalg ea esa of
-    (i ** param ** (extEq, da)) => case (extEq funext) of
-      Refl =>
-        InSPFN {spf=((pos ** dir) ** idx)} i param $
-          \di : dir i => spfAna {funext} coalg (param di) (da di)
-
 --------------------------------------------------
 ---- Dependent polynomial (co)free (co)monads ----
 --------------------------------------------------
@@ -621,6 +611,24 @@ public export
 SPFFreeMFromMu : {x : Type} -> SlicePolyEndoF x -> SliceObj x -> SliceObj x
 SPFFreeMFromMu spf sx =
   SPFMu {a=x} (SPFTranslate {x} {y=x} spf (Sigma sx) DPair.fst)
+
+-------------------------------------------------------
+---- Anamorphisms of dependent polynomial functors ----
+-------------------------------------------------------
+
+public export
+spfAna : {0 a : Type} -> {spf : SlicePolyEndoF a} -> {0 sa : SliceObj a} ->
+  {funext : FunExt} -> SPFCoalg spf sa -> (ea : a) -> sa ea -> SPFNu spf ea
+spfAna {a} {spf=((pos ** dir) ** idx)} {sa} {funext} coalg ea esa =
+  case coalg ea esa of
+    (i ** param ** (extEq, da)) => case (extEq funext) of
+      Refl =>
+        InSPFN {spf=((pos ** dir) ** idx)} i param $
+          \di : dir i => spfAna {funext} coalg (param di) (da di)
+
+------------------------------------------------
+---- Dependent polynomial (cofree) comonads ----
+------------------------------------------------
 
 public export
 SPFScalePos : {0 x, y : Type} -> SlicePolyFunc x y -> Type -> Type
