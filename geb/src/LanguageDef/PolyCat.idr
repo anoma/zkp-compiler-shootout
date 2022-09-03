@@ -432,288 +432,6 @@ public export
 PolyFuncCofreeCMFromScale : PolyFunc -> Type -> Type
 PolyFuncCofreeCMFromScale = PolyFuncNu .* PFScale
 
----------------------------------------
----------------------------------------
----- Dependent polynomial functors ----
----------------------------------------
----------------------------------------
-
---------------------------------------------------------------------
----- Dependent polynomials as functors between slice categories ----
---------------------------------------------------------------------
-
-public export
-SliceIdx : PolyFunc -> Type -> Type -> Type
-SliceIdx p a b = (i : pfPos p) -> (pfDir {p} i -> a) -> b
-
-public export
-SlicePolyFunc : Type -> Type -> Type
-SlicePolyFunc a b = (p : PolyFunc ** SliceIdx p a b)
-
-public export
-spfFunc : {0 a, b : Type} -> SlicePolyFunc a b -> PolyFunc
-spfFunc = DPair.fst
-
-public export
-spfPos : {0 a, b : Type} -> SlicePolyFunc a b -> Type
-spfPos = pfPos . spfFunc
-
-public export
-spfDir : {0 a, b : Type} -> {spf : SlicePolyFunc a b} -> spfPos spf -> Type
-spfDir {spf} = pfDir {p=(spfFunc spf)}
-
-public export
-spfIdx : {0 a, b : Type} ->
-  {spf : SlicePolyFunc a b} -> SliceIdx (spfFunc spf) a b
-spfIdx {spf} = DPair.snd spf
-
-public export
-InterpSPFunc : {a, b : Type} -> SlicePolyFunc a b -> SliceObj a -> SliceObj b
-InterpSPFunc {a} {b} ((pos ** dir) ** idx) sa eb =
-  (i : pos **
-   param : dir i -> a **
-   (FunExt -> idx i param = eb,
-    (d : dir i) -> sa $ param d))
-
-public export
-InterpSPFMap : {0 a, b : Type} -> (spf : SlicePolyFunc a b) ->
-  {0 sa, sa' : SliceObj a} ->
-  SliceMorphism sa sa' ->
-  SliceMorphism (InterpSPFunc spf sa) (InterpSPFunc spf sa')
-InterpSPFMap ((_ ** dir) ** _) m _ (i ** param ** (eqidx, da)) =
-  (i ** param ** (eqidx, \d : dir i => m (param d) (da d)))
-
-public export
-SlicePolyEndoF : Type -> Type
-SlicePolyEndoF a = SlicePolyFunc a a
-
------------------------------------------------------------------------
----- Natural transformations on dependent polynomial endofunctors ----
------------------------------------------------------------------------
-
-public export
-SPNatTransOnIdx : {x, y : Type} -> (p, q : SlicePolyFunc x y) ->
-  PolyNatTrans (spfFunc p) (spfFunc q) -> Type
-SPNatTransOnIdx {x} p q pnt =
-  (pi : spfPos p) -> (pparam : spfDir {spf=p} pi -> x) ->
-  spfIdx {spf=q} (pntOnPos pnt pi) (pparam . pntOnDir pnt pi) =
-  spfIdx {spf=p} pi pparam
-
-public export
-SPNatTrans : {x, y : Type} -> SlicePolyFunc x y -> SlicePolyFunc x y -> Type
-SPNatTrans {x} p q =
-  (pnt : PolyNatTrans (spfFunc p) (spfFunc q) ** SPNatTransOnIdx p q pnt)
-
-public export
-spntPnt : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} ->
-  SPNatTrans p q -> PolyNatTrans (spfFunc p) (spfFunc q)
-spntPnt = DPair.fst
-
-public export
-spntOnPos : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} -> SPNatTrans p q ->
-  spfPos p -> spfPos q
-spntOnPos = pntOnPos . spntPnt
-
-public export
-spntOnDir : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} ->
-  (alpha : SPNatTrans p q) ->
-  SliceMorphism (spfDir {spf=q} . spntOnPos {p} {q} alpha) (spfDir {spf=p})
-spntOnDir alpha i = pntOnDir (spntPnt alpha) i
-
-public export
-spntOnIdx : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} ->
-  (alpha : SPNatTrans p q) -> SPNatTransOnIdx p q (spntPnt {p} {q} alpha)
-spntOnIdx = DPair.snd
-
-public export
-InterpSPNT : {0 x, y : Type} -> {p, q : SlicePolyFunc x y} ->
-  SPNatTrans p q -> {0 sx : SliceObj x} ->
-  SliceMorphism {a=y} (InterpSPFunc p sx) (InterpSPFunc q sx)
-InterpSPNT {x} {y} {p=((ppos ** pdir) ** pidx)} {q=((qpos ** qdir) ** qidx)}
-  ((onPos ** onDir) ** onIdx) {sx} ey (pi ** pparam ** (extEq, pda)) =
-    (onPos pi **
-     pparam . onDir pi **
-     (\funext => trans (onIdx pi pparam) (extEq funext),
-      \qd : qdir (onPos pi) => pda $ onDir pi qd))
-
------------------------------------------------
------------------------------------------------
----- Dependent-polynomial-functors algebra ----
------------------------------------------------
------------------------------------------------
-
----------------------------------------------------
----- Algebras of dependent polynomial functors ----
----------------------------------------------------
-
-public export
-SPFAlg : {a : Type} -> SlicePolyEndoF a -> SliceObj a -> Type
-SPFAlg spf sa = SliceMorphism (InterpSPFunc spf sa) sa
-
----------------------------------------------------
----- Initial algebras of dependent polynomials ----
----------------------------------------------------
-
-public export
-spfMu : {0 a : Type} -> SlicePolyEndoF a -> Type
-spfMu = PolyFuncMu . spfFunc
-
-public export
-spfMuIdx : {0 a : Type} -> (spf : SlicePolyEndoF a) -> spfMu spf -> a
-spfMuIdx (p@(pos ** dir) ** sli) = pfCata {p} sli
-
-public export
-SPFMu : {0 a : Type} -> SlicePolyEndoF a -> SliceObj a
-SPFMu {a} spf@(p ** sli) ea =
-  (em : PolyFuncMu p ** FunExt -> spfMuIdx spf em = ea)
-
-public export
-InSPFM : {0 a : Type} -> {spf : SlicePolyEndoF a} ->
-  (i : spfPos spf) ->
-  (param : spfDir {spf} i -> a) ->
-  ((di : spfDir {spf} i) -> SPFMu {a} spf (param di)) ->
-  SPFMu {a} spf (spfIdx {spf} i param)
-InSPFM {a} {spf=spf@((pos ** dir) ** slidx)} i param sli =
-  (InPFM i (\di => fst (sli di)) **
-   (\funext => cong (slidx i) $ funExt $ \di => snd (sli di) funext))
-
---------------------------------------------------------
----- Catamorphisms of dependent polynomial functors ----
---------------------------------------------------------
-
-public export
-spfCataCurried : {0 a : Type} -> {spf : SlicePolyEndoF a} ->
-  {0 sa : SliceObj a} -> {funext : FunExt} -> SPFAlg spf sa ->
-  (ea : a) ->
-  (em : PolyFuncMu (spfFunc spf)) ->
-  (FunExt -> spfMuIdx {a} spf em = ea) ->
-  sa ea
-spfCataCurried
-  {spf=((pos ** dir) ** idx)} {funext} alg ea (InPFM i param) slieq =
-    case slieq funext of
-      Refl =>
-        alg
-          ea
-          (i **
-          pfCata {p=(pos ** dir)} idx . param **
-          (slieq,
-            \di : dir i =>
-              spfCataCurried {spf=((pos ** dir) ** idx)} {funext} alg
-                (pfCata idx (param di)) (param di) (\_ => Refl)))
-
-public export
-spfCata : {0 a : Type} -> {spf : SlicePolyEndoF a} -> {0 sa : SliceObj a} ->
-  {funext : FunExt} -> SPFAlg spf sa -> (ea : a) -> SPFMu spf ea -> sa ea
-spfCata {a} {spf=spf@((_ ** _) ** _)} {sa} {funext} alg ea (em ** slieq) =
-  spfCataCurried {a} {spf} {funext} alg ea em slieq
-
---------------------------------------------
----- Dependent polynomial (free) monads ----
---------------------------------------------
-
-public export
-SPFTranslatePos : {0 x, y : Type} -> SlicePolyFunc x y -> Type -> Type
-SPFTranslatePos = PFTranslatePos . spfFunc
-
-public export
-SPFTranslateDir : {x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
-  SPFTranslatePos spf a -> Type
-SPFTranslateDir spf a = PFTranslateDir (spfFunc spf) a
-
-public export
-SPFTranslateFunc : {x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
-  PolyFunc
-SPFTranslateFunc spf a = (SPFTranslatePos spf a ** SPFTranslateDir spf a)
-
-public export
-SPFTranslateIdx : {0 x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
-  (a -> y) -> SliceIdx (SPFTranslateFunc spf a) x y
-SPFTranslateIdx ((pos ** dir) ** idx) a f (PFVar v) di = f v
-SPFTranslateIdx ((pos ** dir) ** idx) a f (PFCom i) di = idx i di
-
-public export
-SPFTranslate : {x, y : Type} -> SlicePolyFunc x y -> (a : Type) ->
-  (a -> y) -> SlicePolyFunc x y
-SPFTranslate spf a f = (SPFTranslateFunc spf a ** SPFTranslateIdx spf a f)
-
-public export
-SPFFreeMFromMu : {x : Type} -> SlicePolyEndoF x -> SliceObj x -> SliceObj x
-SPFFreeMFromMu spf sx =
-  SPFMu {a=x} (SPFTranslate {x} {y=x} spf (Sigma sx) DPair.fst)
-
--------------------------------------------------
--------------------------------------------------
----- Dependent-polynomial-functors coalgebra ----
--------------------------------------------------
--------------------------------------------------
-
------------------------------------------------------
----- Coalgebras of dependent polynomial functors ----
------------------------------------------------------
-
-public export
-SPFCoalg : {a : Type} -> SlicePolyEndoF a -> SliceObj a -> Type
-SPFCoalg spf sa = SliceMorphism sa (InterpSPFunc spf sa)
-
-------------------------------------------------------
----- Terminal coalgebras of dependent polynomials ----
-------------------------------------------------------
-
-public export
-data SPFNu : {0 a : Type} -> SlicePolyEndoF a -> SliceObj a where
-  InSPFN : {0 a : Type} -> {0 spf : SlicePolyEndoF a} ->
-    (i : spfPos spf) ->
-    (param : spfDir {spf} i -> a) ->
-    ((di : spfDir {spf} i) -> Inf (SPFNu {a} spf (param di))) ->
-    SPFNu {a} spf (spfIdx {spf} i param)
-
--------------------------------------------------------
----- Anamorphisms of dependent polynomial functors ----
--------------------------------------------------------
-
-public export
-spfAna : {0 a : Type} -> {spf : SlicePolyEndoF a} -> {0 sa : SliceObj a} ->
-  {funext : FunExt} -> SPFCoalg spf sa -> (ea : a) -> sa ea -> SPFNu spf ea
-spfAna {a} {spf=((pos ** dir) ** idx)} {sa} {funext} coalg ea esa =
-  case coalg ea esa of
-    (i ** param ** (extEq, da)) => case (extEq funext) of
-      Refl =>
-        InSPFN {spf=((pos ** dir) ** idx)} i param $
-          \di : dir i => spfAna {funext} coalg (param di) (da di)
-
-------------------------------------------------
----- Dependent polynomial (cofree) comonads ----
-------------------------------------------------
-
-public export
-SPFScalePos : {0 x, y : Type} -> SlicePolyFunc x y -> Type -> Type
-SPFScalePos = PFScalePos . spfFunc
-
-public export
-SPFScaleDir : {x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
-  SPFScalePos spf a -> Type
-SPFScaleDir spf a = PFScaleDir (spfFunc spf) a
-
-public export
-SPFScaleFunc : {x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
-  PolyFunc
-SPFScaleFunc spf a = (SPFScalePos spf a ** SPFScaleDir spf a)
-
-public export
-SPFScaleIdx : {0 x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
-  (a -> y -> y) -> SliceIdx (SPFScaleFunc spf a) x y
-SPFScaleIdx {x} {y} ((pos ** dir) ** idx) a f (PFNode l i) di = f l (idx i di)
-
-public export
-SPFScale : {x, y : Type} -> SlicePolyFunc x y -> (a : Type) ->
-  (a -> y -> y) -> SlicePolyFunc x y
-SPFScale spf a f = (SPFScaleFunc spf a ** SPFScaleIdx spf a f)
-
-public export
-SPFCofreeCMFromNu : {x : Type} -> SlicePolyEndoF x -> SliceObj x -> SliceObj x
-SPFCofreeCMFromNu spf sx =
-  SPFNu {a=x} (SPFScale {x} {y=x} spf (Sigma sx) (const id))
-
 -----------------------
 -----------------------
 ---- Refined types ----
@@ -1068,6 +786,288 @@ public export
 CoeqCoalg : {f : Type -> Type} -> {pf : CoeqPredF f} ->
   NormalizerF pf -> Coequalized -> Type
 CoeqCoalg nf x = CoequalizedMorphism x (CoequalizedF nf x)
+
+---------------------------------------
+---------------------------------------
+---- Dependent polynomial functors ----
+---------------------------------------
+---------------------------------------
+
+--------------------------------------------------------------------
+---- Dependent polynomials as functors between slice categories ----
+--------------------------------------------------------------------
+
+public export
+SliceIdx : PolyFunc -> Type -> Type -> Type
+SliceIdx p a b = (i : pfPos p) -> (pfDir {p} i -> a) -> b
+
+public export
+SlicePolyFunc : Type -> Type -> Type
+SlicePolyFunc a b = (p : PolyFunc ** SliceIdx p a b)
+
+public export
+spfFunc : {0 a, b : Type} -> SlicePolyFunc a b -> PolyFunc
+spfFunc = DPair.fst
+
+public export
+spfPos : {0 a, b : Type} -> SlicePolyFunc a b -> Type
+spfPos = pfPos . spfFunc
+
+public export
+spfDir : {0 a, b : Type} -> {spf : SlicePolyFunc a b} -> spfPos spf -> Type
+spfDir {spf} = pfDir {p=(spfFunc spf)}
+
+public export
+spfIdx : {0 a, b : Type} ->
+  {spf : SlicePolyFunc a b} -> SliceIdx (spfFunc spf) a b
+spfIdx {spf} = DPair.snd spf
+
+public export
+InterpSPFunc : {a, b : Type} -> SlicePolyFunc a b -> SliceObj a -> SliceObj b
+InterpSPFunc {a} {b} ((pos ** dir) ** idx) sa eb =
+  (i : pos **
+   param : dir i -> a **
+   (FunExt -> idx i param = eb,
+    (d : dir i) -> sa $ param d))
+
+public export
+InterpSPFMap : {0 a, b : Type} -> (spf : SlicePolyFunc a b) ->
+  {0 sa, sa' : SliceObj a} ->
+  SliceMorphism sa sa' ->
+  SliceMorphism (InterpSPFunc spf sa) (InterpSPFunc spf sa')
+InterpSPFMap ((_ ** dir) ** _) m _ (i ** param ** (eqidx, da)) =
+  (i ** param ** (eqidx, \d : dir i => m (param d) (da d)))
+
+public export
+SlicePolyEndoF : Type -> Type
+SlicePolyEndoF a = SlicePolyFunc a a
+
+-----------------------------------------------------------------------
+---- Natural transformations on dependent polynomial endofunctors ----
+-----------------------------------------------------------------------
+
+public export
+SPNatTransOnIdx : {x, y : Type} -> (p, q : SlicePolyFunc x y) ->
+  PolyNatTrans (spfFunc p) (spfFunc q) -> Type
+SPNatTransOnIdx {x} p q pnt =
+  (pi : spfPos p) -> (pparam : spfDir {spf=p} pi -> x) ->
+  spfIdx {spf=q} (pntOnPos pnt pi) (pparam . pntOnDir pnt pi) =
+  spfIdx {spf=p} pi pparam
+
+public export
+SPNatTrans : {x, y : Type} -> SlicePolyFunc x y -> SlicePolyFunc x y -> Type
+SPNatTrans {x} p q =
+  (pnt : PolyNatTrans (spfFunc p) (spfFunc q) ** SPNatTransOnIdx p q pnt)
+
+public export
+spntPnt : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} ->
+  SPNatTrans p q -> PolyNatTrans (spfFunc p) (spfFunc q)
+spntPnt = DPair.fst
+
+public export
+spntOnPos : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} -> SPNatTrans p q ->
+  spfPos p -> spfPos q
+spntOnPos = pntOnPos . spntPnt
+
+public export
+spntOnDir : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} ->
+  (alpha : SPNatTrans p q) ->
+  SliceMorphism (spfDir {spf=q} . spntOnPos {p} {q} alpha) (spfDir {spf=p})
+spntOnDir alpha i = pntOnDir (spntPnt alpha) i
+
+public export
+spntOnIdx : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} ->
+  (alpha : SPNatTrans p q) -> SPNatTransOnIdx p q (spntPnt {p} {q} alpha)
+spntOnIdx = DPair.snd
+
+public export
+InterpSPNT : {0 x, y : Type} -> {p, q : SlicePolyFunc x y} ->
+  SPNatTrans p q -> {0 sx : SliceObj x} ->
+  SliceMorphism {a=y} (InterpSPFunc p sx) (InterpSPFunc q sx)
+InterpSPNT {x} {y} {p=((ppos ** pdir) ** pidx)} {q=((qpos ** qdir) ** qidx)}
+  ((onPos ** onDir) ** onIdx) {sx} ey (pi ** pparam ** (extEq, pda)) =
+    (onPos pi **
+     pparam . onDir pi **
+     (\funext => trans (onIdx pi pparam) (extEq funext),
+      \qd : qdir (onPos pi) => pda $ onDir pi qd))
+
+-----------------------------------------------
+-----------------------------------------------
+---- Dependent-polynomial-functors algebra ----
+-----------------------------------------------
+-----------------------------------------------
+
+---------------------------------------------------
+---- Algebras of dependent polynomial functors ----
+---------------------------------------------------
+
+public export
+SPFAlg : {a : Type} -> SlicePolyEndoF a -> SliceObj a -> Type
+SPFAlg spf sa = SliceMorphism (InterpSPFunc spf sa) sa
+
+---------------------------------------------------
+---- Initial algebras of dependent polynomials ----
+---------------------------------------------------
+
+public export
+spfMu : {0 a : Type} -> SlicePolyEndoF a -> Type
+spfMu = PolyFuncMu . spfFunc
+
+public export
+spfMuIdx : {0 a : Type} -> (spf : SlicePolyEndoF a) -> spfMu spf -> a
+spfMuIdx (p@(pos ** dir) ** sli) = pfCata {p} sli
+
+public export
+SPFMu : {0 a : Type} -> SlicePolyEndoF a -> SliceObj a
+SPFMu {a} spf@(p ** sli) ea =
+  (em : PolyFuncMu p ** FunExt -> spfMuIdx spf em = ea)
+
+public export
+InSPFM : {0 a : Type} -> {spf : SlicePolyEndoF a} ->
+  (i : spfPos spf) ->
+  (param : spfDir {spf} i -> a) ->
+  ((di : spfDir {spf} i) -> SPFMu {a} spf (param di)) ->
+  SPFMu {a} spf (spfIdx {spf} i param)
+InSPFM {a} {spf=spf@((pos ** dir) ** slidx)} i param sli =
+  (InPFM i (\di => fst (sli di)) **
+   (\funext => cong (slidx i) $ funExt $ \di => snd (sli di) funext))
+
+--------------------------------------------------------
+---- Catamorphisms of dependent polynomial functors ----
+--------------------------------------------------------
+
+public export
+spfCataCurried : {0 a : Type} -> {spf : SlicePolyEndoF a} ->
+  {0 sa : SliceObj a} -> {funext : FunExt} -> SPFAlg spf sa ->
+  (ea : a) ->
+  (em : PolyFuncMu (spfFunc spf)) ->
+  (FunExt -> spfMuIdx {a} spf em = ea) ->
+  sa ea
+spfCataCurried
+  {spf=((pos ** dir) ** idx)} {funext} alg ea (InPFM i param) slieq =
+    case slieq funext of
+      Refl =>
+        alg
+          ea
+          (i **
+          pfCata {p=(pos ** dir)} idx . param **
+          (slieq,
+            \di : dir i =>
+              spfCataCurried {spf=((pos ** dir) ** idx)} {funext} alg
+                (pfCata idx (param di)) (param di) (\_ => Refl)))
+
+public export
+spfCata : {0 a : Type} -> {spf : SlicePolyEndoF a} -> {0 sa : SliceObj a} ->
+  {funext : FunExt} -> SPFAlg spf sa -> (ea : a) -> SPFMu spf ea -> sa ea
+spfCata {a} {spf=spf@((_ ** _) ** _)} {sa} {funext} alg ea (em ** slieq) =
+  spfCataCurried {a} {spf} {funext} alg ea em slieq
+
+--------------------------------------------
+---- Dependent polynomial (free) monads ----
+--------------------------------------------
+
+public export
+SPFTranslatePos : {0 x, y : Type} -> SlicePolyFunc x y -> Type -> Type
+SPFTranslatePos = PFTranslatePos . spfFunc
+
+public export
+SPFTranslateDir : {x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
+  SPFTranslatePos spf a -> Type
+SPFTranslateDir spf a = PFTranslateDir (spfFunc spf) a
+
+public export
+SPFTranslateFunc : {x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
+  PolyFunc
+SPFTranslateFunc spf a = (SPFTranslatePos spf a ** SPFTranslateDir spf a)
+
+public export
+SPFTranslateIdx : {0 x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
+  (a -> y) -> SliceIdx (SPFTranslateFunc spf a) x y
+SPFTranslateIdx ((pos ** dir) ** idx) a f (PFVar v) di = f v
+SPFTranslateIdx ((pos ** dir) ** idx) a f (PFCom i) di = idx i di
+
+public export
+SPFTranslate : {x, y : Type} -> SlicePolyFunc x y -> (a : Type) ->
+  (a -> y) -> SlicePolyFunc x y
+SPFTranslate spf a f = (SPFTranslateFunc spf a ** SPFTranslateIdx spf a f)
+
+public export
+SPFFreeMFromMu : {x : Type} -> SlicePolyEndoF x -> SliceObj x -> SliceObj x
+SPFFreeMFromMu spf sx =
+  SPFMu {a=x} (SPFTranslate {x} {y=x} spf (Sigma sx) DPair.fst)
+
+-------------------------------------------------
+-------------------------------------------------
+---- Dependent-polynomial-functors coalgebra ----
+-------------------------------------------------
+-------------------------------------------------
+
+-----------------------------------------------------
+---- Coalgebras of dependent polynomial functors ----
+-----------------------------------------------------
+
+public export
+SPFCoalg : {a : Type} -> SlicePolyEndoF a -> SliceObj a -> Type
+SPFCoalg spf sa = SliceMorphism sa (InterpSPFunc spf sa)
+
+------------------------------------------------------
+---- Terminal coalgebras of dependent polynomials ----
+------------------------------------------------------
+
+public export
+data SPFNu : {0 a : Type} -> SlicePolyEndoF a -> SliceObj a where
+  InSPFN : {0 a : Type} -> {0 spf : SlicePolyEndoF a} ->
+    (i : spfPos spf) ->
+    (param : spfDir {spf} i -> a) ->
+    ((di : spfDir {spf} i) -> Inf (SPFNu {a} spf (param di))) ->
+    SPFNu {a} spf (spfIdx {spf} i param)
+
+-------------------------------------------------------
+---- Anamorphisms of dependent polynomial functors ----
+-------------------------------------------------------
+
+public export
+spfAna : {0 a : Type} -> {spf : SlicePolyEndoF a} -> {0 sa : SliceObj a} ->
+  {funext : FunExt} -> SPFCoalg spf sa -> (ea : a) -> sa ea -> SPFNu spf ea
+spfAna {a} {spf=((pos ** dir) ** idx)} {sa} {funext} coalg ea esa =
+  case coalg ea esa of
+    (i ** param ** (extEq, da)) => case (extEq funext) of
+      Refl =>
+        InSPFN {spf=((pos ** dir) ** idx)} i param $
+          \di : dir i => spfAna {funext} coalg (param di) (da di)
+
+------------------------------------------------
+---- Dependent polynomial (cofree) comonads ----
+------------------------------------------------
+
+public export
+SPFScalePos : {0 x, y : Type} -> SlicePolyFunc x y -> Type -> Type
+SPFScalePos = PFScalePos . spfFunc
+
+public export
+SPFScaleDir : {x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
+  SPFScalePos spf a -> Type
+SPFScaleDir spf a = PFScaleDir (spfFunc spf) a
+
+public export
+SPFScaleFunc : {x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
+  PolyFunc
+SPFScaleFunc spf a = (SPFScalePos spf a ** SPFScaleDir spf a)
+
+public export
+SPFScaleIdx : {0 x, y : Type} -> (spf : SlicePolyFunc x y) -> (a : Type) ->
+  (a -> y -> y) -> SliceIdx (SPFScaleFunc spf a) x y
+SPFScaleIdx {x} {y} ((pos ** dir) ** idx) a f (PFNode l i) di = f l (idx i di)
+
+public export
+SPFScale : {x, y : Type} -> SlicePolyFunc x y -> (a : Type) ->
+  (a -> y -> y) -> SlicePolyFunc x y
+SPFScale spf a f = (SPFScaleFunc spf a ** SPFScaleIdx spf a f)
+
+public export
+SPFCofreeCMFromNu : {x : Type} -> SlicePolyEndoF x -> SliceObj x -> SliceObj x
+SPFCofreeCMFromNu spf sx =
+  SPFNu {a=x} (SPFScale {x} {y=x} spf (Sigma sx) (const id))
 
 ----------------------------------------------------------------
 ----------------------------------------------------------------
