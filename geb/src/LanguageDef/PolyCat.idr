@@ -553,21 +553,30 @@ data SPFNu : {0 a : Type} -> SlicePolyEndoF a -> SliceObj a where
 -------------------------------------------------------------------------
 
 public export
+spfCataCurried : {0 a : Type} -> {spf : SlicePolyEndoF a} ->
+  {0 sa : SliceObj a} -> {funext : FunExt} -> SPFAlg spf sa ->
+  (ea : a) ->
+  (em : PolyFuncMu (spfFunc spf)) ->
+  (FunExt -> spfMuIdx {a} spf em = ea) ->
+  sa ea
+spfCataCurried
+  {spf=((pos ** dir) ** idx)} {funext} alg ea (InPFM i param) slieq =
+    case slieq funext of
+      Refl =>
+        alg
+          ea
+          (i **
+          pfCata {p=(pos ** dir)} idx . param **
+          (slieq,
+            \di : dir i =>
+              spfCataCurried {spf=((pos ** dir) ** idx)} {funext} alg
+                (pfCata idx (param di)) (param di) (\_ => Refl)))
+
+public export
 spfCata : {0 a : Type} -> {spf : SlicePolyEndoF a} -> {0 sa : SliceObj a} ->
   {funext : FunExt} -> SPFAlg spf sa -> (ea : a) -> SPFMu spf ea -> sa ea
-spfCata {a} {spf=((pos ** dir) ** idx)} {sa} {funext} alg ea ((InPFM i param) ** slieq) =
-  case slieq funext of
-    Refl =>
-      alg
-        ea
-        (i **
-         pfCata {p=(pos ** dir)} idx . param **
-         (slieq, ?spfCata_hole))
-         {-
-          \di : dir i =>
-            spfCata {spf=((pos ** dir) ** idx)} {funext} alg
-              (pfCata idx (param di)) (param di ** \_ => Refl)
-              -}
+spfCata {a} {spf=spf@((_ ** _) ** _)} {sa} {funext} alg ea (em ** slieq) =
+  spfCataCurried {a} {spf} {funext} alg ea em slieq
 
 public export
 spfAna : {0 a : Type} -> {spf : SlicePolyEndoF a} -> {0 sa : SliceObj a} ->
