@@ -3560,14 +3560,6 @@ public export
 data FinADT : Type where
   InFADT : FinADTF FinADT -> FinADT
 
-public export
-record FinADTAlg (a : Type) where
-  constructor MkFinADTAlg
-  fa0Alg : a
-  fa1Alg : a
-  faCoprodAlg : a -> a -> a
-  faProdAlg : a -> a -> a
-
 -----------------------------------------------------------
 -----------------------------------------------------------
 ---- Object-language inductive polynomial endofunctors ----
