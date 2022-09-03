@@ -466,15 +466,21 @@ InterpPolyFuncFreeM : PolyFunc -> Type -> Type
 InterpPolyFuncFreeM = InterpPolyFunc . PolyFuncFreeM
 
 public export
-partial
-PolyFMInterpToTranslate : (p : PolyFunc) -> (a : Type) ->
-  InterpPolyFuncFreeM p a -> PolyFuncFreeMFromTranslate p a
-PolyFMInterpToTranslate (pos ** dir) a ((InPFM (PFVar ()) f) ** d) =
-  InPFM (PFVar $ d ()) (voidF _)
-PolyFMInterpToTranslate (pos ** dir) a ((InPFM (PFCom i) f) ** d) =
+PolyFMInterpToTranslateCurried : (p : PolyFunc) -> (a : Type) ->
+  (mpos : PolyFuncFreeMPos p) -> (PolyFuncFreeMDir p mpos -> a) ->
+  PolyFuncFreeMFromTranslate p a
+PolyFMInterpToTranslateCurried (pos ** dir) a (InPFM (PFVar ()) f) dircat =
+  InPFM (PFVar $ dircat ()) (voidF _)
+PolyFMInterpToTranslateCurried (pos ** dir) a (InPFM (PFCom i) f) dircat =
   InPFM (PFCom i) $
     \di : dir i =>
-      PolyFMInterpToTranslate (pos ** dir) a (f di ** \pfc => d (di ** pfc))
+      PolyFMInterpToTranslateCurried (pos ** dir) a (f di) $
+        (\d => dircat (di ** d))
+
+public export
+PolyFMInterpToTranslate : (p : PolyFunc) -> (a : Type) ->
+  InterpPolyFuncFreeM p a -> PolyFuncFreeMFromTranslate p a
+PolyFMInterpToTranslate p a (em ** d) = PolyFMInterpToTranslateCurried p a em d
 
 public export
 PolyFMTranslateToInterpAlg : (p : PolyFunc) -> (a : Type) ->
