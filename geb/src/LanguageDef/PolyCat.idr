@@ -548,9 +548,9 @@ data SPFNu : {0 a : Type} -> SlicePolyEndoF a -> SliceObj a where
     ((di : spfDir {spf} i) -> Inf (SPFNu {a} spf (param di))) ->
     SPFNu {a} spf (spfIdx {spf} i param)
 
--------------------------------------------------------------------------
----- Catamorphisms and anamorphisms of dependent polynomial functors ----
--------------------------------------------------------------------------
+--------------------------------------------------------
+---- Catamorphisms of dependent polynomial functors ----
+--------------------------------------------------------
 
 public export
 spfCataCurried : {0 a : Type} -> {spf : SlicePolyEndoF a} ->
@@ -578,9 +578,9 @@ spfCata : {0 a : Type} -> {spf : SlicePolyEndoF a} -> {0 sa : SliceObj a} ->
 spfCata {a} {spf=spf@((_ ** _) ** _)} {sa} {funext} alg ea (em ** slieq) =
   spfCataCurried {a} {spf} {funext} alg ea em slieq
 
---------------------------------------------------
----- Dependent polynomial (co)free (co)monads ----
---------------------------------------------------
+--------------------------------------------
+---- Dependent polynomial (free) monads ----
+--------------------------------------------
 
 public export
 SPFTranslatePos : {0 x, y : Type} -> SlicePolyFunc x y -> Type -> Type
