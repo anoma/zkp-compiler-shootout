@@ -3573,50 +3573,43 @@ MetaPolyCoalg x = x -> PolyF x
 -----------------------------------------------------------------------
 
 public export
-data PolyFM : Type -> Type where
-  InPVar : a -> PolyFM a
-  InPCom : PolyF (PolyFM a) -> PolyFM a
-
-public export
-PolyMu : Type
-PolyMu = PolyFM Void
+data PolyMu : Type where
+  InPCom : PolyF PolyMu -> PolyMu
 
 infixr 8 $+
 infixr 9 $*
 
 public export
-PolyI : PolyFM a
+PolyI : PolyMu
 PolyI = InPCom PFI
 
 public export
-Poly0 : PolyFM a
+Poly0 : PolyMu
 Poly0 = InPCom PF0
 
 public export
-Poly1 : PolyFM a
+Poly1 : PolyMu
 Poly1 = InPCom PF1
 
 public export
-($+) : PolyFM a -> PolyFM a -> PolyFM a
+($+) : PolyMu -> PolyMu -> PolyMu
 ($+) = InPCom .* ($$+)
 
 public export
-($*) : PolyFM a -> PolyFM a -> PolyFM a
+($*) : PolyMu -> PolyMu -> PolyMu
 ($*) = InPCom .* ($$*)
 
 public export
-metaPolyEval : MetaPolyAlg x -> (a -> x) -> PolyFM a -> x
-metaPolyEval alg subst (InPVar v) = subst v
-metaPolyEval alg subst (InPCom p) = alg $ case p of
-  PFI => PFI
-  PF0 => PF0
-  PF1 => PF1
-  p $$+ q => metaPolyEval alg subst p $$+ metaPolyEval alg subst q
-  p $$* q => metaPolyEval alg subst p $$* metaPolyEval alg subst q
-
-public export
 metaPolyCata : MetaPolyAlg x -> PolyMu -> x
-metaPolyCata alg = metaPolyEval {a=Void} alg (voidF x)
+metaPolyCata alg p = metaPolyFold alg p
+  where
+  metaPolyFold : MetaPolyAlg x -> PolyMu -> x
+  metaPolyFold alg (InPCom p) = alg $ case p of
+    PFI => PFI
+    PF0 => PF0
+    PF1 => PF1
+    p $$+ q => metaPolyFold alg p $$+ metaPolyFold alg q
+    p $$* q => metaPolyFold alg p $$* metaPolyFold alg q
 
 public export
 data PolyCM : Type -> Type where
@@ -3698,18 +3691,15 @@ PolyShowAlg (x $$+ y) = "(" ++ x ++ " + " ++ y ++ ")"
 PolyShowAlg (x $$* y) = x ++ " * " ++ y
 
 public export
-Show a => Show (PolyFM a) where
-  show = metaPolyEval PolyShowAlg show
+Show PolyMu where
+  show = metaPolyCata PolyShowAlg
 
 ---------------------------------------------
 ---- Equality on polynomial endofunctors ----
 ---------------------------------------------
 
 public export
-Eq a => Eq (PolyFM a) where
-  (InPVar v) == (InPVar v') = v == v'
-  (InPVar x) == (InPCom y) = False
-  (InPCom x) == (InPVar y) = False
+Eq PolyMu where
   (InPCom PFI) == (InPCom PFI) = True
   (InPCom PFI) == (InPCom PF0) = False
   (InPCom PFI) == (InPCom PF1) = False
@@ -3746,20 +3736,16 @@ PolyRemoveZeroAlg PFI = PolyI
 PolyRemoveZeroAlg PF0 = Poly0
 PolyRemoveZeroAlg PF1 = Poly1
 PolyRemoveZeroAlg (p $$+ q) = case p of
-  InPVar v => void v
   InPCom p' => case p' of
     PF0 => q
     _ => case q of
-      InPVar v' => void v'
       InPCom q' => case q' of
         PF0 => p
         _ => p $+ q
 PolyRemoveZeroAlg (p $$* q) = case p of
-  InPVar v => void v
   InPCom p' => case p' of
     PF0 => Poly0
     _ => case q of
-      InPVar v' => void v'
       InPCom q' => case q' of
         PF0 => Poly0
         _ => p $* q
@@ -3775,11 +3761,9 @@ PolyRemoveOneAlg PF0 = Poly0
 PolyRemoveOneAlg PF1 = Poly1
 PolyRemoveOneAlg (p $$+ q) = p $+ q
 PolyRemoveOneAlg (p $$* q) = case p of
-  InPVar v => void v
   InPCom p' => case p' of
     PF1 => q
     _ => case q of
-      InPVar v' => void v'
       InPCom q' => case q' of
         PF1 => p
         _ => p $* q
@@ -3795,8 +3779,6 @@ polyRemoveOne = metaPolyCata PolyRemoveOneAlg
 infixr 2 $.
 public export
 ($.) : PolyMu -> PolyMu -> PolyMu
-(InPVar v) $. _ = void v
-(InPCom _) $. (InPVar v) = void v
 (InPCom PFI) $. q = q
 (InPCom PF0) $. (InPCom _) = Poly0
 (InPCom PF1) $. (InPCom _) = Poly1
@@ -3924,10 +3906,6 @@ MetaPolyFNatAlg (p $$+ q) = \n => p n + q n
 MetaPolyFNatAlg (p $$* q) = \n => p n * q n
 
 public export
-MetaPolyFMNat : (a -> Nat -> Nat) -> PolyFM a -> Nat -> Nat
-MetaPolyFMNat = metaPolyEval MetaPolyFNatAlg
-
-public export
 MetaPolyFNat : PolyMu -> Nat -> Nat
 MetaPolyFNat = metaPolyCata MetaPolyFNatAlg
 
@@ -3942,10 +3920,6 @@ MetaPolyMetaFAlg PF0 = const Void
 MetaPolyMetaFAlg PF1 = const Unit
 MetaPolyMetaFAlg (p $$+ q) = CoproductF p q
 MetaPolyMetaFAlg (p $$* q) = ProductF p q
-
-public export
-MetaPolyFMMetaF : (a -> Type -> Type) -> PolyFM a -> Type -> Type
-MetaPolyFMMetaF = metaPolyEval MetaPolyMetaFAlg
 
 public export
 MetaPolyFMetaF : PolyMu -> Type -> Type
@@ -3965,7 +3939,6 @@ polyTCard = polyCard 0
 
 public export
 MetaPolyFreeM : PolyMu -> (0 _ : Type) -> Type
-MetaPolyFreeM (InPVar v) = void v
 MetaPolyFreeM (InPCom p) = FreeM (MetaPolyFMetaF $ InPCom p)
 
 public export
@@ -3978,8 +3951,6 @@ MetaPolyMu p = MetaPolyFreeM p Void
 
 public export
 PolyHomObj : PolyMu -> PolyMu -> PolyMu
-PolyHomObj (InPVar v) _ = void v
-PolyHomObj _ (InPVar v) = void v
 -- id -> r == r . (id + 1) (see formula 4.27 in _Polynomial Functors: A General
 -- Theory of Interaction_)
 PolyHomObj (InPCom PFI) r = r $. (PolyI $+ Poly1)
