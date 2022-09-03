@@ -3603,32 +3603,41 @@ public export
 metaPolyCata : MetaPolyAlg x -> PolyMu -> x
 metaPolyCata alg = metaPolyFold id where
   mutual
-    metaPolyCont : (x -> x -> PolyF x) -> (x -> x) -> PolyMu -> PolyMu -> x
-    metaPolyCont op cont p q =
-      metaPolyFold (\p' => metaPolyFold (\q' => cont $ alg $ op p' q') q) p
+    metaPolyCataCont : (x -> x -> PolyF x) ->
+      (x -> x) -> PolyMu -> PolyMu -> x
+    metaPolyCataCont op cont p q =
+      metaPolyFold
+        (\p' => metaPolyFold (\q' => cont $ alg $ op p' q') q) p
 
     metaPolyFold : (x -> x) -> PolyMu -> x
     metaPolyFold cont (InPCom p) = case p of
       PFI => cont (alg PFI)
       PF0 => cont (alg PF0)
       PF1 => cont (alg PF1)
-      p $$+ q => metaPolyCont ($$+) cont p q
-      p $$* q => metaPolyCont ($$*) cont p q
+      p $$+ q => metaPolyCataCont ($$+) cont p q
+      p $$* q => metaPolyCataCont ($$*) cont p q
 
 public export
 data PolyNu : Type where
   InPLabel : Inf (PolyF PolyNu) -> PolyNu
 
 public export
-metaPolyAna : MetaPolyCoalg x -> x -> PolyNu
-metaPolyAna coalg t = case coalg t of
-  PFI => InPLabel PFI
-  PF0 => InPLabel PF0
-  PF1 => InPLabel PF1
-  p $$+ q =>
-    InPLabel $ (metaPolyAna coalg p) $$+ (metaPolyAna coalg q)
-  p $$* q =>
-    InPLabel $ (metaPolyAna coalg p) $$* (metaPolyAna coalg q)
+metaPolyAna : MetaPolyCoalg x -> x -> Inf PolyNu
+metaPolyAna coalg = metaPolyUnfold id where
+  mutual
+    metaPolyAnaCont : (PolyNu -> PolyNu -> PolyF PolyNu) ->
+      (PolyNu -> PolyNu) -> x -> x -> PolyNu
+    metaPolyAnaCont op cont x y =
+      metaPolyUnfold
+        (\x' => metaPolyUnfold (\y' => cont $ InPLabel $ op x' y') y) x
+
+    metaPolyUnfold : (PolyNu -> PolyNu) -> x -> Inf PolyNu
+    metaPolyUnfold cont t = case coalg t of
+      PFI => cont (InPLabel PFI)
+      PF0 => cont (InPLabel PF0)
+      PF1 => cont (InPLabel PF1)
+      p $$+ q => metaPolyAnaCont ($$+) cont p q
+      p $$* q => metaPolyAnaCont ($$*) cont p q
 
 -------------------
 ---- Utilities ----
