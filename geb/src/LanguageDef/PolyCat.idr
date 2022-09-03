@@ -3777,14 +3777,18 @@ polyRemoveOne = metaPolyCata PolyRemoveOneAlg
 ---- Composition of polynomial endofunctors (substitution) ----
 ---------------------------------------------------------------
 
+public export
+PolyComposeAlg : MetaPolyAlg (PolyMu -> PolyMu)
+PolyComposeAlg PFI q = q
+PolyComposeAlg PF0 _ = Poly0
+PolyComposeAlg PF1 _ = Poly1
+PolyComposeAlg (p $$+ q) r = p r $+ q r
+PolyComposeAlg (p $$* q) r = p r $* q r
+
 infixr 2 $.
 public export
 ($.) : PolyMu -> PolyMu -> PolyMu
-(InPCom PFI) $. q = q
-(InPCom PF0) $. (InPCom _) = Poly0
-(InPCom PF1) $. (InPCom _) = Poly1
-(InPCom (p $$+ q)) $. r = (p $. r) $+ (q $. r)
-(InPCom (p $$* q)) $. r = (p $. r) $* (q $. r)
+($.) = metaPolyCata PolyComposeAlg
 
 -----------------------------------------------------
 ---- Multiplication by a constant (via addition) ----
