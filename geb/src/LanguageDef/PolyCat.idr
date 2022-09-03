@@ -3955,21 +3955,23 @@ MetaPolyMu p = MetaPolyFreeM p Void
 ----------------------------------------------------------
 
 public export
-PolyHomObj : PolyMu -> PolyMu -> PolyMu
+PolyHomObjAlg : MetaPolyAlg (PolyMu -> PolyMu)
 -- id -> r == r . (id + 1) (see formula 4.27 in _Polynomial Functors: A General
 -- Theory of Interaction_)
-PolyHomObj (InPCom PFI) r = r $. (PolyI $+ Poly1)
+PolyHomObjAlg PFI r = r $. (PolyI $+ Poly1)
 -- `0 -> x == 1` (the universal property of the initial object)
-PolyHomObj (InPCom PF0) (InPCom q) = Poly1
+PolyHomObjAlg PF0 _ = Poly1
 -- `1 -> x == x` (a special case of the Yoneda lemma, together with
 -- the universal property of the terminal object)
-PolyHomObj (InPCom PF1) (InPCom q) = InPCom q
+PolyHomObjAlg PF1 q = q
 -- (p + q) -> r == (p -> r) * (q -> r)
-PolyHomObj (InPCom (p $$+ q)) (InPCom r) =
-  PolyHomObj p (InPCom r) $* PolyHomObj q (InPCom r)
+PolyHomObjAlg (p $$+ q) r = p r $* q r
 -- (p * q) -> r == p -> q -> r
-PolyHomObj (InPCom (p $$* q)) (InPCom r) =
-  PolyHomObj p (PolyHomObj q (InPCom r))
+PolyHomObjAlg (p $$* q) r = p $ q r
+
+public export
+PolyHomObj : PolyMu -> PolyMu -> PolyMu
+PolyHomObj = metaPolyCata PolyHomObjAlg
 
 public export
 PolyExp : PolyMu -> PolyMu -> PolyMu
