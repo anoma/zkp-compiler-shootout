@@ -1097,6 +1097,8 @@ polyCatTest = do
     show (polyTCard $ PolyHomObj (polyNatIter 4) (polyDepth3BinTree))
   putStrLn $ "card[polyDepth3BT -> depth4Nat] = " ++
     show (polyTCard $ PolyHomObj (polyDepth3BinTree) (polyNatIter 4))
+  putStrLn $ "hom[polyDepth3BT -> depth4Nat] = " ++
+    showPolyShape (PolyHomObj (polyDepth3BinTree) (polyNatIter 4))
   putStrLn $ "polyDepth3BTFixed = " ++ show polyDepth3BinTreeFixed
   putStrLn $ "card[polyDepth3BTFixed,0] = "
     ++ show (polyTCard polyDepth3BinTreeFixed)
