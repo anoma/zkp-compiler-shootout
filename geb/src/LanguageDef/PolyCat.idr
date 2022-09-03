@@ -284,104 +284,6 @@ public export
 PFCoalg : PolyFunc -> Type -> Type
 PFCoalg (pos ** dir) a = a -> (i : pos ** (dir i -> a))
 
----------------------------------------
----- Dependent polynomial functors ----
----------------------------------------
-
-public export
-SliceIdx : PolyFunc -> Type -> Type -> Type
-SliceIdx p a b = (i : pfPos p) -> (pfDir {p} i -> a) -> b
-
-public export
-SlicePolyFunc : Type -> Type -> Type
-SlicePolyFunc a b = (p : PolyFunc ** SliceIdx p a b)
-
-public export
-spfFunc : {0 a, b : Type} -> SlicePolyFunc a b -> PolyFunc
-spfFunc = DPair.fst
-
-public export
-spfPos : {0 a, b : Type} -> SlicePolyFunc a b -> Type
-spfPos = pfPos . spfFunc
-
-public export
-spfDir : {0 a, b : Type} -> {spf : SlicePolyFunc a b} -> spfPos spf -> Type
-spfDir {spf} = pfDir {p=(spfFunc spf)}
-
-public export
-spfIdx : {0 a, b : Type} ->
-  {spf : SlicePolyFunc a b} -> SliceIdx (spfFunc spf) a b
-spfIdx {spf} = DPair.snd spf
-
-public export
-InterpSPFunc : {a, b : Type} -> SlicePolyFunc a b -> SliceObj a -> SliceObj b
-InterpSPFunc {a} {b} ((pos ** dir) ** idx) sa eb =
-  (i : pos **
-   param : dir i -> a **
-   (FunExt -> idx i param = eb,
-    (d : dir i) -> sa $ param d))
-
-public export
-InterpSPFMap : {0 a, b : Type} -> (spf : SlicePolyFunc a b) ->
-  {0 sa, sa' : SliceObj a} ->
-  SliceMorphism sa sa' ->
-  SliceMorphism (InterpSPFunc spf sa) (InterpSPFunc spf sa')
-InterpSPFMap ((_ ** dir) ** _) m _ (i ** param ** (eqidx, da)) =
-  (i ** param ** (eqidx, \d : dir i => m (param d) (da d)))
-
-public export
-SlicePolyEndoF : Type -> Type
-SlicePolyEndoF a = SlicePolyFunc a a
-
------------------------------------------------------------------------
----- Natural transformations on dependent polynomial endofunctors ----
------------------------------------------------------------------------
-
-public export
-SPNatTransOnIdx : {x, y : Type} -> (p, q : SlicePolyFunc x y) ->
-  PolyNatTrans (spfFunc p) (spfFunc q) -> Type
-SPNatTransOnIdx {x} p q pnt =
-  (pi : spfPos p) -> (pparam : spfDir {spf=p} pi -> x) ->
-  spfIdx {spf=q} (pntOnPos pnt pi) (pparam . pntOnDir pnt pi) =
-  spfIdx {spf=p} pi pparam
-
-public export
-SPNatTrans : {x, y : Type} -> SlicePolyFunc x y -> SlicePolyFunc x y -> Type
-SPNatTrans {x} p q =
-  (pnt : PolyNatTrans (spfFunc p) (spfFunc q) ** SPNatTransOnIdx p q pnt)
-
-public export
-spntPnt : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} ->
-  SPNatTrans p q -> PolyNatTrans (spfFunc p) (spfFunc q)
-spntPnt = DPair.fst
-
-public export
-spntOnPos : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} -> SPNatTrans p q ->
-  spfPos p -> spfPos q
-spntOnPos = pntOnPos . spntPnt
-
-public export
-spntOnDir : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} ->
-  (alpha : SPNatTrans p q) ->
-  SliceMorphism (spfDir {spf=q} . spntOnPos {p} {q} alpha) (spfDir {spf=p})
-spntOnDir alpha i = pntOnDir (spntPnt alpha) i
-
-public export
-spntOnIdx : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} ->
-  (alpha : SPNatTrans p q) -> SPNatTransOnIdx p q (spntPnt {p} {q} alpha)
-spntOnIdx = DPair.snd
-
-public export
-InterpSPNT : {0 x, y : Type} -> {p, q : SlicePolyFunc x y} ->
-  SPNatTrans p q -> {0 sx : SliceObj x} ->
-  SliceMorphism {a=y} (InterpSPFunc p sx) (InterpSPFunc q sx)
-InterpSPNT {x} {y} {p=((ppos ** pdir) ** pidx)} {q=((qpos ** qdir) ** qidx)}
-  ((onPos ** onDir) ** onIdx) {sx} ey (pi ** pparam ** (extEq, pda)) =
-    (onPos pi **
-     pparam . onDir pi **
-     (\funext => trans (onIdx pi pparam) (extEq funext),
-      \qd : qdir (onPos pi) => pda $ onDir pi qd))
-
 -------------------------------------------------------------------------
 ---- Initial algebras and terminal coalgebras of polynomial functors ----
 -------------------------------------------------------------------------
@@ -500,6 +402,104 @@ PFScale p a = (PFScalePos p a ** PFScaleDir p a)
 public export
 PolyFuncCofreeCMFromScale : PolyFunc -> Type -> Type
 PolyFuncCofreeCMFromScale = PolyFuncNu .* PFScale
+
+---------------------------------------
+---- Dependent polynomial functors ----
+---------------------------------------
+
+public export
+SliceIdx : PolyFunc -> Type -> Type -> Type
+SliceIdx p a b = (i : pfPos p) -> (pfDir {p} i -> a) -> b
+
+public export
+SlicePolyFunc : Type -> Type -> Type
+SlicePolyFunc a b = (p : PolyFunc ** SliceIdx p a b)
+
+public export
+spfFunc : {0 a, b : Type} -> SlicePolyFunc a b -> PolyFunc
+spfFunc = DPair.fst
+
+public export
+spfPos : {0 a, b : Type} -> SlicePolyFunc a b -> Type
+spfPos = pfPos . spfFunc
+
+public export
+spfDir : {0 a, b : Type} -> {spf : SlicePolyFunc a b} -> spfPos spf -> Type
+spfDir {spf} = pfDir {p=(spfFunc spf)}
+
+public export
+spfIdx : {0 a, b : Type} ->
+  {spf : SlicePolyFunc a b} -> SliceIdx (spfFunc spf) a b
+spfIdx {spf} = DPair.snd spf
+
+public export
+InterpSPFunc : {a, b : Type} -> SlicePolyFunc a b -> SliceObj a -> SliceObj b
+InterpSPFunc {a} {b} ((pos ** dir) ** idx) sa eb =
+  (i : pos **
+   param : dir i -> a **
+   (FunExt -> idx i param = eb,
+    (d : dir i) -> sa $ param d))
+
+public export
+InterpSPFMap : {0 a, b : Type} -> (spf : SlicePolyFunc a b) ->
+  {0 sa, sa' : SliceObj a} ->
+  SliceMorphism sa sa' ->
+  SliceMorphism (InterpSPFunc spf sa) (InterpSPFunc spf sa')
+InterpSPFMap ((_ ** dir) ** _) m _ (i ** param ** (eqidx, da)) =
+  (i ** param ** (eqidx, \d : dir i => m (param d) (da d)))
+
+public export
+SlicePolyEndoF : Type -> Type
+SlicePolyEndoF a = SlicePolyFunc a a
+
+-----------------------------------------------------------------------
+---- Natural transformations on dependent polynomial endofunctors ----
+-----------------------------------------------------------------------
+
+public export
+SPNatTransOnIdx : {x, y : Type} -> (p, q : SlicePolyFunc x y) ->
+  PolyNatTrans (spfFunc p) (spfFunc q) -> Type
+SPNatTransOnIdx {x} p q pnt =
+  (pi : spfPos p) -> (pparam : spfDir {spf=p} pi -> x) ->
+  spfIdx {spf=q} (pntOnPos pnt pi) (pparam . pntOnDir pnt pi) =
+  spfIdx {spf=p} pi pparam
+
+public export
+SPNatTrans : {x, y : Type} -> SlicePolyFunc x y -> SlicePolyFunc x y -> Type
+SPNatTrans {x} p q =
+  (pnt : PolyNatTrans (spfFunc p) (spfFunc q) ** SPNatTransOnIdx p q pnt)
+
+public export
+spntPnt : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} ->
+  SPNatTrans p q -> PolyNatTrans (spfFunc p) (spfFunc q)
+spntPnt = DPair.fst
+
+public export
+spntOnPos : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} -> SPNatTrans p q ->
+  spfPos p -> spfPos q
+spntOnPos = pntOnPos . spntPnt
+
+public export
+spntOnDir : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} ->
+  (alpha : SPNatTrans p q) ->
+  SliceMorphism (spfDir {spf=q} . spntOnPos {p} {q} alpha) (spfDir {spf=p})
+spntOnDir alpha i = pntOnDir (spntPnt alpha) i
+
+public export
+spntOnIdx : {0 x, y : Type} -> {0 p, q : SlicePolyFunc x y} ->
+  (alpha : SPNatTrans p q) -> SPNatTransOnIdx p q (spntPnt {p} {q} alpha)
+spntOnIdx = DPair.snd
+
+public export
+InterpSPNT : {0 x, y : Type} -> {p, q : SlicePolyFunc x y} ->
+  SPNatTrans p q -> {0 sx : SliceObj x} ->
+  SliceMorphism {a=y} (InterpSPFunc p sx) (InterpSPFunc q sx)
+InterpSPNT {x} {y} {p=((ppos ** pdir) ** pidx)} {q=((qpos ** qdir) ** qidx)}
+  ((onPos ** onDir) ** onIdx) {sx} ey (pi ** pparam ** (extEq, pda)) =
+    (onPos pi **
+     pparam . onDir pi **
+     (\funext => trans (onIdx pi pparam) (extEq funext),
+      \qd : qdir (onPos pi) => pda $ onDir pi qd))
 
 ---------------------------------------------------
 ---- Algebras of dependent polynomial functors ----
