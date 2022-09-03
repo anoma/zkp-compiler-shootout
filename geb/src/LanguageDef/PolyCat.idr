@@ -1156,22 +1156,23 @@ FinPromoteRight : {m, n : Nat} -> FinTFNew n -> FinTFDepth (maximum m n)
 FinPromoteRight type = (n ** (maxLTERight m n, type))
 
 public export
-depthNotZero : {0 n : Nat} -> FinTFNew n -> Not (n = 0)
-depthNotZero (em ** sleq) = ?depthNonZero_hole
-{-
-depthNotZero (InSPFM FTPInitial _ _) eqz = case eqz of Refl impossible
-depthNotZero (InSPFM FTPTerminal _ _) eqz = case eqz of Refl impossible
-depthNotZero (InSPFM FTPCoproduct _ _) eqz = case eqz of Refl impossible
-depthNotZero (InSPFM FTPProduct _ _) eqz = case eqz of Refl impossible
--}
+depthNotZero : {0 n : Nat} -> {funext : FunExt} -> FinTFNew n -> Not (n = 0)
+depthNotZero {n} {funext} ((InPFM FTPInitial f) ** sleq) =
+  \eq => case sleq funext of Refl => case eq of Refl impossible
+depthNotZero {n} {funext} ((InPFM FTPTerminal f) ** sleq) =
+  \eq => case sleq funext of Refl => case eq of Refl impossible
+depthNotZero {n} {funext} ((InPFM FTPCoproduct f) ** sleq) =
+  \eq => case sleq funext of Refl => case eq of Refl impossible
+depthNotZero {n} {funext} ((InPFM FTPProduct f) ** sleq) =
+  \eq => case sleq funext of Refl => case eq of Refl impossible
 
 public export
-depth0Void : FinTFNew 0 -> Void
-depth0Void em = depthNotZero em Refl
+depth0Void : {funext : FunExt} -> FinTFNew 0 -> Void
+depth0Void {funext} em = depthNotZero {funext} em Refl
 
 public export
-depth0ExFalso : {0 a : Type} -> FinTFNew 0 -> a
-depth0ExFalso type = void (depth0Void type)
+depth0ExFalso : {funext : FunExt} -> {0 a : Type} -> FinTFNew 0 -> a
+depth0ExFalso {funext} type = void (depth0Void {funext} type)
 
 -- The signature of the induction principle for `FinTFNew`.
 public export
@@ -1195,10 +1196,11 @@ FinTFNewIndAlgStrengthened alg n hyp =
 
 -- Induction on `FinTFNew`.
 public export
-finTFNewInd : {0 a : (n : Nat) -> FinTFNew n -> Type} ->
+finTFNewInd : {funext : FunExt} -> {0 a : (n : Nat) -> FinTFNew n -> Type} ->
   FinTFNewIndAlg a -> (n : Nat) -> (type : FinTFNew n) -> a n type
-finTFNewInd {a} alg =
-  natDepGenInd (\type => depth0ExFalso type, FinTFNewIndAlgStrengthened alg)
+finTFNewInd {funext} {a} alg =
+  natDepGenInd
+    (\type => depth0ExFalso {funext} type, FinTFNewIndAlgStrengthened alg)
 
 -- The directed colimit of the metalanguage functor that generates
 -- depth-indexed object-language types.  (The directed colimit is also known
@@ -1238,8 +1240,8 @@ data FinTFNewTermAlg : FinTFNewIndAlg (\_, _ => Type) where
     FinTFNewTermAlg (maximum m n) hyp (FTFNProduct x y)
 
 public export
-FinTFNewTerm : (n : Nat) -> FinTFNew n -> Type
-FinTFNewTerm = finTFNewInd FinTFNewTermAlg
+FinTFNewTerm : {funext : FunExt} -> (n : Nat) -> FinTFNew n -> Type
+FinTFNewTerm {funext} = finTFNewInd {funext} FinTFNewTermAlg
 
 -- Generate the exponential object of a pair of finite unrefined objects.
 public export
@@ -1248,17 +1250,21 @@ FinExpObjF : (n : Nat) ->
 FinExpObjF n morph type cod = ?FinExpObjF_hole
 
 public export
-FinNewExpObj : {m, n : Nat} -> FinTFNew m -> FinTFNew n -> MuFinTF
-FinNewExpObj {m} {n} tm tn =
-  finTFNewInd {a=(\_, _ => MuFinTF -> MuFinTF)} FinExpObjF m tm (n ** tn)
+FinNewExpObj : {funext : FunExt} ->
+  {m, n : Nat} -> FinTFNew m -> FinTFNew n -> MuFinTF
+FinNewExpObj {funext} {m} {n} tm tn =
+  finTFNewInd
+    {funext} {a=(\_, _ => MuFinTF -> MuFinTF)} FinExpObjF m tm (n ** tn)
 
 public export
-FinDepthExpObj : {m, n : Nat} -> FinTFDepth m -> FinTFDepth n -> MuFinTF
-FinDepthExpObj (m ** (_, tm)) (n ** (_, tn)) = FinNewExpObj tm tn
+FinDepthExpObj : {funext : FunExt} ->
+  {m, n : Nat} -> FinTFDepth m -> FinTFDepth n -> MuFinTF
+FinDepthExpObj {funext} (m ** (_, tm)) (n ** (_, tn)) =
+  FinNewExpObj {funext} tm tn
 
 public export
-MuFinExpObj : MuFinTF -> MuFinTF -> MuFinTF
-MuFinExpObj (m ** tm) (n ** tn) = FinNewExpObj tm tn
+MuFinExpObj : {funext : FunExt} -> MuFinTF -> MuFinTF -> MuFinTF
+MuFinExpObj {funext} (m ** tm) (n ** tn) = FinNewExpObj {funext} tm tn
 
 -- Generate the morphisms out of a given finite unrefined type of
 -- a given depth, given the morphisms out of all unrefined types of
@@ -1269,17 +1275,21 @@ FinNewMorphF : (n : Nat) ->
 FinNewMorphF n morph type cod = ?FinNewMorphF_hole
 
 public export
-FinNewMorph : {m, n : Nat} -> FinTFNew m -> FinTFNew n -> Type
-FinNewMorph {m} {n} tm tn =
-  finTFNewInd {a=(\_, _ => MuFinTF -> Type)} FinNewMorphF m tm (n ** tn)
+FinNewMorph : {funext : FunExt} ->
+  {m, n : Nat} -> FinTFNew m -> FinTFNew n -> Type
+FinNewMorph {funext} {m} {n} tm tn =
+  finTFNewInd
+    {funext} {a=(\_, _ => MuFinTF -> Type)} FinNewMorphF m tm (n ** tn)
 
 public export
-FinDepthMorph : {m, n : Nat} -> FinTFDepth m -> FinTFDepth n -> Type
-FinDepthMorph (m ** (_, tm)) (n ** (_, tn)) = FinNewMorph tm tn
+FinDepthMorph : {funext : FunExt} ->
+  {m, n : Nat} -> FinTFDepth m -> FinTFDepth n -> Type
+FinDepthMorph {funext} (m ** (_, tm)) (n ** (_, tn)) =
+  FinNewMorph {funext} tm tn
 
 public export
-MuFinMorph : MuFinTF -> MuFinTF -> Type
-MuFinMorph (m ** tm) (n ** tn) = FinNewMorph tm tn
+MuFinMorph : {funext : FunExt} -> MuFinTF -> MuFinTF -> Type
+MuFinMorph {funext} (m ** tm) (n ** tn) = FinNewMorph {funext} tm tn
 
 ------------------------
 ------------------------
