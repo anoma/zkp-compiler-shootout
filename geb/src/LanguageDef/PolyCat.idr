@@ -3730,9 +3730,9 @@ public export
 Eq PolyMu where
   (==) = metaPolyPairCata PolyMuEqAlg
 
------------------------------------------------
----- Arithmetic on polynomial endofunctors ----
------------------------------------------------
+--------------------------------------------------
+---- Normalization of polynomial endofunctors ----
+--------------------------------------------------
 
 public export
 PolyRemoveZeroAlg : MetaPolyAlg PolyMu
@@ -3811,9 +3811,9 @@ public export
 ($*^) : PolyMu -> Nat -> PolyMu
 p $*^ n = foldrNatNoUnit (($*) p) Poly1 p n
 
---------------------------------------
----- Compositional exponentiation ----
---------------------------------------
+--------------------------------------------------
+---- Compositional exponentiation (iteration) ----
+--------------------------------------------------
 
 infix 10 $.^
 public export
@@ -3825,22 +3825,12 @@ p $.^ n = foldrNatNoUnit (($.) p) PolyI p n
 ---------------------------------------
 
 public export
-PolyAppZeroAlg : MetaPolyAlg PolyMu
-PolyAppZeroAlg PFI = Poly0
-PolyAppZeroAlg p = InPCom p
-
-public export
 polyAppZero : PolyMu -> PolyMu
-polyAppZero = polyRemoveZero . metaPolyCata PolyAppZeroAlg
-
-public export
-PolyAppOneAlg : MetaPolyAlg PolyMu
-PolyAppOneAlg PFI = Poly1
-PolyAppOneAlg p = InPCom p
+polyAppZero p = polyRemoveZero (p $. Poly0)
 
 public export
 polyAppOne : PolyMu -> PolyMu
-polyAppOne = polyRemoveOne . metaPolyCata PolyAppOneAlg
+polyAppOne p = polyRemoveOne (p $. Poly1)
 
 -------------------------------------------------
 ---- Conversion to and from algebraic format ----
@@ -3938,8 +3928,12 @@ MetaPolyFMetaF : PolyMu -> Type -> Type
 MetaPolyFMetaF = metaPolyCata MetaPolyMetaFAlg
 
 public export
-MetaPolyT : PolyMu -> Type
-MetaPolyT p = MetaPolyFMetaF p Void
+ConstComponent : PolyMu -> Type
+ConstComponent p = MetaPolyFMetaF p Void
+
+public export
+PositionType : PolyMu -> Type
+PositionType p = MetaPolyFMetaF p Unit
 
 ---------------------------------------------------
 ---- The free monad in the polynomial category ----

@@ -848,13 +848,13 @@ Polyf2f : Type -> Type
 Polyf2f = MetaPolyFMetaF polyf2
 
 Polyf0t : Type
-Polyf0t = MetaPolyT polyf0
+Polyf0t = ConstComponent polyf0
 
 Polyf1t : Type
-Polyf1t = MetaPolyT polyf1
+Polyf1t = ConstComponent polyf1
 
 Polyf2t : Type
-Polyf2t = MetaPolyT polyf2
+Polyf2t = ConstComponent polyf2
 
 polyf0i : Polyf0t
 polyf0i = (Left (), Left (), Right (), Left (), Right ())
@@ -905,7 +905,7 @@ polyNatIterFixed : Nat -> PolyMu
 polyNatIterFixed n = polyNatIter n $. Poly0
 
 PolyNatIter : Nat -> Type
-PolyNatIter = MetaPolyT . polyNatIter
+PolyNatIter = ConstComponent . polyNatIter
 
 pniterT0 : Not $ PolyNatIter 0
 pniterT0 = id
