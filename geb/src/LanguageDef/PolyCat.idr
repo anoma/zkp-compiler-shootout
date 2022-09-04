@@ -2483,6 +2483,19 @@ freeS0DepSet alg subst depsubst (InFreeM (InCom (S0ProductF x y))) =
         (freeS0DepSet alg subst depsubst x l)
         (freeS0DepSet alg subst depsubst y r)
 
+------------------------
+------------------------
+---- List utilities ----
+------------------------
+------------------------
+
+public export
+listFoldCPS : {0 a, b : Type} -> (a -> b -> b) -> List a -> b -> b
+listFoldCPS {a} {b} f = listFoldCont id where
+  listFoldCont : (b -> b) -> List a -> b -> b
+  listFoldCont k [] b = k b
+  listFoldCont k (x :: xs) b = listFoldCont (k . f x) xs b
+
 ---------------------
 ---------------------
 ---- Polynomials ----
@@ -2868,7 +2881,7 @@ addPoly (Element0 p pvalid) (Element0 q qvalid) =
 
 public export
 addPolyShapeList : List PolyShape -> PolyShape
-addPolyShapeList = foldr addPolyShape initialPolyShape
+addPolyShapeList l = listFoldCPS addPolyShape l initialPolyShape
 
 public export
 mulPolyShape : PolyShape -> PolyShape -> PolyShape
