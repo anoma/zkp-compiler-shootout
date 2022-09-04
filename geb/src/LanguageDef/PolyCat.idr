@@ -2946,7 +2946,7 @@ composeMonPoly (p, c) poly = scaleNatPolyShape c $ expNPolyShape p poly
 
 public export
 composePolyShape : PolyShape -> PolyShape -> PolyShape
-composePolyShape q p = addPolyShapeList $ map (flip composeMonPoly p) q
+composePolyShape = flip (addMapPolyShapeList composeMonPoly)
 
 public export
 composePreservesValid : {0 p, q : PolyShape} ->
@@ -2970,8 +2970,7 @@ public export
 
 public export
 iterNPolyShape : Nat -> PolyShape -> PolyShape
-iterNPolyShape Z _ = idPolyShape
-iterNPolyShape (S n) p = composePolyShape p (iterNPolyShape n p)
+iterNPolyShape n p = foldrNat (composePolyShape p) terminalPolyShape n
 
 public export
 iterNPreservesValid : {0 n : Nat} -> {0 poly : PolyShape} ->
