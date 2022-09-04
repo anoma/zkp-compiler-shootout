@@ -2884,8 +2884,14 @@ addPolyShapeList : List PolyShape -> PolyShape
 addPolyShapeList = listFoldCPS addPolyShape initialPolyShape
 
 public export
+addMapPolyShapeList :
+  (PolyTerm -> PolyShape -> PolyShape) -> PolyShape -> PolyShape -> PolyShape
+addMapPolyShapeList op p =
+  listFoldCPS (addPolyShape . flip op p) initialPolyShape
+
+public export
 mulPolyShape : PolyShape -> PolyShape -> PolyShape
-mulPolyShape p q = addPolyShapeList $ map (flip scaleMonPolyShape q) p
+mulPolyShape = addMapPolyShapeList scaleMonPolyShape
 
 public export
 mulPreservesValid : {0 p, q : PolyShape} ->
@@ -2903,7 +2909,7 @@ mulPolyShapeList = listFoldCPS mulPolyShape terminalPolyShape
 
 public export
 parProdPolyShape : PolyShape -> PolyShape -> PolyShape
-parProdPolyShape p q = addPolyShapeList $ map (flip parProdMonPolyShape q) p
+parProdPolyShape = addMapPolyShapeList parProdMonPolyShape
 
 public export
 parProdPreservesValid : {0 p, q : PolyShape} ->
