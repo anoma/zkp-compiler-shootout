@@ -2490,11 +2490,28 @@ freeS0DepSet alg subst depsubst (InFreeM (InCom (S0ProductF x y))) =
 ------------------------
 
 public export
+listFoldCont : {0 a, b : Type} -> (b -> b) -> (a -> b -> b) -> b -> List a -> b
+listFoldCont cont f z [] = cont z
+listFoldCont cont f z (x :: xs) = listFoldCont (cont . f x) f z xs
+
+public export
 listFoldCPS : {0 a, b : Type} -> (a -> b -> b) -> b -> List a -> b
-listFoldCPS {a} {b} f = listFoldCont id where
-  listFoldCont : (b -> b) -> b -> List a -> b
-  listFoldCont cont z [] = cont z
-  listFoldCont cont z (x :: xs) = listFoldCont (cont . f x) z xs
+listFoldCPS {a} {b} = listFoldCont {a} {b} id
+
+public export
+listFoldCPSDep :
+  {0 a, b : Type} -> {0 p : List a -> b -> Type} -> {f : a -> b -> b} ->
+  (dz : ((0 z : b) -> p [] z)) ->
+  (ds : ((0 z : b) -> (0 x : a) -> (0 l : List a) -> p l z -> p (x :: l) z)) ->
+  (z : b) -> (l : List a) -> p l (listFoldCPS f z l)
+listFoldCPSDep {a} {b} {p} {f} dz ds = listFoldContDep id where
+  listFoldContDep :
+    (cont : (b -> b)) -> (z : b) -> (l : List a) ->
+    p l (listFoldCont cont f z l)
+  listFoldContDep cont z [] = dz (cont z)
+  listFoldContDep cont z (x :: xs) =
+    ds (listFoldCont (cont . f x) f z xs) x xs $
+      listFoldContDep (cont . f x) z xs
 
 ---------------------
 ---------------------
