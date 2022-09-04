@@ -3522,11 +3522,11 @@ public export
 PolyOp : Type
 PolyOp = InitialColimit PolyOpF
 
---------------------------------------------
---------------------------------------------
----- Simplest inductive polynomial form ----
---------------------------------------------
---------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+---- Inductive definition of substitutive polynomial endofunctors ----
+----------------------------------------------------------------------
+----------------------------------------------------------------------
 
 -----------------------------------------------------
 ---- Functor which generates polynomial functors ----
@@ -3639,6 +3639,14 @@ metaPolyAna coalg = metaPolyUnfold id where
       p $$+ q => metaPolyAnaCont ($$+) cont p q
       p $$* q => metaPolyAnaCont ($$*) cont p q
 
+public export
+MetaPolyPairAlg : Type -> Type
+MetaPolyPairAlg x = MetaPolyAlg (PolyMu -> x)
+
+public export
+metaPolyPairCata : MetaPolyPairAlg x -> PolyMu -> PolyMu -> x
+metaPolyPairCata = metaPolyCata
+
 -------------------
 ---- Utilities ----
 -------------------
@@ -3667,6 +3675,8 @@ public export
 polyDepth : PolyMu -> Nat
 polyDepth = metaPolyCata PolyDepthAlg
 
+-- The cardinality of the type that would result from applying
+-- the given polynomial to a type of the given cardinality.
 public export
 PolyCardAlg : Nat -> MetaPolyAlg Nat
 PolyCardAlg n PFI = n
@@ -3678,6 +3688,10 @@ PolyCardAlg n (p $$* q) = p * q
 public export
 polyCard : Nat -> PolyMu -> Nat
 polyCard = metaPolyCata . PolyCardAlg
+
+public export
+polyTCard : PolyMu -> Nat
+polyTCard = polyCard 0
 
 --------------------------------------------
 ---- Displaying polynomial endofunctors ----
@@ -3700,32 +3714,21 @@ Show PolyMu where
 ---------------------------------------------
 
 public export
+PolyMuEqAlg : MetaPolyPairAlg Bool
+PolyMuEqAlg PFI (InPCom PFI) = True
+PolyMuEqAlg PFI _ = False
+PolyMuEqAlg PF0 (InPCom PF0) = True
+PolyMuEqAlg PF0 _ = False
+PolyMuEqAlg PF1 (InPCom PF1) = True
+PolyMuEqAlg PF1 _ = False
+PolyMuEqAlg (p $$+ q) (InPCom (r $$+ s)) = p r && q s
+PolyMuEqAlg (p $$+ q) _ = False
+PolyMuEqAlg (p $$* q) (InPCom (r $$* s)) = p r && q s
+PolyMuEqAlg (p $$* q) _ = False
+
+public export
 Eq PolyMu where
-  (InPCom PFI) == (InPCom PFI) = True
-  (InPCom PFI) == (InPCom PF0) = False
-  (InPCom PFI) == (InPCom PF1) = False
-  (InPCom PFI) == (InPCom (_ $$+ _)) = False
-  (InPCom PFI) == (InPCom (_ $$* _)) = False
-  (InPCom PF0) == (InPCom PFI) = False
-  (InPCom PF0) == (InPCom PF0) = True
-  (InPCom PF0) == (InPCom PF1) = False
-  (InPCom PF0) == (InPCom (_ $$+ _)) = False
-  (InPCom PF0) == (InPCom (_ $$* _)) = False
-  (InPCom PF1) == (InPCom PFI) = False
-  (InPCom PF1) == (InPCom PF0) = False
-  (InPCom PF1) == (InPCom PF1) = True
-  (InPCom PF1) == (InPCom (_ $$+ _)) = False
-  (InPCom PF1) == (InPCom (_ $$* _)) = False
-  (InPCom (_ $$+ _)) == (InPCom PFI) = False
-  (InPCom (_ $$+ _)) == (InPCom PF0) = False
-  (InPCom (_ $$+ _)) == (InPCom PF1) = False
-  (InPCom (p $$+ q)) == (InPCom (r $$+ s)) = p == r && q == s
-  (InPCom (_ $$+ _)) == (InPCom (_ $$* _)) = False
-  (InPCom (_ $$* _)) == (InPCom PFI) = False
-  (InPCom (_ $$* _)) == (InPCom PF0) = False
-  (InPCom (_ $$* _)) == (InPCom PF1) = False
-  (InPCom (_ $$* _)) == (InPCom (_ $$+ _)) = False
-  (InPCom (p $$* q)) == (InPCom (r $$* s)) = p == r && q == s
+  (==) = metaPolyPairCata PolyMuEqAlg
 
 -----------------------------------------------
 ---- Arithmetic on polynomial endofunctors ----
@@ -3937,10 +3940,6 @@ MetaPolyFMetaF = metaPolyCata MetaPolyMetaFAlg
 public export
 MetaPolyT : PolyMu -> Type
 MetaPolyT p = MetaPolyFMetaF p Void
-
-public export
-polyTCard : PolyMu -> Nat
-polyTCard = polyCard 0
 
 ---------------------------------------------------
 ---- The free monad in the polynomial category ----
