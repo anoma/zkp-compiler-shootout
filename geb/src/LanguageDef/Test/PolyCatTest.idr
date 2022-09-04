@@ -998,12 +998,6 @@ BBFM = PolyFuncFreeM BinBoolTreePF
 BBFMFF : Type
 BBFMFF = InterpPolyFuncFreeM BinBoolTreePF Nat
 
-bbftTest1 : BBFMFT
-bbftTest1 = InPFM (PFCom BBNode) (InBBDir (InPFM (PFCom BBNode) (InBBDir (InPFM (PFVar 3) ?bbft1_a) ?bbft1_b)) ?bbft1_c)
-
-bbffTest1 : BBFMFF
-bbffTest1 = (InPFM ?bbff1_a ?bbff1_b ** ?bbff1_c)
-
 ----------------------------------
 ----------------------------------
 ----- Exported test function -----
