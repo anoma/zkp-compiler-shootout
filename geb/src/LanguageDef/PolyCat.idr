@@ -3963,10 +3963,9 @@ PolyHomObjAlg : MetaPolyAlg (PolyMu -> PolyMu)
 -- id -> r == r . (id + 1) (see formula 4.27 in _Polynomial Functors: A General
 -- Theory of Interaction_)
 PolyHomObjAlg PFI r = r $. (PolyI $+ Poly1)
--- `0 -> x == 1` (the universal property of the initial object)
+-- 0 -> x == 1
 PolyHomObjAlg PF0 _ = Poly1
--- `1 -> x == x` (a special case of the Yoneda lemma, together with
--- the universal property of the terminal object)
+-- 1 -> x == x
 PolyHomObjAlg PF1 q = q
 -- (p + q) -> r == (p -> r) * (q -> r)
 PolyHomObjAlg (p $$+ q) r = p r $* q r
@@ -3981,18 +3980,13 @@ public export
 PolyExp : PolyMu -> PolyMu -> PolyMu
 PolyExp = flip PolyHomObj
 
--- XXX "terms"
-
 ---------------------------------
 ---- Natural transformations ----
 ---------------------------------
 
 public export
-PolyMuNTAlg : MetaPolyAlg (PolyMu -> Type)
-
-public export
 PolyMuNT : PolyMu -> PolyMu -> Type
-PolyMuNT = metaPolyCata PolyMuNTAlg
+PolyMuNT = ?PolyMuNT_hole
 
 ----------------------------------------
 ---- Polynomial monads and comonads ----
