@@ -3548,6 +3548,71 @@ public export
 PolyOp : Type
 PolyOp = InitialColimit PolyOpF
 
+--------------------------------------------------------------
+--------------------------------------------------------------
+---- Inductive definition of substitutive types (objects) ----
+--------------------------------------------------------------
+--------------------------------------------------------------
+
+infixr 8 ##+
+infixr 9 ##*
+
+public export
+data SubstObjF : Type -> Type where
+  -- Initial
+  SO0 : SubstObjF carrier
+
+  -- Terminal
+  SO1 : SubstObjF carrier
+
+  -- Coproduct
+  (##+) : carrier -> carrier -> SubstObjF carrier
+
+  -- Product
+  (##*) : carrier -> carrier -> SubstObjF carrier
+
+public export
+Functor SubstObjF where
+  map m SO0 = SO0
+  map m SO1 = SO1
+  map m (x ##+ y) = m x ##+ m y
+  map m (x ##* y) = m x ##* m y
+
+public export
+MetaSOAlg : Type -> Type
+MetaSOAlg x = SubstObjF x -> x
+
+public export
+MetaSOCoalg : Type -> Type
+MetaSOCoalg x = x -> SubstObjF x
+
+------------------------------------------------------------------------
+---- Substitutive objects as least fixed point of generator functor ----
+------------------------------------------------------------------------
+
+public export
+data SubstObjMu : Type where
+  InSO : SubstObjF SubstObjMu -> SubstObjMu
+
+infixr 8 #+
+infixr 9 #*
+
+public export
+Subst0 : PolyMu
+Subst0 = InSO SO0
+
+public export
+Subst1 : PolyMu
+Subst1 = InSO SO1
+
+public export
+(#+) : SubstObjMu -> SubstObjMu -> SubstObjMu
+(#+) = InSO .* (##+)
+
+public export
+(#*) : SubstObjMu -> SubstObjMu -> SubstObjMu
+(#*) = InSO .* (##*)
+
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ---- Inductive definition of substitutive polynomial endofunctors ----
