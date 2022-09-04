@@ -2490,11 +2490,11 @@ freeS0DepSet alg subst depsubst (InFreeM (InCom (S0ProductF x y))) =
 ------------------------
 
 public export
-listFoldCPS : {0 a, b : Type} -> (a -> b -> b) -> List a -> b -> b
+listFoldCPS : {0 a, b : Type} -> (a -> b -> b) -> b -> List a -> b
 listFoldCPS {a} {b} f = listFoldCont id where
-  listFoldCont : (b -> b) -> List a -> b -> b
-  listFoldCont k [] b = k b
-  listFoldCont k (x :: xs) b = listFoldCont (k . f x) xs b
+  listFoldCont : (b -> b) -> b -> List a -> b
+  listFoldCont cont z [] = cont z
+  listFoldCont cont z (x :: xs) = listFoldCont (cont . f x) z xs
 
 ---------------------
 ---------------------
@@ -2881,7 +2881,7 @@ addPoly (Element0 p pvalid) (Element0 q qvalid) =
 
 public export
 addPolyShapeList : List PolyShape -> PolyShape
-addPolyShapeList l = listFoldCPS addPolyShape l initialPolyShape
+addPolyShapeList = listFoldCPS addPolyShape initialPolyShape
 
 public export
 mulPolyShape : PolyShape -> PolyShape -> PolyShape
@@ -2899,7 +2899,7 @@ mulPoly (Element0 p pvalid) (Element0 q qvalid) =
 
 public export
 mulPolyShapeList : List PolyShape -> PolyShape
-mulPolyShapeList = foldr mulPolyShape terminalPolyShape
+mulPolyShapeList = listFoldCPS mulPolyShape terminalPolyShape
 
 public export
 parProdPolyShape : PolyShape -> PolyShape -> PolyShape
@@ -2917,7 +2917,7 @@ parProdPoly (Element0 p pvalid) (Element0 q qvalid) =
 
 public export
 parProdPolyShapeList : List PolyShape -> PolyShape
-parProdPolyShapeList = foldr parProdPolyShape idPolyShape
+parProdPolyShapeList = listFoldCPS parProdPolyShape idPolyShape
 
 public export
 expNPolyShape : Nat -> PolyShape -> PolyShape
