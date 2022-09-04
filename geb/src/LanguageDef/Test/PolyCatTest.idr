@@ -911,13 +911,13 @@ pniterT0 : Not $ PolyNatIter 0
 pniterT0 = id
 
 pniterT1 : PolyNatIter 1
-pniterT1 = Left ()
+pniterT1 = ()
 
 pniterT2 : PolyNatIter 2
 pniterT2 = Left ()
 
 pniterT3 : PolyNatIter 2
-pniterT3 = Right $ Left ()
+pniterT3 = Right ()
 
 pniterT4 : PolyNatIter 3
 pniterT4 = Left ()
@@ -926,7 +926,7 @@ pniterT5 : PolyNatIter 3
 pniterT5 = Right $ Left ()
 
 pniterT6 : PolyNatIter 3
-pniterT6 = Right $ Right $ Left ()
+pniterT6 = Right $ Right ()
 
 pniterT7 : PolyNatIter 4
 pniterT7 = Left ()
@@ -938,7 +938,7 @@ pniterT9 : PolyNatIter 4
 pniterT9 = Right $ Right $ Left ()
 
 pniterT10 : PolyNatIter 4
-pniterT10 = Right $ Right $ Right $ Left ()
+pniterT10 = Right $ Right $ Right ()
 
 polyfeqT0 : Assertion
 polyfeqT0 = Assert $ polyfnat /= polyNatIter 0

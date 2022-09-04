@@ -3929,11 +3929,11 @@ MetaPolyFMetaF = metaPolyCata MetaPolyMetaFAlg
 
 public export
 ConstComponent : PolyMu -> Type
-ConstComponent p = MetaPolyFMetaF p Void
+ConstComponent p = MetaPolyFMetaF (polyAppZero p) Void
 
 public export
 PositionType : PolyMu -> Type
-PositionType p = MetaPolyFMetaF p Unit
+PositionType p = MetaPolyFMetaF (polyAppOne p) Unit
 
 ---------------------------------------------------
 ---- The free monad in the polynomial category ----
