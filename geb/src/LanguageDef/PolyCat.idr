@@ -3911,42 +3911,6 @@ public export
 MetaPolyFNat : PolyMu -> Nat -> Nat
 MetaPolyFNat = metaPolyCata MetaPolyFNatAlg
 
-------------------------------------------------------------------------
----- Interpretation of polynomial functors as metalanguage functors ----
-------------------------------------------------------------------------
-
-public export
-MetaPolyMetaFAlg : MetaPolyAlg (Type -> Type)
-MetaPolyMetaFAlg PFI = id
-MetaPolyMetaFAlg PF0 = const Void
-MetaPolyMetaFAlg PF1 = const Unit
-MetaPolyMetaFAlg (p $$+ q) = CoproductF p q
-MetaPolyMetaFAlg (p $$* q) = ProductF p q
-
-public export
-MetaPolyFMetaF : PolyMu -> Type -> Type
-MetaPolyFMetaF = metaPolyCata MetaPolyMetaFAlg
-
-public export
-ConstComponent : PolyMu -> Type
-ConstComponent p = MetaPolyFMetaF (polyAppZero p) Void
-
-public export
-PositionType : PolyMu -> Type
-PositionType p = MetaPolyFMetaF (polyAppOne p) Unit
-
----------------------------------------------------
----- The free monad in the polynomial category ----
----------------------------------------------------
-
-public export
-MetaPolyFreeM : PolyMu -> (0 _ : Type) -> Type
-MetaPolyFreeM (InPCom p) = FreeM (MetaPolyFMetaF $ InPCom p)
-
-public export
-MetaPolyMu : PolyMu -> Type
-MetaPolyMu p = MetaPolyFreeM p Void
-
 ----------------------------------------------------------
 ---- Exponentiation (hom-objects) of polynomial types ----
 ----------------------------------------------------------
@@ -3998,6 +3962,42 @@ record PolyComonad where
   pmFunctor : PolyMu
   pmEraser : PolyMuNT pmFunctor PolyI
   pmDuplicator : PolyMuNT pmFunctor (pmFunctor $.^ 2)
+
+------------------------------------------------------------------------
+---- Interpretation of polynomial functors as metalanguage functors ----
+------------------------------------------------------------------------
+
+public export
+MetaPolyMetaFAlg : MetaPolyAlg (Type -> Type)
+MetaPolyMetaFAlg PFI = id
+MetaPolyMetaFAlg PF0 = const Void
+MetaPolyMetaFAlg PF1 = const Unit
+MetaPolyMetaFAlg (p $$+ q) = CoproductF p q
+MetaPolyMetaFAlg (p $$* q) = ProductF p q
+
+public export
+MetaPolyFMetaF : PolyMu -> Type -> Type
+MetaPolyFMetaF = metaPolyCata MetaPolyMetaFAlg
+
+public export
+ConstComponent : PolyMu -> Type
+ConstComponent p = MetaPolyFMetaF (polyAppZero p) Void
+
+public export
+PositionType : PolyMu -> Type
+PositionType p = MetaPolyFMetaF (polyAppOne p) Unit
+
+---------------------------------------------------
+---- The free monad in the polynomial category ----
+---------------------------------------------------
+
+public export
+MetaPolyFreeM : PolyMu -> (0 _ : Type) -> Type
+MetaPolyFreeM (InPCom p) = FreeM (MetaPolyFMetaF $ InPCom p)
+
+public export
+MetaPolyMu : PolyMu -> Type
+MetaPolyMu p = MetaPolyFreeM p Void
 
 -------------------------------------------------------------
 -------------------------------------------------------------
