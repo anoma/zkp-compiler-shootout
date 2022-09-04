@@ -46,6 +46,10 @@ public export
 SliceFMorphism : {a : Type} -> SliceObj a -> (a -> a) -> Type
 SliceFMorphism s f = SliceMorphism s (s . f)
 
+public export
+ArrowObj : Type
+ArrowObj = (sig : (Type, Type) ** (fst sig -> snd sig))
+
 --------------------------------------------------
 --------------------------------------------------
 ---- Natural number induction and coinduction ----
@@ -218,6 +222,8 @@ public export
 
 -- A polynomial functor may also be viewed as a slice object
 -- (in the slice category of its type of positions).
+-- (Similarly, it may also be viewed as an object of the
+-- arrow category.)
 public export
 PolyFuncToSlice : (p : PolyFunc) -> SliceObj (pfPos p)
 PolyFuncToSlice (pos ** dir) = dir
