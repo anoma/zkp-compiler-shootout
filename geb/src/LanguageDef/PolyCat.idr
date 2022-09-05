@@ -3918,14 +3918,6 @@ public export
 (<!) {x = (InSO ((InSO (x !!* v)) !!* w))} {y = (InSO (y !!* y'))} {z = z} g f =
   (<!) {x=(x !* (v !* w))} g f
 
-public export
-prodAssocL : (x, y, z : SubstObjMu) ->
-  MetaSOMorph (x !* (y !* z)) ((x !* y) !* z)
-prodAssocL (InSO SO0) y z = ()
-prodAssocL (InSO SO1) y z = ?prodAssocL_hole_2
-prodAssocL (InSO (x !!+ w)) y z = ?prodAssocL_hole_3
-prodAssocL (InSO (x !!* w)) y z = ?prodAssocL_hole_4
-
 mutual
   public export
   SOI : (x : SubstObjMu) -> MetaSOMorph x x
@@ -3935,9 +3927,12 @@ mutual
   SOI (InSO ((InSO SO0) !!* y)) = ()
   SOI (InSO ((InSO SO1) !!* y)) = soProd (soToTerminal y) (SOI y)
   SOI (InSO ((InSO (x !!+ x')) !!* y)) =
-    (soProd ?soi_hole_prod_3 (soProjRight x y),
-     soProd ?soi_hole_prod_3b (soProjRight x' y))
-  SOI (InSO ((InSO (x !!* x')) !!* y)) = prodAssocL x x' y
+    (soProd (soInjLeft _ _ <! soProjLeft _ _) (soProjRight x y),
+     soProd (soInjRight _ _ <! soProjLeft _ _) (soProjRight x' y))
+  SOI (InSO ((InSO (x !!* x')) !!* y)) =
+    soProd
+      (soProd (soProjLeft _ _) (soProjLeft _ _ <! soProjRight _ _))
+      (soProjRight _ _ <! soProjRight _ _)
 
   public export
   soToTerminal : (x : SubstObjMu) -> MetaSOMorph x Subst1
