@@ -3838,10 +3838,10 @@ SubstMorph x (InSO SO0) = SubstContradiction x
 SubstMorph x (InSO SO1) = ()
 -- Morphisms from the terminal object are terms of the corresponding type
 SubstMorph (InSO SO1) x = SubstTerm x
--- Products are introduced by pairs
-SubstMorph x (InSO (y !!* z)) = Pair (SubstMorph x y) (SubstMorph x z)
 -- Coproducts are eliminated by cases
 SubstMorph (InSO (x !!+ y)) z = Pair (SubstMorph x z) (SubstMorph y z)
+-- Products are introduced by pairs
+SubstMorph x (InSO (y !!* z)) = Pair (SubstMorph x y) (SubstMorph x z)
 -- Products are eliminated by XXX
 SubstMorph (InSO (x !!* y)) (InSO SO0) = ?SubstMorph_product_hole_1
 SubstMorph (InSO (x !!* y)) (InSO SO1) = ?SubstMorph_product_hole_2
