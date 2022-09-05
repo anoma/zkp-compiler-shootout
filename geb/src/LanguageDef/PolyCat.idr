@@ -3883,18 +3883,6 @@ soFromInitial _ = ()
 
 mutual
   public export
-  soToTerminal : (x : SubstObjMu) -> MetaSOMorph x Subst1
-  soToTerminal (InSO SO0) = ()
-  soToTerminal (InSO SO1) = ()
-  soToTerminal (InSO (x !!+ y)) = (soToTerminal x, soToTerminal y)
-  soToTerminal (InSO ((InSO SO0) !!* y)) = ()
-  soToTerminal (InSO ((InSO SO1) !!* y)) = soToTerminal y
-  soToTerminal (InSO ((InSO (x !!+ x')) !!* y)) =
-    ?soToTerminal_hole -- (soToTerminalPair x y, soToTerminalPair x' y)
-  soToTerminal (InSO ((InSO (x !!* x')) !!* y)) =
-    ?soToTerminal_hole_2 -- soToTerminalPair x (x' !* y)
-
-  public export
   soToTerminalPair : (x, y : SubstObjMu) -> MetaSOMorph (x !* y) Subst1
   soToTerminalPair (InSO SO0) y = ()
   soToTerminalPair (InSO SO1) y = soToTerminal y
@@ -3902,6 +3890,18 @@ mutual
     (soToTerminalPair x z, soToTerminalPair y z)
   soToTerminalPair (InSO (x !!* y)) z =
     soToTerminalPair x (y !* z)
+
+  public export
+  soToTerminal : (x : SubstObjMu) -> MetaSOMorph x Subst1
+  soToTerminal (InSO SO0) = ()
+  soToTerminal (InSO SO1) = ()
+  soToTerminal (InSO (x !!+ y)) = (soToTerminal x, soToTerminal y)
+  soToTerminal (InSO ((InSO SO0) !!* y)) = ()
+  soToTerminal (InSO ((InSO SO1) !!* y)) = soToTerminal y
+  soToTerminal (InSO ((InSO (x !!+ x')) !!* y)) =
+    (?soToTerminal_hole_1a, ?soToTerminal_hole_1b) -- (soToTerminalPair x y, soToTerminalPair x' y)
+  soToTerminal (InSO ((InSO (x !!* x')) !!* y)) =
+    ?soToTerminal_hole_2 -- soToTerminalPair x (x' !* y)
 
 public export
 soCase : {x, y, z : SubstObjMu} ->
