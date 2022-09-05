@@ -3817,9 +3817,10 @@ public export
 SubstHomObj : SubstObjMu -> SubstObjMu -> SubstObjMu
 SubstHomObj = substObjCata SubstHomObjAlg
 
+infix 10 !^
 public export
-SubstExp : SubstObjMu -> SubstObjMu -> SubstObjMu
-SubstExp = flip SubstHomObj
+(!^) : SubstObjMu -> SubstObjMu -> SubstObjMu
+(!^) = flip SubstHomObj
 
 --------------------------------------------
 ---- Morphisms of substitutive category ----
@@ -3864,6 +3865,25 @@ showSOMorph {x=(InSO SO1)} {y=(InSO (y !!* z))} (f, g) =
 showSOMorph {x=(InSO (x !!+ y))} {y=z} (f, g) =
   "[" ++ showSOMorph f ++ "|" ++ showSOMorph g ++ "]"
 showSOMorph {x=(InSO (x !!* y))} {y=z} f = "eval{" ++ showSOMorph {x} f ++ "}"
+
+public export
+SOI : (x : SubstObjMu) -> MetaSOMorph x x
+SOI x = ?somId_hole
+
+infixr 1 <!
+public export
+(<!) : {x, y, z : SubstObjMu} ->
+  MetaSOMorph y z -> MetaSOMorph x y -> MetaSOMorph x z
+(<!) {x} {y} {z} g f = ?somCompose_hole
+
+public export
+soCurry : {x, y, z : SubstObjMu} ->
+  MetaSOMorph (x !* y) z -> MetaSOMorph x (z !^ y)
+soCurry {x} {y} {z} f = ?soCurry_hole
+
+public export
+soEval : (x, y : SubstObjMu) -> MetaSOMorph ((y !^ x) !* x) y
+soEval x y = ?soEval_hole
 
 ----------------------------------------------------------------------
 ---- Interpretation of substitutive objects as metalanguage types ----
