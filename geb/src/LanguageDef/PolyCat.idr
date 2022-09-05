@@ -3886,7 +3886,7 @@ mutual
   soApplyPair {x = (InSO (x !!+ w))} {y = y} {z = z} (fx, fw) (Right tw) ty =
     soApply fw (tw, ty)
   soApplyPair {x = (InSO (x !!* w))} {y = y} {z = z} f (tx, tw) ty =
-    soApply f $ ?soApplyPair_hole_4
+    soApply f (tx, tw, ty)
 
 infixr 1 <!
 public export
