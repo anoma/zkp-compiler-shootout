@@ -3826,7 +3826,27 @@ MetaSOTypeAlg : MetaSOAlg Type
 MetaSOTypeAlg SO0 = Void
 MetaSOTypeAlg SO1 = Unit
 MetaSOTypeAlg (p !!+ q) = Either p q
-MetaSOTypeAlg (p !!* q) = (p, q)
+MetaSOTypeAlg (p !!* q) = Pair p q
+
+public export
+MetaSOType : SubstObjMu -> Type
+MetaSOType = substObjCata MetaSOTypeAlg
+
+--------------------------------------------
+---- Morphisms of substitutive category ----
+--------------------------------------------
+
+public export
+MetaSOMorph : SubstObjMu -> SubstObjMu -> Type
+-- The unique morphism from the initial object to a given object
+MetaSOMorph (InSO SO0) _ = ()
+-- The type of morphisms from the terminal object to a given object
+-- is isomorphic to the given object
+MetaSOMorph (InSO SO1) y = MetaSOType y
+-- Coproducts are eliminated by cases
+MetaSOMorph (InSO (x !!+ y)) z = Pair (MetaSOMorph x z) (MetaSOMorph y z)
+-- Products are eliminated by currying
+MetaSOMorph (InSO (x !!* y)) z = MetaSOMorph x $ SubstHomObj y z
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
