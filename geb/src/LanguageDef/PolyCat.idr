@@ -3814,6 +3814,33 @@ SubstTerm : SubstObjMu -> Type
 SubstTerm = substObjCata SubstTermAlg
 
 public export
+SubstContradictionAlg : MetaSOAlg Type
+SubstContradictionAlg SO0 = ()
+SubstContradictionAlg SO1 = Void
+SubstContradictionAlg (x !!+ y) = Pair x y
+SubstContradictionAlg (x !!* y) = Either x y
+
+-- `SubstContradiction x` is inhabited if and only if `x` is uninhabited;
+-- it is the dual of `SubstTerm x` (reflecting that a type is contradictory
+-- if and only if it has no terms)
+public export
+SubstContradiction : SubstObjMu -> Type
+SubstContradiction = substObjCata SubstContradictionAlg
+
+public export
+SubstMorph : SubstObjMu -> SubstObjMu -> Type
+-- The unique morphism from the initial object to a given object
+SubstMorph (InSO SO0) _ = ()
+-- There are morphisms to the initial object only from contradictory (empty)
+-- types
+SubstMorph x (InSO SO0) = SubstContradiction x
+-- The unique morphism to the terminal object from any object
+SubstMorph x (InSO SO1) = ()
+-- Morphisms from the terminal object are terms of the corresponding type
+SubstMorph (InSO SO1) x = SubstTerm x
+SubstMorph x y = ?SubstMorph_hole
+
+public export
 MetaSOMorph : SubstObjMu -> SubstObjMu -> Type
 -- The unique morphism from the initial object to a given object
 MetaSOMorph (InSO SO0) _ = ()
