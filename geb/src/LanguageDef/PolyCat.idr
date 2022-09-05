@@ -3866,13 +3866,31 @@ showSOMorph {x=(InSO (x !!+ y))} {y=z} (f, g) =
   "[" ++ showSOMorph f ++ "|" ++ showSOMorph g ++ "]"
 showSOMorph {x=(InSO (x !!* y))} {y=z} f = "eval{" ++ showSOMorph {x} f ++ "}"
 
+public export
+SOTerm : SubstObjMu -> Type
+SOTerm = MetaSOMorph Subst1
+
+public export
+TermAsMorph : {x, y : SubstObjMu} -> SOTerm (SubstHomObj x y) -> MetaSOMorph x y
+TermAsMorph {x=(InSO SO0)} {y} () = ()
+TermAsMorph {x=(InSO SO1)} {y} f = f
+TermAsMorph {x=(InSO (x !!+ y))} {y=z} f = ?TermAsMorph_hole_3
+TermAsMorph {x=(InSO (x !!* y))} {y=z} f = ?TermAsMorph_hole_4
+
+public export
+MorphAsTerm : {x, y : SubstObjMu} -> MetaSOMorph x y -> SOTerm (SubstHomObj x y)
+MorphAsTerm {x=(InSO SO0)} {y} () = ()
+MorphAsTerm {x=(InSO SO1)} {y} f = f
+MorphAsTerm {x=(InSO (x !!+ y))} {y=z} f = ?MorphAsTerm_hole_3
+MorphAsTerm {x=(InSO (x !!* y))} {y=z} f = ?MorphAsTerm_hole_4
+
 mutual
   public export
   SOI : (x : SubstObjMu) -> MetaSOMorph x x
   SOI (InSO SO0) = ()
   SOI (InSO SO1) = ()
   SOI (InSO (x !!+ y)) = (soInjLeft x y, soInjRight x y)
-  SOI (InSO (x !!* y)) = ?SOI_prod_hole
+  SOI (InSO (x !!* y)) = ?soi_hole_prod
 
   infixr 1 <!
   public export
