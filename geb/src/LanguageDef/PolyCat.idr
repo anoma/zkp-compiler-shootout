@@ -3613,6 +3613,125 @@ public export
 (!*) : SubstObjMu -> SubstObjMu -> SubstObjMu
 (!*) = InSO .* (!!*)
 
+public export
+substObjCata : MetaSOAlg x -> SubstObjMu -> x
+substObjCata alg = substObjFold id where
+  mutual
+    substObjCataCont : (x -> x -> SubstObjF x) ->
+      (x -> x) -> SubstObjMu -> SubstObjMu -> x
+    substObjCataCont op cont p q =
+      substObjFold
+        (\p' => substObjFold (\q' => cont $ alg $ op p' q') q) p
+
+    substObjFold : (x -> x) -> SubstObjMu -> x
+    substObjFold cont (InSO p) = case p of
+      SO0 => cont (alg SO0)
+      SO1 => cont (alg SO1)
+      p !!+ q => substObjCataCont (!!+) cont p q
+      p !!* q => substObjCataCont (!!*) cont p q
+
+public export
+data SubstObjNu : Type where
+  InSOLabel : Inf (SubstObjF SubstObjNu) -> SubstObjNu
+
+public export
+substObjAna : MetaSOCoalg x -> x -> Inf SubstObjNu
+substObjAna coalg = substObjUnfold id where
+  mutual
+    substObjAnaCont : (SubstObjNu -> SubstObjNu -> SubstObjF SubstObjNu) ->
+      (SubstObjNu -> SubstObjNu) -> x -> x -> SubstObjNu
+    substObjAnaCont op cont x y =
+      substObjUnfold
+        (\x' => substObjUnfold (\y' => cont $ InSOLabel $ op x' y') y) x
+
+    substObjUnfold : (SubstObjNu -> SubstObjNu) -> x -> Inf SubstObjNu
+    substObjUnfold cont t = case coalg t of
+      SO0 => cont (InSOLabel SO0)
+      SO1 => cont (InSOLabel SO1)
+      p !!+ q => substObjAnaCont (!!+) cont p q
+      p !!* q => substObjAnaCont (!!*) cont p q
+
+public export
+SubstObjPairAlg : Type -> Type
+SubstObjPairAlg x = MetaSOAlg (SubstObjMu -> x)
+
+public export
+substObjPairCata : SubstObjPairAlg x -> SubstObjMu -> SubstObjMu -> x
+substObjPairCata = substObjCata
+
+-------------------
+---- Utilities ----
+-------------------
+
+public export
+SOSizeAlg : MetaSOAlg Nat
+SOSizeAlg SO0 = 1
+SOSizeAlg SO1 = 1
+SOSizeAlg (p !!+ q) = p + q
+SOSizeAlg (p !!* q) = p + q
+
+public export
+substObjSize : SubstObjMu -> Nat
+substObjSize = substObjCata SOSizeAlg
+
+public export
+SODepthAlg : MetaSOAlg Nat
+SODepthAlg SO0 = 0
+SODepthAlg SO1 = 0
+SODepthAlg (p !!+ q) = smax p q
+SODepthAlg (p !!* q) = smax p q
+
+public export
+substObjDepth : SubstObjMu -> Nat
+substObjDepth = substObjCata SODepthAlg
+
+-- The cardinality of the type that would result from applying
+-- the given substObjnomial to a type of the given cardinality.
+public export
+SOCardAlg : MetaSOAlg Nat
+SOCardAlg SO0 = 0
+SOCardAlg SO1 = 1
+SOCardAlg (p !!+ q) = p + q
+SOCardAlg (p !!* q) = p * q
+
+public export
+substObjCard : SubstObjMu -> Nat
+substObjCard = substObjCata SOCardAlg
+
+-----------------------------------------
+---- Displaying substitutive objects ----
+-----------------------------------------
+
+public export
+SOShowAlg : MetaSOAlg String
+SOShowAlg SO0 = "0"
+SOShowAlg SO1 = "1"
+SOShowAlg (x !!+ y) = "(" ++ x ++ " + " ++ y ++ ")"
+SOShowAlg (x !!* y) = x ++ " * " ++ y
+
+public export
+Show SubstObjMu where
+  show = substObjCata SOShowAlg
+
+------------------------------------------
+---- Equality on substitutive objects ----
+------------------------------------------
+
+public export
+SubstObjMuEqAlg : SubstObjPairAlg Bool
+SubstObjMuEqAlg SO0 (InSO SO0) = True
+SubstObjMuEqAlg SO0 _ = False
+SubstObjMuEqAlg SO1 (InSO SO1) = True
+SubstObjMuEqAlg SO1 _ = False
+SubstObjMuEqAlg (p !!+ q) (InSO (r !!+ s)) = p r && q s
+SubstObjMuEqAlg (p !!+ q) _ = False
+SubstObjMuEqAlg (p !!* q) (InSO (r !!* s)) = p r && q s
+SubstObjMuEqAlg (p !!* q) _ = False
+
+public export
+Eq SubstObjMu where
+  (==) = substObjPairCata SubstObjMuEqAlg
+
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ---- Inductive definition of substitutive polynomial endofunctors ----
