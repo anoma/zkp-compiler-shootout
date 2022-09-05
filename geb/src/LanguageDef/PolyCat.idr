@@ -3910,20 +3910,28 @@ mutual
     (g <! f, g <! f')
   (<!) {x = (InSO ((InSO (x !!* w)) !!* y))} {y = (InSO SO1)} {z = z} g f =
     (<!) {x=(x !* (w !* y))} {y=Subst1} {z} g f
-  (<!) {x = (InSO SO0)} {y = (InSO (y !!+ y'))} {z = z} g f = ?somCompose_hole_19
-  (<!) {x = (InSO SO1)} {y = (InSO (y !!+ y'))} {z = z} g f = ?somCompose_hole_20
-  (<!) {x = (InSO (x !!+ w))} {y = (InSO (y !!+ y'))} {z = z} g f = ?somCompose_hole_21
-  (<!) {x = (InSO ((InSO SO0) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f = ?somCompose_hole_24
-  (<!) {x = (InSO ((InSO SO1) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f = ?somCompose_hole_25
-  (<!) {x = (InSO ((InSO (x !!+ v)) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f = ?somCompose_hole_26
-  (<!) {x = (InSO ((InSO (x !!* v)) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f = ?somCompose_hole_27
-  (<!) {x = (InSO SO0)} {y = (InSO (y !!* y'))} {z = z} g f = ?somCompose_hole_22
-  (<!) {x = (InSO SO1)} {y = (InSO (y !!* y'))} {z = z} g f = ?somCompose_hole_23
+  (<!) {x = (InSO SO0)} {y = (InSO (y !!+ y'))} {z = z} g f = ()
+  (<!) {x = (InSO SO1)} {y = (InSO (y !!+ y'))} {z = z} (g, g') f = case f of
+    Left f' => g <! f'
+    Right f' => g' <! f'
+  (<!) {x = (InSO (x !!+ w))} {y = (InSO (y !!+ y'))} {z = z} g (f, f') =
+    (g <! f, g <! f')
+  (<!) {x = (InSO ((InSO SO0) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f = ()
+  (<!) {x = (InSO ((InSO SO1) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f =
+    (<!) {x=w} g f
+  (<!) {x = (InSO ((InSO (x !!+ v)) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g (f, f') =
+    (g <! f, g <! f')
+  (<!) {x = (InSO ((InSO (x !!* v)) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f =
+    (<!) {x=(x !* (v !* w))} g f
+  (<!) {x = (InSO SO0)} {y = (InSO (y !!* y'))} {z = z} g f = ()
+  (<!) {x = (InSO SO1)} {y = (InSO (y !!* y'))} {z} g f = ?somCompose_hole_25
   (<!) {x = (InSO (x !!+ w))} {y = (InSO (y !!* y'))} {z = z} g f = ?somCompose_hole_28
   (<!) {x = (InSO ((InSO SO0) !!* w))} {y = (InSO (y !!* y'))} {z = z} g f = ?somCompose_hole_31
   (<!) {x = (InSO ((InSO SO1) !!* w))} {y = (InSO (y !!* y'))} {z = z} g f = ?somCompose_hole_32
-  (<!) {x = (InSO ((InSO (x !!+ v)) !!* w))} {y = (InSO (y !!* y'))} {z = z} g f = ?somCompose_hole_33
-  (<!) {x = (InSO ((InSO (x !!* v)) !!* w))} {y = (InSO (y !!* y'))} {z = z} g f = ?somCompose_hole_34
+  (<!) {x = (InSO ((InSO (x !!+ v)) !!* w))} {y = (InSO (y !!* y'))} {z = z} g (f, f') =
+    (?somCompose_hole_33, ?somCompose_hole_33a)
+  (<!) {x = (InSO ((InSO (x !!* v)) !!* w))} {y = (InSO (y !!* y'))} {z = z} g f =
+    (<!) {x=(x !* (v !* w))} g f
 
   public export
   soToTerminal : (x : SubstObjMu) -> MetaSOMorph x Subst1
