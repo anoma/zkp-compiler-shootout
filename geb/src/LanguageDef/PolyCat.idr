@@ -3863,6 +3863,61 @@ soCase : {x, y, z : SubstObjMu} ->
   MetaSOMorph x z -> MetaSOMorph y z -> MetaSOMorph (x !+ y) z
 soCase {x} {y} {z} f g = (f, g)
 
+infixr 1 <!
+public export
+(<!) : {x, y, z : SubstObjMu} ->
+  MetaSOMorph y z -> MetaSOMorph x y -> MetaSOMorph x z
+(<!) {x = (InSO SO0)} {y = (InSO SO0)} {z = z} g f = ()
+(<!) {x = (InSO SO1)} {y = (InSO SO0)} {z = z} g f = void f
+(<!) {x = (InSO (x !!+ y))} {y = (InSO SO0)} {z = z} g (f, f') =
+  (soFromInitial x <! f, soFromInitial y <! f')
+(<!) {x = (InSO ((InSO SO0) !!* y))} {y = (InSO SO0)} {z = z} g f = ()
+(<!) {x = (InSO ((InSO SO1) !!* y))} {y = (InSO SO0)} {z = z} g f =
+  soFromInitial z <! f
+(<!) {x = (InSO ((InSO (x !!+ w)) !!* y))} {y = (InSO SO0)} {z} g (f, f') =
+  (soFromInitial x <! f, soFromInitial w <! f')
+(<!) {x = (InSO ((InSO (x !!* w)) !!* y))} {y = (InSO SO0)} {z = z} g f =
+  soFromInitial z <! f
+(<!) {x = (InSO SO0)} {y = (InSO SO1)} {z = z} g f = ()
+(<!) {x = (InSO SO1)} {y = (InSO SO1)} {z = z} g f = g
+(<!) {x = (InSO (x !!+ y))} {y = (InSO SO1)} {z = z} g (f,  f') =
+  (g <! f, g <! f')
+(<!) {x = (InSO ((InSO SO0) !!* y))} {y = (InSO SO1)} {z = z} g f = ()
+(<!) {x = (InSO ((InSO SO1) !!* y))} {y = (InSO SO1)} {z = z} g f =
+  (<!) {x=y} {y=Subst1} {z} g f
+(<!) {x = (InSO ((InSO (x !!+ w)) !!* y))} {y = (InSO SO1)} {z = z} g (f, f') =
+  (g <! f, g <! f')
+(<!) {x = (InSO ((InSO (x !!* w)) !!* y))} {y = (InSO SO1)} {z = z} g f =
+  (<!) {x=(x !* (w !* y))} {y=Subst1} {z} g f
+(<!) {x = (InSO SO0)} {y = (InSO (y !!+ y'))} {z = z} g f = ()
+(<!) {x = (InSO SO1)} {y = (InSO (y !!+ y'))} {z = z} (g, g') f = case f of
+  Left f' => g <! f'
+  Right f' => g' <! f'
+(<!) {x = (InSO (x !!+ w))} {y = (InSO (y !!+ y'))} {z = z} g (f, f') =
+  (g <! f, g <! f')
+(<!) {x = (InSO ((InSO SO0) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f = ()
+(<!) {x = (InSO ((InSO SO1) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f =
+  (<!) {x=w} g f
+(<!) {x = (InSO ((InSO (x !!+ v)) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g (f, f') =
+  (g <! f, g <! f')
+(<!) {x = (InSO ((InSO (x !!* v)) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f =
+  (<!) {x=(x !* (v !* w))} g f
+(<!) {x = (InSO SO0)} {y = (InSO (y !!* y'))} {z = z} g f = ()
+(<!) {x = (InSO SO1)} {y = (InSO (y !!* y'))} {z} g f = ?somCompose_hole_25
+(<!) {x = (InSO (x !!+ w))} {y = (InSO (y !!* y'))} {z = z} g (f, f') =
+  (g <! f, g <! f')
+(<!) {x = (InSO ((InSO SO0) !!* w))} {y = (InSO (y !!* y'))} {z = z} g f = ()
+(<!) {x = (InSO ((InSO SO1) !!* (InSO SO0)))} {y = (InSO (y !!* y'))} {z = z} g f = ()
+(<!) {x = (InSO ((InSO SO1) !!* (InSO SO1)))} {y = (InSO (y !!* y'))} {z = z} g f = ?somCompose_hole_35
+(<!) {x = (InSO ((InSO SO1) !!* (InSO (x !!+ w))))} {y = (InSO (y !!* y'))} {z = z} g f =
+  case f of (f, f') => (g <! f, g <! f')
+(<!) {x = (InSO ((InSO SO1) !!* (InSO (x !!* w))))} {y = (InSO (y !!* y'))} {z = z} g f =
+  (<!) {x=(x !* w)} g f
+(<!) {x = (InSO ((InSO (x !!+ v)) !!* w))} {y = (InSO (y !!* y'))} {z = z} g (f, f') =
+  (g <! f, g <! f')
+(<!) {x = (InSO ((InSO (x !!* v)) !!* w))} {y = (InSO (y !!* y'))} {z = z} g f =
+  (<!) {x=(x !* (v !* w))} g f
+
 public export
 prodAssocL : (x, y, z : SubstObjMu) ->
   MetaSOMorph (x !* (y !* z)) ((x !* y) !* z)
@@ -3883,61 +3938,6 @@ mutual
     (soProd ?soi_hole_prod_3 (soProjRight x y),
      soProd ?soi_hole_prod_3b (soProjRight x' y))
   SOI (InSO ((InSO (x !!* x')) !!* y)) = prodAssocL x x' y
-
-  infixr 1 <!
-  public export
-  (<!) : {x, y, z : SubstObjMu} ->
-    MetaSOMorph y z -> MetaSOMorph x y -> MetaSOMorph x z
-  (<!) {x = (InSO SO0)} {y = (InSO SO0)} {z = z} g f = ()
-  (<!) {x = (InSO SO1)} {y = (InSO SO0)} {z = z} g f = void f
-  (<!) {x = (InSO (x !!+ y))} {y = (InSO SO0)} {z = z} g (f, f') =
-    (soFromInitial x <! f, soFromInitial y <! f')
-  (<!) {x = (InSO ((InSO SO0) !!* y))} {y = (InSO SO0)} {z = z} g f = ()
-  (<!) {x = (InSO ((InSO SO1) !!* y))} {y = (InSO SO0)} {z = z} g f =
-    soFromInitial z <! f
-  (<!) {x = (InSO ((InSO (x !!+ w)) !!* y))} {y = (InSO SO0)} {z} g (f, f') =
-    (soFromInitial x <! f, soFromInitial w <! f')
-  (<!) {x = (InSO ((InSO (x !!* w)) !!* y))} {y = (InSO SO0)} {z = z} g f =
-    soFromInitial z <! f
-  (<!) {x = (InSO SO0)} {y = (InSO SO1)} {z = z} g f = ()
-  (<!) {x = (InSO SO1)} {y = (InSO SO1)} {z = z} g f = g
-  (<!) {x = (InSO (x !!+ y))} {y = (InSO SO1)} {z = z} g (f,  f') =
-    (g <! f, g <! f')
-  (<!) {x = (InSO ((InSO SO0) !!* y))} {y = (InSO SO1)} {z = z} g f = ()
-  (<!) {x = (InSO ((InSO SO1) !!* y))} {y = (InSO SO1)} {z = z} g f =
-    (<!) {x=y} {y=Subst1} {z} g f
-  (<!) {x = (InSO ((InSO (x !!+ w)) !!* y))} {y = (InSO SO1)} {z = z} g (f, f') =
-    (g <! f, g <! f')
-  (<!) {x = (InSO ((InSO (x !!* w)) !!* y))} {y = (InSO SO1)} {z = z} g f =
-    (<!) {x=(x !* (w !* y))} {y=Subst1} {z} g f
-  (<!) {x = (InSO SO0)} {y = (InSO (y !!+ y'))} {z = z} g f = ()
-  (<!) {x = (InSO SO1)} {y = (InSO (y !!+ y'))} {z = z} (g, g') f = case f of
-    Left f' => g <! f'
-    Right f' => g' <! f'
-  (<!) {x = (InSO (x !!+ w))} {y = (InSO (y !!+ y'))} {z = z} g (f, f') =
-    (g <! f, g <! f')
-  (<!) {x = (InSO ((InSO SO0) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f = ()
-  (<!) {x = (InSO ((InSO SO1) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f =
-    (<!) {x=w} g f
-  (<!) {x = (InSO ((InSO (x !!+ v)) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g (f, f') =
-    (g <! f, g <! f')
-  (<!) {x = (InSO ((InSO (x !!* v)) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f =
-    (<!) {x=(x !* (v !* w))} g f
-  (<!) {x = (InSO SO0)} {y = (InSO (y !!* y'))} {z = z} g f = ()
-  (<!) {x = (InSO SO1)} {y = (InSO (y !!* y'))} {z} g f = ?somCompose_hole_25
-  (<!) {x = (InSO (x !!+ w))} {y = (InSO (y !!* y'))} {z = z} g (f, f') =
-    (g <! f, g <! f')
-  (<!) {x = (InSO ((InSO SO0) !!* w))} {y = (InSO (y !!* y'))} {z = z} g f = ()
-  (<!) {x = (InSO ((InSO SO1) !!* (InSO SO0)))} {y = (InSO (y !!* y'))} {z = z} g f = ()
-  (<!) {x = (InSO ((InSO SO1) !!* (InSO SO1)))} {y = (InSO (y !!* y'))} {z = z} g f = ?somCompose_hole_35
-  (<!) {x = (InSO ((InSO SO1) !!* (InSO (x !!+ w))))} {y = (InSO (y !!* y'))} {z = z} g f =
-    case f of (f, f') => (g <! f, g <! f')
-  (<!) {x = (InSO ((InSO SO1) !!* (InSO (x !!* w))))} {y = (InSO (y !!* y'))} {z = z} g f =
-    (<!) {x=(x !* w)} g f
-  (<!) {x = (InSO ((InSO (x !!+ v)) !!* w))} {y = (InSO (y !!* y'))} {z = z} g (f, f') =
-    (g <! f, g <! f')
-  (<!) {x = (InSO ((InSO (x !!* v)) !!* w))} {y = (InSO (y !!* y'))} {z = z} g f =
-    (<!) {x=(x !* (v !* w))} g f
 
   public export
   soToTerminal : (x : SubstObjMu) -> MetaSOMorph x Subst1
