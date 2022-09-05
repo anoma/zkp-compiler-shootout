@@ -3866,7 +3866,10 @@ soCase {x} {y} {z} f g = (f, g)
 public export
 prodAssocL : (x, y, z : SubstObjMu) ->
   MetaSOMorph (x !* (y !* z)) ((x !* y) !* z)
-prodAssocL = ?prodAssocL_hole
+prodAssocL (InSO SO0) y z = ()
+prodAssocL (InSO SO1) y z = ?prodAssocL_hole_2
+prodAssocL (InSO (x !!+ w)) y z = ?prodAssocL_hole_3
+prodAssocL (InSO (x !!* w)) y z = ?prodAssocL_hole_4
 
 mutual
   public export
@@ -3907,8 +3910,20 @@ mutual
     (g <! f, g <! f')
   (<!) {x = (InSO ((InSO (x !!* w)) !!* y))} {y = (InSO SO1)} {z = z} g f =
     (<!) {x=(x !* (w !* y))} {y=Subst1} {z} g f
-  (<!) {x = x} {y = (InSO (y !!+ y'))} {z = z} g f = ?somCompose_hole_16
-  (<!) {x = x} {y = (InSO (y !!* y'))} {z = z} g f = ?somCompose_hole_17
+  (<!) {x = (InSO SO0)} {y = (InSO (y !!+ y'))} {z = z} g f = ?somCompose_hole_19
+  (<!) {x = (InSO SO1)} {y = (InSO (y !!+ y'))} {z = z} g f = ?somCompose_hole_20
+  (<!) {x = (InSO (x !!+ w))} {y = (InSO (y !!+ y'))} {z = z} g f = ?somCompose_hole_21
+  (<!) {x = (InSO ((InSO SO0) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f = ?somCompose_hole_24
+  (<!) {x = (InSO ((InSO SO1) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f = ?somCompose_hole_25
+  (<!) {x = (InSO ((InSO (x !!+ v)) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f = ?somCompose_hole_26
+  (<!) {x = (InSO ((InSO (x !!* v)) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f = ?somCompose_hole_27
+  (<!) {x = (InSO SO0)} {y = (InSO (y !!* y'))} {z = z} g f = ?somCompose_hole_22
+  (<!) {x = (InSO SO1)} {y = (InSO (y !!* y'))} {z = z} g f = ?somCompose_hole_23
+  (<!) {x = (InSO (x !!+ w))} {y = (InSO (y !!* y'))} {z = z} g f = ?somCompose_hole_28
+  (<!) {x = (InSO ((InSO SO0) !!* w))} {y = (InSO (y !!* y'))} {z = z} g f = ?somCompose_hole_31
+  (<!) {x = (InSO ((InSO SO1) !!* w))} {y = (InSO (y !!* y'))} {z = z} g f = ?somCompose_hole_32
+  (<!) {x = (InSO ((InSO (x !!+ v)) !!* w))} {y = (InSO (y !!* y'))} {z = z} g f = ?somCompose_hole_33
+  (<!) {x = (InSO ((InSO (x !!* v)) !!* w))} {y = (InSO (y !!* y'))} {z = z} g f = ?somCompose_hole_34
 
   public export
   soToTerminal : (x : SubstObjMu) -> MetaSOMorph x Subst1
