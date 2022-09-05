@@ -3822,36 +3822,6 @@ SubstContradiction (InSO (x !!* y)) =
   Either (SubstContradiction x) (SubstContradiction y)
 
 public export
-SubstMorph : SubstObjMu -> SubstObjMu -> Type
--- The unique morphism from the initial object to a given object
-SubstMorph (InSO SO0) _ = ()
--- There are no morphisms from the terminal object to the initial object
-SubstMorph (InSO SO1) (InSO SO0) = Void
--- The unique morphism the terminal object to the terminal object (its identity)
-SubstMorph (InSO SO1) (InSO SO1) = ()
--- To form a morphism from the terminal object to a coproduct,
--- we choose a morphism from the terminal object to either the left
--- or the right object of the coproduct
-SubstMorph (InSO SO1) (InSO (y !!+ z)) =
-  Either (SubstMorph Subst1 y) (SubstMorph Subst1 z)
--- To form a morphism from the terminal object to a product,
--- we choose morphisms from the terminal object to both the left
--- and the right object of the product
-SubstMorph (InSO SO1) (InSO (y !!* z)) =
-  Pair (SubstMorph Subst1 y) (SubstMorph Subst1 z)
--- Coproducts are eliminated by cases
-SubstMorph (InSO (x !!+ y)) z = (SubstMorph x z, SubstMorph x z)
--- 0 * y === 0
-SubstMorph (InSO ((InSO SO0) !!* y)) z = ()
--- 1 * y === y
-SubstMorph (InSO ((InSO SO1) !!* y)) z = SubstMorph y z
--- Distributivity of products over coproducts
-SubstMorph (InSO ((InSO (x !!+ x')) !!* y)) z =
-  SubstMorph ((x !* y) !+ (x' !* y)) z
--- Associativity of products
-SubstMorph (InSO ((InSO (x !!* x')) !!* y)) z = SubstMorph (x !* (x' !* y)) z
-
-public export
 MetaSOMorph : SubstObjMu -> SubstObjMu -> Type
 -- The unique morphism from the initial object to a given object
 MetaSOMorph (InSO SO0) _ = ()
@@ -3876,10 +3846,10 @@ MetaSOMorph (InSO (x !!+ y)) z = Pair (MetaSOMorph x z) (MetaSOMorph y z)
 MetaSOMorph (InSO ((InSO SO0) !!* y)) z = ()
 -- 1 * y === y
 MetaSOMorph (InSO ((InSO SO1) !!* y)) z = MetaSOMorph y z
--- Distributivity
+-- Distributivity of products over coproducts
 MetaSOMorph (InSO ((InSO (x !!+ x')) !!* y)) z =
   MetaSOMorph ((x !* y) !+ (x' !* y)) z
--- (x * x') * y === x * (x' * y)
+-- Associativity of products
 MetaSOMorph (InSO ((InSO (x !!* x')) !!* y)) z = MetaSOMorph (x !* (x' !* y)) z
 
 public export
@@ -4053,9 +4023,9 @@ mutual
   soProjRight x y = ?soProjRight_hole
 
   public export
-  soDistribute : (x, y, z : SubstObjMu) ->
+  soDistributeRight : (x, y, z : SubstObjMu) ->
     MetaSOMorph (x !* (y !+ z)) ((x !* y) !+ (x !* z))
-  soDistribute x y z = ?soDistribute_hole
+  soDistributeRight x y z = ?soDistribute_hole
 
 --------------------------------------------------------------
 ---- Exponentiation (hom-objects) of substitutive objects ----
