@@ -4034,7 +4034,10 @@ mutual
   soInjLeft (InSO SO0) y = ()
   soInjLeft (InSO SO1) y = Left ()
   soInjLeft (InSO (x !!+ z)) y = (?soInjLeft_hole_14, ?soInjLeft_hole_14a)
-  soInjLeft (InSO (x !!* z)) y = ?soInjLeft_hole_15
+  soInjLeft (InSO ((InSO SO0) !!* z)) y = ?soInjLeft_hole_17
+  soInjLeft (InSO ((InSO SO1) !!* z)) y = ?soInjLeft_hole_18
+  soInjLeft (InSO ((InSO (x !!+ w)) !!* z)) y = ?soInjLeft_hole_19
+  soInjLeft (InSO ((InSO (x !!* w)) !!* z)) y = ?soInjLeft_hole_20
 
   public export
   soInjRight : (x, y : SubstObjMu) -> MetaSOMorph y (x !+ y)
