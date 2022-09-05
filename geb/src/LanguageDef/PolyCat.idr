@@ -3867,6 +3867,13 @@ soCase : {x, y, z : SubstObjMu} ->
   MetaSOMorph x z -> MetaSOMorph y z -> MetaSOMorph (x !+ y) z
 soCase {x} {y} {z} f g = (f, g)
 
+public export
+soApply : {x, y : SubstObjMu} -> MetaSOMorph x y -> SOTerm x -> SOTerm y
+soApply {x = (InSO SO0)} {y = y} f t = ?soApply_hole_1
+soApply {x = (InSO SO1)} {y = y} f t = ?soApply_hole_2
+soApply {x = (InSO (x !!+ z))} {y = y} f t = ?soApply_hole_3
+soApply {x = (InSO (x !!* z))} {y = y} f t = ?soApply_hole_4
+
 infixr 1 <!
 public export
 (<!) : {x, y, z : SubstObjMu} ->
@@ -3907,14 +3914,7 @@ public export
 (<!) {x = (InSO ((InSO (x !!* v)) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f =
   (<!) {x=(x !* (v !* w))} g f
 (<!) {x = (InSO SO0)} {y = (InSO (y !!* y'))} {z = z} g f = ()
-(<!) {x = (InSO SO1)} {y = (InSO ((InSO SO0) !!* y'))} {z = z} g f = void (fst f)
-(<!) {x = (InSO SO1)} {y = (InSO ((InSO SO1) !!* y'))} {z = z} g ((), f) = g <! f
-(<!) {x = (InSO SO1)} {y = (InSO ((InSO (x !!+ y)) !!* y'))} {z = z} (g, g') (f, f') =
-  case f of
-    Left f'' => ?compose_hole_1
-    Right f'' => ?compose_hole_2
-(<!) {x = (InSO SO1)} {y = (InSO ((InSO (x !!* y)) !!* y'))} {z = z} g ((f, f'), f'') =
-  ?compose_hole_3 -- (<!) {x=Subst1} {y=(x !* (y !* y'))} {z} g (f, (f', f''))
+(<!) {x = (InSO SO1)} {y} {z} g f = soApply g f
 (<!) {x = (InSO (x !!+ w))} {y = (InSO (y !!* y'))} {z = z} g (f, f') =
   (g <! f, g <! f')
 (<!) {x = (InSO ((InSO SO0) !!* w))} {y = (InSO (y !!* y'))} {z = z} g f = ()
