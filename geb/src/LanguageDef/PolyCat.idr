@@ -3900,7 +3900,10 @@ mutual
   (<!) {x = (InSO SO1)} {y = (InSO SO1)} {z = z} g f = g
   (<!) {x = (InSO (x !!+ y))} {y = (InSO SO1)} {z = z} g (f,  f') =
     (g <! f, g <! f')
-  (<!) {x = (InSO (x !!* y))} {y = (InSO SO1)} {z = z} g f = ?somCompose_hole_22
+  (<!) {x = (InSO ((InSO SO0) !!* y))} {y = (InSO SO1)} {z = z} g f = ?somCompose_hole_25
+  (<!) {x = (InSO ((InSO SO1) !!* y))} {y = (InSO SO1)} {z = z} g f = ?somCompose_hole_26
+  (<!) {x = (InSO ((InSO (x !!+ w)) !!* y))} {y = (InSO SO1)} {z = z} g f = ?somCompose_hole_27
+  (<!) {x = (InSO ((InSO (x !!* w)) !!* y))} {y = (InSO SO1)} {z = z} g f = ?somCompose_hole_28
   (<!) {x = x} {y = (InSO (y !!+ y'))} {z = z} g f = ?somCompose_hole_16
   (<!) {x = x} {y = (InSO (y !!* y'))} {z = z} g f = ?somCompose_hole_17
 
