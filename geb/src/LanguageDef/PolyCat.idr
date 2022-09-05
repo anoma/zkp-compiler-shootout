@@ -3839,17 +3839,10 @@ SubstMorph (InSO SO1) (InSO (y !!+ z)) =
 -- and the right object of the product
 SubstMorph (InSO SO1) (InSO (y !!* z)) =
   Pair (SubstMorph Subst1 y) (SubstMorph Subst1 z)
--- The unique morphism from a coproduct to the terminal object
-SubstMorph (InSO (_ !!+ _)) (InSO SO1) = ()
--- 0 + y === y
-SubstMorph (InSO ((InSO SO0) !!+ y)) z = SubstMorph y z
-SubstMorph (InSO (y !!+ (InSO SO0))) z = SubstMorph y z
 -- Associativity of coproducts
 SubstMorph (InSO ((InSO (x !!+ x')) !!+ y)) z = SubstMorph (x !+ (x' !+ y)) z
 -- Coproducts are eliminated by cases
 SubstMorph (InSO (x !!+ y)) z = Pair (SubstMorph x z) (SubstMorph y z)
--- The unique morphism from a product to the terminal object
-SubstMorph (InSO (_ !!* _)) (InSO SO1) = ()
 -- 0 * y === 0
 SubstMorph (InSO ((InSO SO0) !!* y)) z = ()
 SubstMorph (InSO (y !!* (InSO SO0))) z = ()
