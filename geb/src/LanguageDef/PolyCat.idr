@@ -3838,12 +3838,24 @@ SubstMorph x (InSO SO0) = SubstContradiction x
 SubstMorph x (InSO SO1) = ()
 -- Morphisms from the terminal object are terms of the corresponding type
 SubstMorph (InSO SO1) x = SubstTerm x
+-- The initial object is a left-identity for coproducts
+SubstMorph (InSO (InSO SO0 !!+ x)) y = SubstMorph x y
+SubstMorph x (InSO (InSO SO0 !!+ y)) = SubstMorph x y
+-- The initial object is a right-identity for coproducts
+SubstMorph (InSO (x !!+ InSO SO0)) y = SubstMorph x y
+SubstMorph x (InSO (y !!+ InSO SO0)) = SubstMorph x y
+-- The terminal object is a left-identity for products
+SubstMorph (InSO (InSO SO1 !!* x)) y = SubstMorph x y
+SubstMorph x (InSO (InSO SO1 !!* y)) = SubstMorph x y
+-- The terminal object is a right-identity for products
+SubstMorph (InSO (x !!* InSO SO1)) y = SubstMorph x y
+SubstMorph x (InSO (y !!* InSO SO1)) = SubstMorph x y
 -- Coproducts are eliminated by cases
 SubstMorph (InSO (x !!+ y)) z = Pair (SubstMorph x z) (SubstMorph y z)
 -- Products are introduced by pairs
 SubstMorph x (InSO (y !!* z)) = Pair (SubstMorph x y) (SubstMorph x z)
--- Products are mapped to coproducts by XXX
-SubstMorph (InSO (x !!* y)) (InSO (z !!+ w)) = ?SubstMorph_product_hole_3
+-- Products are mapped to coproducts as follows:
+SubstMorph (InSO (x !!* y)) (InSO (z !!+ w)) = ?SubstMorph_hole
 
 public export
 MetaSOMorph : SubstObjMu -> SubstObjMu -> Type
