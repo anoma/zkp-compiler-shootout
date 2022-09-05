@@ -3871,7 +3871,7 @@ mutual
   SOI : (x : SubstObjMu) -> MetaSOMorph x x
   SOI (InSO SO0) = ()
   SOI (InSO SO1) = ()
-  SOI (InSO (x !!+ y)) = ?somId_hole_3
+  SOI (InSO (x !!+ y)) = (soInjLeft x y, soInjRight x y)
   SOI (InSO (x !!* y)) = ?somId_hole_4
 
   infixr 1 <!
@@ -3881,11 +3881,11 @@ mutual
   (<!) {x} {y} {z} g f = ?somCompose_hole
 
   public export
-  soFromUnit : (x : SubstObjMu) -> MetaSOMorph x Subst0
-  soFromUnit x = ?soFromUnit_hole
+  soFromInitial : (x : SubstObjMu) -> MetaSOMorph Subst0 x
+  soFromInitial _ = ()
 
   public export
-  soToTerminal : (x : SubstObjMu) -> MetaSOMorph x Subst0
+  soToTerminal : (x : SubstObjMu) -> MetaSOMorph x Subst1
   soToTerminal x = ?soToTerminal_hole
 
   public export
