@@ -8,7 +8,7 @@ risc0_zkvm_guest::entry!(main);
 
 
 pub fn main() {
-    let mut puzzle: Sudoku = env::read(); 
+    let mut puzzle: Sudoku = env::read();
 
     if !valid_solution(&puzzle){
          panic!("invalid solution");
@@ -24,19 +24,16 @@ fn valid_solution(sudoku: &Sudoku) -> bool {
         let mut line = 0;
         let mut col = 0;
         let mut sub = 0;
-        
+
         for j in 0..9 {
             line += sudoku.0[i][j];
             col += sudoku.0[j][i];
             sub += sudoku.0[i / 3 * 3 + j / 3][i % 3 * 3 + j % 3];
         }
-        
+
         if line != 45 || col != 45 || sub != 45 {
             return false;
         }
     }
     return true;
 }
-
-
-
