@@ -3830,6 +3830,15 @@ SubstMorph (InSO SO0) _ = ()
 SubstMorph (InSO SO1) (InSO SO1) = ()
 SubstMorph (InSO (_ !!+ _)) (InSO SO1) = ()
 SubstMorph (InSO (_ !!* _)) (InSO SO1) = ()
+-- 0 * y === 0
+SubstMorph (InSO ((InSO SO0) !!* y)) z = ()
+SubstMorph (InSO (y !!* (InSO SO0))) z = ()
+-- 0 + y === y
+SubstMorph (InSO ((InSO SO0) !!+ y)) z = SubstMorph y z
+SubstMorph (InSO (y !!+ (InSO SO0))) z = SubstMorph y z
+-- 1 * y === y
+SubstMorph (InSO ((InSO SO1) !!* y)) z = SubstMorph y z
+SubstMorph (InSO (y !!* (InSO SO1))) z = SubstMorph y z
 -- There are no morphisms from the terminal object to the initial object
 SubstMorph (InSO SO1) (InSO SO0) = Void
 -- To form a morphism from the terminal object to a coproduct,
@@ -3842,17 +3851,15 @@ SubstMorph (InSO SO1) (InSO (y !!+ z)) =
 -- and the right object of the product
 SubstMorph (InSO SO1) (InSO (y !!* z)) =
   Pair (SubstMorph Subst1 y) (SubstMorph Subst1 z)
--- 0 * y === 0
-SubstMorph (InSO ((InSO SO0) !!* y)) z = ()
--- 1 * y === y
-SubstMorph (InSO ((InSO SO1) !!* y)) z = SubstMorph y z
--- Coproducts are eliminated by cases
-SubstMorph (InSO (x !!+ y)) z = Pair (SubstMorph x z) (SubstMorph y z)
+-- Associativity of coproducts
+SubstMorph (InSO ((InSO (x !!+ x')) !!+ y)) z = SubstMorph (x !+ (x' !+ y)) z
+-- Associativity of products
+SubstMorph (InSO ((InSO (x !!* x')) !!* y)) z = SubstMorph (x !* (x' !* y)) z
 -- Distributivity of products
 SubstMorph (InSO ((InSO (x !!+ x')) !!* y)) z =
   SubstMorph ((x !* y) !+ (x' !* y)) z
--- Associativity of products
-SubstMorph (InSO ((InSO (x !!* x')) !!* y)) z = SubstMorph (x !* (x' !* y)) z
+-- Coproducts are eliminated by cases
+SubstMorph (InSO (x !!+ y)) z = Pair (SubstMorph x z) (SubstMorph y z)
 
 public export
 MetaSOMorph : SubstObjMu -> SubstObjMu -> Type
