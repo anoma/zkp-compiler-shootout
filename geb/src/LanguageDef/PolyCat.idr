@@ -3831,20 +3831,25 @@ public export
 SubstMorph : SubstObjMu -> SubstObjMu -> Type
 -- The unique morphism from the initial object to a given object
 SubstMorph (InSO SO0) _ = ()
--- There are morphisms to the initial object only from contradictory (empty)
--- types
-SubstMorph x (InSO SO0) = SubstContradiction x
--- The unique morphism to the terminal object from any object
-SubstMorph x (InSO SO1) = ()
--- Morphisms from the terminal object are terms of the corresponding type
-SubstMorph (InSO SO1) x = SubstTerm x
+-- The unique morphism from objects other than the initial object
+-- to the terminal object
+SubstMorph (InSO SO1) (InSO SO1) = ()
+SubstMorph (InSO (_ !!+ _)) (InSO SO1) = ()
+SubstMorph (InSO (_ !!* _)) (InSO SO1) = ()
+-- There are no morphisms from the terminal object to the initial object
+SubstMorph (InSO SO1) (InSO SO0) = Void
+-- To form a morphism from the terminal object to a coproduct,
+-- we choose a morphism from the terminal object to either the left
+-- or the right object of the coproduct
+SubstMorph (InSO SO1) (InSO (y !!+ z)) =
+  Either (SubstMorph Subst1 y) (SubstMorph Subst1 z)
+-- To form a morphism from the terminal object to a product,
+-- we choose morphisms from the terminal object to both the left
+-- and the right object of the product
+SubstMorph (InSO SO1) (InSO (y !!* z)) =
+  Pair (SubstMorph Subst1 y) (SubstMorph Subst1 z)
 -- Coproducts are eliminated by cases
 SubstMorph (InSO (x !!+ y)) z = Pair (SubstMorph x z) (SubstMorph y z)
--- Products are introduced by pairs
-SubstMorph x (InSO (y !!* z)) = Pair (SubstMorph x y) (SubstMorph x z)
--- Products are eliminated as follows:
-SubstMorph (InSO (x !!* y)) z = ?SubstMorph_hole
-{-
 -- 0 * y === 0
 SubstMorph (InSO ((InSO SO0) !!* y)) z = ()
 -- 1 * y === y
@@ -3854,7 +3859,6 @@ SubstMorph (InSO ((InSO (x !!+ x')) !!* y)) z =
   SubstMorph ((x !* y) !+ (x' !* y)) z
 -- (x * x') * y === x * (x' * y)
 SubstMorph (InSO ((InSO (x !!* x')) !!* y)) z = SubstMorph (x !* (x' !* y)) z
--}
 
 public export
 MetaSOMorph : SubstObjMu -> SubstObjMu -> Type
