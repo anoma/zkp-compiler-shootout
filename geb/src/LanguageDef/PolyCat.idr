@@ -3803,15 +3803,19 @@ p !*^ n = foldrNatNoUnit ((!*) p) Subst1 p n
 --------------------------------------------------------------
 
 public export
+SubstHomObjAlg : MetaSOAlg (SubstObjMu -> SubstObjMu)
+-- 0 -> x == 1
+SubstHomObjAlg SO0 _ = Subst1
+-- 1 -> x == x
+SubstHomObjAlg SO1 q = q
+-- (p + q) -> r == (p -> r) * (q -> r)
+SubstHomObjAlg (p !!+ q) r = p r !* q r
+-- (p * q) -> r == p -> q -> r
+SubstHomObjAlg (p !!* q) r = p $ q r
+
+public export
 SubstHomObj : SubstObjMu -> SubstObjMu -> SubstObjMu
--- 0 -> y == 1
-SubstHomObj (InSO SO0) _ = Subst1
--- 1 -> y == y
-SubstHomObj (InSO SO1) y = y
--- (x + y) -> z == (x -> z) * (y -> z)
-SubstHomObj (InSO (x !!+ y)) z = SubstHomObj x z !* SubstHomObj y z
--- (x * y) -> z == x -> y -> z
-SubstHomObj (InSO (x !!* y)) z = SubstHomObj x (SubstHomObj y z)
+SubstHomObj = substObjCata SubstHomObjAlg
 
 infix 10 !^
 public export
@@ -3867,24 +3871,18 @@ SOTerm : SubstObjMu -> Type
 SOTerm = MetaSOMorph Subst1
 
 public export
-HomTerm : SubstObjMu -> SubstObjMu -> Type
-HomTerm = SOTerm .* SubstHomObj
-
-public export
-TermAsMorph : {x, y : SubstObjMu} -> HomTerm x y -> MetaSOMorph x y
+TermAsMorph : {x, y : SubstObjMu} -> SOTerm (SubstHomObj x y) -> MetaSOMorph x y
 TermAsMorph {x=(InSO SO0)} {y} () = ()
 TermAsMorph {x=(InSO SO1)} {y} f = f
-TermAsMorph {x=(InSO (x !!+ y))} {y=z} (f, g) = (TermAsMorph f, TermAsMorph g)
-TermAsMorph {x=(InSO (x !!* y))} {y=z} f =
-  TermAsMorph {x} {y=(SubstHomObj y z)} f
+TermAsMorph {x=(InSO (x !!+ y))} {y=z} f = ?TermAsMorph_hole_3
+TermAsMorph {x=(InSO (x !!* y))} {y=z} f = ?TermAsMorph_hole_4
 
 public export
-MorphAsTerm : {x, y : SubstObjMu} -> MetaSOMorph x y -> HomTerm x y
+MorphAsTerm : {x, y : SubstObjMu} -> MetaSOMorph x y -> SOTerm (SubstHomObj x y)
 MorphAsTerm {x=(InSO SO0)} {y} () = ()
 MorphAsTerm {x=(InSO SO1)} {y} f = f
-MorphAsTerm {x=(InSO (x !!+ y))} {y=z} (f, g) = (MorphAsTerm f, MorphAsTerm g)
-MorphAsTerm {x=(InSO (x !!* y))} {y=z} f =
-  MorphAsTerm {x} {y=(SubstHomObj y z)} f
+MorphAsTerm {x=(InSO (x !!+ y))} {y=z} f = ?MorphAsTerm_hole_3
+MorphAsTerm {x=(InSO (x !!* y))} {y=z} f = ?MorphAsTerm_hole_4
 
 mutual
   public export
@@ -3956,10 +3954,6 @@ mutual
   public export
   soEval : (x, y : SubstObjMu) -> MetaSOMorph ((y !^ x) !* x) y
   soEval x y = ?soEval_hole
-
-public export
-IdTerm : (x : SubstObjMu) -> HomTerm x x
-IdTerm x = MorphAsTerm (SOI x)
 
 ----------------------------------------------------------------------
 ---- Interpretation of substitutive objects as metalanguage types ----
