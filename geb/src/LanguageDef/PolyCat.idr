@@ -3867,12 +3867,19 @@ soCase : {x, y, z : SubstObjMu} ->
   MetaSOMorph x z -> MetaSOMorph y z -> MetaSOMorph (x !+ y) z
 soCase {x} {y} {z} f g = (f, g)
 
-public export
-soApply : {x, y : SubstObjMu} -> MetaSOMorph x y -> SOTerm x -> SOTerm y
-soApply {x = (InSO SO0)} {y = y} f t = ?soApply_hole_1
-soApply {x = (InSO SO1)} {y = y} f t = ?soApply_hole_2
-soApply {x = (InSO (x !!+ z))} {y = y} f t = ?soApply_hole_3
-soApply {x = (InSO (x !!* z))} {y = y} f t = ?soApply_hole_4
+mutual
+  public export
+  soApply : {x, y : SubstObjMu} -> MetaSOMorph x y -> SOTerm x -> SOTerm y
+  soApply {x = (InSO SO0)} {y = y} f t = void t
+  soApply {x = (InSO SO1)} {y = y} f t = f
+  soApply {x = (InSO (x !!+ y))} {y = z} (f, f') (Left t) = soApply f t
+  soApply {x = (InSO (x !!+ y))} {y = z} (f, f') (Right t) = soApply f' t
+  soApply {x = (InSO (x !!* y))} {y = z} f (tx, ty) = soApplyPair f tx ty
+
+  public export
+  soApplyPair : {x, y, z : SubstObjMu} ->
+    MetaSOMorph (x !* y) z -> SOTerm x -> SOTerm y -> SOTerm z
+  soApplyPair {x} {y} {z} f t = ?soApplyPair_hole
 
 infixr 1 <!
 public export
