@@ -3843,13 +3843,18 @@ SubstMorph (InSO (x !!+ y)) z = Pair (SubstMorph x z) (SubstMorph y z)
 -- Products are introduced by pairs
 SubstMorph x (InSO (y !!* z)) = Pair (SubstMorph x y) (SubstMorph x z)
 -- Products are eliminated as follows:
-SubstMorph (InSO (x !!* y)) z = case x of
-  -- `0 * y === 0`, so this is the unique morphism from `0`
-  InSO SO0 => ()
-  -- `1 * y === y`
-  InSO SO1 => SubstMorph y z
-  InSO (x' !!+ x'') => ?SubstMorph_hole_1
-  InSO (x' !!* x'') => ?SubstMorph_hole_2
+SubstMorph (InSO (x !!* y)) z = ?SubstMorph_hole
+{-
+-- 0 * y === 0
+SubstMorph (InSO ((InSO SO0) !!* y)) z = ()
+-- 1 * y === y
+SubstMorph (InSO ((InSO SO1) !!* y)) z = SubstMorph y z
+-- Distributivity
+SubstMorph (InSO ((InSO (x !!+ x')) !!* y)) z =
+  SubstMorph ((x !* y) !+ (x' !* y)) z
+-- (x * x') * y === x * (x' * y)
+SubstMorph (InSO ((InSO (x !!* x')) !!* y)) z = SubstMorph (x !* (x' !* y)) z
+-}
 
 public export
 MetaSOMorph : SubstObjMu -> SubstObjMu -> Type
