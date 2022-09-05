@@ -3822,29 +3822,45 @@ public export
 ---- Morphisms of substitutive category ----
 --------------------------------------------
 
-infixr 1 <!
-
 public export
-data MetaSOMorph : SubstObjMu -> SubstObjMu -> Type where
-  SOI : (x : SubstObjMu) -> MetaSOMorph x x
-  (<!) : {x, y, z : SubstObjMu} ->
-    MetaSOMorph y z -> MetaSOMorph x y -> MetaSOMorph x z
-  SOFrom0 : (x : SubstObjMu) -> MetaSOMorph Subst0 x
-  SOTo1 : (x : SubstObjMu) -> MetaSOMorph x Subst1
-  SOInjL : (x, y : SubstObjMu) -> MetaSOMorph x (x !+ y)
-  SOInjR : (x, y : SubstObjMu) -> MetaSOMorph y (x !+ y)
-  SOCase : {x, y, z : SubstObjMu} ->
-    MetaSOMorph x z -> MetaSOMorph y z -> MetaSOMorph (x !+ y) z
-  SOProd : {x, y, z : SubstObjMu} ->
-    MetaSOMorph x y -> MetaSOMorph x z -> MetaSOMorph x (y !* z)
-  SOProjL : (x, y : SubstObjMu) -> MetaSOMorph (x !* y) x
-  SOProjR : (x, y : SubstObjMu) -> MetaSOMorph (x !* y) y
-  SODistrib : (x, y, z : SubstObjMu) ->
-    MetaSOMorph (x !* (y !+ z)) ((x !* y) !+ (x !* z))
+MetaSOMorph : SubstObjMu -> SubstObjMu -> Type
+-- The unique morphism from the initial object to a given object
+MetaSOMorph (InSO SO0) _ = ()
+-- There are no morphisms from the terminal object to the initial object
+MetaSOMorph (InSO SO1) (InSO SO0) = Void
+-- The unique morphism from a given object to the terminal object
+-- (in this case, the given object is also the terminal object)
+MetaSOMorph (InSO SO1) (InSO SO1) = Unit
+-- To form a morphism from the terminal object to a coproduct,
+-- we choose a morphism from the terminal object to either the left
+-- or the right object of the coproduct
+MetaSOMorph (InSO SO1) (InSO (y !!+ z)) =
+  Either (MetaSOMorph (InSO SO1) y) (MetaSOMorph (InSO SO1) z)
+-- To form a morphism from the terminal object to a product,
+-- we choose morphisms from the terminal object to both the left
+-- and the right object of the product
+MetaSOMorph (InSO SO1) (InSO (y !!* z)) =
+  Pair (MetaSOMorph (InSO SO1) y) (MetaSOMorph (InSO SO1) z)
+-- Coproducts are eliminated by cases
+MetaSOMorph (InSO (x !!+ y)) z = Pair (MetaSOMorph x z) (MetaSOMorph y z)
+-- Products are eliminated by currying -- this expresses the
+-- product-hom adjunction
+MetaSOMorph (InSO (x !!* y)) z = MetaSOMorph x $ SubstHomObj y z
 
 public export
 showSOMorph : {x, y : SubstObjMu} -> MetaSOMorph x y -> String
-showSOMorph f = ?showSOMorph_hole
+showSOMorph {x=(InSO SO0)} {y} () = "0->*"
+showSOMorph {x=(InSO SO1)} {y=(InSO SO0)} f = void f
+showSOMorph {x=(InSO SO1)} {y=(InSO SO1)} f = "id(1)"
+showSOMorph {x=(InSO SO1)} {y=(InSO (y !!+ z))} (Left f) =
+  "Left(" ++ showSOMorph f ++ ")"
+showSOMorph {x=(InSO SO1)} {y=(InSO (y !!+ z))} (Right g) =
+  "Right(" ++ showSOMorph g ++ ")"
+showSOMorph {x=(InSO SO1)} {y=(InSO (y !!* z))} (f, g) =
+  "Pair(" ++ showSOMorph f ++ ", " ++ showSOMorph g ++ ")"
+showSOMorph {x=(InSO (x !!+ y))} {y=z} (f, g) =
+  "[" ++ showSOMorph f ++ "|" ++ showSOMorph g ++ "]"
+showSOMorph {x=(InSO (x !!* y))} {y=z} f = "eval{" ++ showSOMorph {x} f ++ "}"
 
 public export
 SOTerm : SubstObjMu -> Type
@@ -3856,20 +3872,94 @@ HomTerm = SOTerm .* SubstHomObj
 
 public export
 TermAsMorph : {x, y : SubstObjMu} -> HomTerm x y -> MetaSOMorph x y
-TermAsMorph = ?TermAsMorph_hole
+TermAsMorph {x=(InSO SO0)} {y} () = ()
+TermAsMorph {x=(InSO SO1)} {y} f = f
+TermAsMorph {x=(InSO (x !!+ y))} {y=z} (f, g) = (TermAsMorph f, TermAsMorph g)
+TermAsMorph {x=(InSO (x !!* y))} {y=z} f =
+  TermAsMorph {x} {y=(SubstHomObj y z)} f
 
 public export
 MorphAsTerm : {x, y : SubstObjMu} -> MetaSOMorph x y -> HomTerm x y
-MorphAsTerm = ?MorphAsTerm_hole
+MorphAsTerm {x=(InSO SO0)} {y} () = ()
+MorphAsTerm {x=(InSO SO1)} {y} f = f
+MorphAsTerm {x=(InSO (x !!+ y))} {y=z} (f, g) = (MorphAsTerm f, MorphAsTerm g)
+MorphAsTerm {x=(InSO (x !!* y))} {y=z} f =
+  MorphAsTerm {x} {y=(SubstHomObj y z)} f
+
+mutual
+  public export
+  SOI : (x : SubstObjMu) -> MetaSOMorph x x
+  SOI (InSO SO0) = ()
+  SOI (InSO SO1) = ()
+  SOI (InSO (x !!+ y)) = (soInjLeft x y, soInjRight x y)
+  SOI (InSO (x !!* y)) = ?soi_hole_prod
+
+  infixr 1 <!
+  public export
+  (<!) : {x, y, z : SubstObjMu} ->
+    MetaSOMorph y z -> MetaSOMorph x y -> MetaSOMorph x z
+  (<!) {x} {y} {z} g f = ?somCompose_hole
+
+  public export
+  soFromInitial : (x : SubstObjMu) -> MetaSOMorph Subst0 x
+  soFromInitial _ = ()
+
+  public export
+  soToTerminal : (x : SubstObjMu) -> MetaSOMorph x Subst1
+  soToTerminal (InSO SO0) = ()
+  soToTerminal (InSO SO1) = ()
+  soToTerminal (InSO (x !!+ y)) = (soToTerminal x, soToTerminal y)
+  soToTerminal (InSO (x !!* y)) = ?soToTerminal_hole_4
+
+  public export
+  soInjLeft : (x, y : SubstObjMu) -> MetaSOMorph x (x !+ y)
+  soInjLeft (InSO SO0) y = ()
+  soInjLeft (InSO SO1) y = Left ()
+  soInjLeft (InSO (x !!+ y)) z = (?soInjLeft_hole_3, ?soInjLeft_hole_3a)
+  soInjLeft (InSO (x !!* y)) z = ?soInjLeft_hole_4
+
+  public export
+  soInjRight : (x, y : SubstObjMu) -> MetaSOMorph y (x !+ y)
+  soInjRight x (InSO SO0) = ()
+  soInjRight x (InSO SO1) = Right ()
+  soInjRight x (InSO (y !!+ z)) = (?soInjRight_hole_3, ?soInjRight_hole_3a)
+  soInjRight x (InSO (y !!* z)) = ?soInjRight_hole_4
+
+  public export
+  soCase : {x, y, z : SubstObjMu} ->
+    MetaSOMorph x z -> MetaSOMorph y z -> MetaSOMorph (x !+ y) z
+  soCase {x} {y} {z} f g = (f, g)
+
+  public export
+  soProd : {x, y, z : SubstObjMu} ->
+    MetaSOMorph x y -> MetaSOMorph x z -> MetaSOMorph x (y !* z)
+  soProd {x} {y} {z} f g = ?soProd_hole
+
+  public export
+  soProjLeft : (x, y : SubstObjMu) -> MetaSOMorph (x !* y) x
+  soProjLeft x y = ?soProjLeft_hole
+
+  public export
+  soProjRight : (x, y : SubstObjMu) -> MetaSOMorph (x !* y) y
+  soProjRight x y = ?soProjRight_hole
+
+  public export
+  soDistribute : (x, y, z : SubstObjMu) ->
+    MetaSOMorph (x !* (y !+ z)) ((x !* y) !+ (x !* z))
+  soDistribute x y z = ?soDistribute_hole
+
+  public export
+  soCurry : {x, y, z : SubstObjMu} ->
+    MetaSOMorph (x !* y) z -> MetaSOMorph x (z !^ y)
+  soCurry {x} {y} {z} f = f
+
+  public export
+  soEval : (x, y : SubstObjMu) -> MetaSOMorph ((y !^ x) !* x) y
+  soEval x y = ?soEval_hole
 
 public export
-soCurry : {x, y, z : SubstObjMu} ->
-  MetaSOMorph (x !* y) z -> MetaSOMorph x (z !^ y)
-soCurry {x} {y} {z} f = ?soCurry_hole
-
-public export
-soEval : (x, y : SubstObjMu) -> MetaSOMorph ((y !^ x) !* x) y
-soEval x y = ?soEval_hole
+IdTerm : (x : SubstObjMu) -> HomTerm x x
+IdTerm x = MorphAsTerm (SOI x)
 
 ----------------------------------------------------------------------
 ---- Interpretation of substitutive objects as metalanguage types ----
