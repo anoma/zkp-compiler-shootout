@@ -3886,20 +3886,29 @@ mutual
 
   public export
   soToTerminal : (x : SubstObjMu) -> MetaSOMorph x Subst1
-  soToTerminal x = ?soToTerminal_hole
+  soToTerminal (InSO SO0) = ()
+  soToTerminal (InSO SO1) = ()
+  soToTerminal (InSO (x !!+ y)) = (soToTerminal x, soToTerminal y)
+  soToTerminal (InSO (x !!* y)) = ?soToTerminal_hole_4
 
   public export
   soInjLeft : (x, y : SubstObjMu) -> MetaSOMorph x (x !+ y)
-  soInjLeft x y = ?soInjLeft_hole
+  soInjLeft (InSO SO0) y = ()
+  soInjLeft (InSO SO1) y = Left ()
+  soInjLeft (InSO (x !!+ y)) z = (?soInjLeft_hole_3, ?soInjLeft_hole_3a)
+  soInjLeft (InSO (x !!* y)) z = ?soInjLeft_hole_4
 
   public export
   soInjRight : (x, y : SubstObjMu) -> MetaSOMorph y (x !+ y)
-  soInjRight x y = ?soInjRight_hole
+  soInjRight x (InSO SO0) = ()
+  soInjRight x (InSO SO1) = Right ()
+  soInjRight x (InSO (y !!+ z)) = (?soInjRight_hole_3, ?soInjRight_hole_3a)
+  soInjRight x (InSO (y !!* z)) = ?soInjRight_hole_4
 
   public export
   soCase : {x, y, z : SubstObjMu} ->
     MetaSOMorph x z -> MetaSOMorph y z -> MetaSOMorph (x !+ y) z
-  soCase {x} {y} {z} f g = ?soCase_hole
+  soCase {x} {y} {z} f g = (f, g)
 
   public export
   soProd : {x, y, z : SubstObjMu} ->
@@ -3919,14 +3928,14 @@ mutual
     MetaSOMorph (x !* (y !+ z)) ((x !* y) !+ (x !* z))
   soDistribute x y z = ?soDistribute_hole
 
-public export
-soCurry : {x, y, z : SubstObjMu} ->
-  MetaSOMorph (x !* y) z -> MetaSOMorph x (z !^ y)
-soCurry {x} {y} {z} f = ?soCurry_hole
+  public export
+  soCurry : {x, y, z : SubstObjMu} ->
+    MetaSOMorph (x !* y) z -> MetaSOMorph x (z !^ y)
+  soCurry {x} {y} {z} f = ?soCurry_hole
 
-public export
-soEval : (x, y : SubstObjMu) -> MetaSOMorph ((y !^ x) !* x) y
-soEval x y = ?soEval_hole
+  public export
+  soEval : (x, y : SubstObjMu) -> MetaSOMorph ((y !^ x) !* x) y
+  soEval x y = ?soEval_hole
 
 ----------------------------------------------------------------------
 ---- Interpretation of substitutive objects as metalanguage types ----
