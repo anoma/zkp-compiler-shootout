@@ -3732,6 +3732,102 @@ public export
 Eq SubstObjMu where
   (==) = substObjPairCata SubstObjMuEqAlg
 
+-----------------------------------------------
+---- Normalization of substitutive objects ----
+-----------------------------------------------
+
+public export
+SORemoveZeroAlg : MetaSOAlg SubstObjMu
+SORemoveZeroAlg SO0 = Subst0
+SORemoveZeroAlg SO1 = Subst1
+SORemoveZeroAlg (p !!+ q) = case p of
+  InSO p' => case p' of
+    SO0 => q
+    _ => case q of
+      InSO q' => case q' of
+        SO0 => p
+        _ => p !+ q
+SORemoveZeroAlg (p !!* q) = case p of
+  InSO p' => case p' of
+    SO0 => Subst0
+    _ => case q of
+      InSO q' => case q' of
+        SO0 => Subst0
+        _ => p !* q
+
+public export
+substObjRemoveZero : SubstObjMu -> SubstObjMu
+substObjRemoveZero = substObjCata SORemoveZeroAlg
+
+public export
+SORemoveOneAlg : MetaSOAlg SubstObjMu
+SORemoveOneAlg SO0 = Subst0
+SORemoveOneAlg SO1 = Subst1
+SORemoveOneAlg (p !!+ q) = p !+ q
+SORemoveOneAlg (p !!* q) = case p of
+  InSO p' => case p' of
+    SO1 => q
+    _ => case q of
+      InSO q' => case q' of
+        SO1 => p
+        _ => p !* q
+
+public export
+substObjRemoveOne : SubstObjMu -> SubstObjMu
+substObjRemoveOne = substObjCata SORemoveOneAlg
+
+-----------------------------------------------------
+---- Multiplication by a constant (via addition) ----
+-----------------------------------------------------
+
+infix 10 !:*
+public export
+(!:*) : Nat -> SubstObjMu -> SubstObjMu
+n !:* p = foldrNatNoUnit ((!+) p) Subst0 p n
+
+---------------------------------------
+---- Multiplicative exponentiation ----
+---------------------------------------
+
+infix 10 !*^
+public export
+(!*^) : SubstObjMu -> Nat -> SubstObjMu
+p !*^ n = foldrNatNoUnit ((!*) p) Subst1 p n
+
+--------------------------------------------------------------
+---- Exponentiation (hom-objects) of substitutive objects ----
+--------------------------------------------------------------
+
+public export
+SubstHomObjAlg : MetaSOAlg (SubstObjMu -> SubstObjMu)
+-- 0 -> x == 1
+SubstHomObjAlg SO0 _ = Subst1
+-- 1 -> x == x
+SubstHomObjAlg SO1 q = q
+-- (p + q) -> r == (p -> r) * (q -> r)
+SubstHomObjAlg (p !!+ q) r = p r !* q r
+-- (p * q) -> r == p -> q -> r
+SubstHomObjAlg (p !!* q) r = p $ q r
+
+public export
+SubstHomObj : SubstObjMu -> SubstObjMu -> SubstObjMu
+SubstHomObj = substObjCata SubstHomObjAlg
+
+public export
+SubstExp : SubstObjMu -> SubstObjMu -> SubstObjMu
+SubstExp = flip SubstHomObj
+
+----------------------------------------------------------------------
+---- Interpretation of substitutive objects as metalanguage types ----
+----------------------------------------------------------------------
+
+public export
+MetaSOTypeAlg : MetaSOAlg Type
+MetaSOTypeAlg SO0 = Void
+MetaSOTypeAlg SO1 = Unit
+MetaSOTypeAlg (p !!+ q) = Either p q
+MetaSOTypeAlg (p !!* q) = (p, q)
+
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ---- Inductive definition of substitutive polynomial endofunctors ----
