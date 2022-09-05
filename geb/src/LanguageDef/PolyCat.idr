@@ -3855,6 +3855,10 @@ showSOMorph {x=(InSO ((InSO (x !!* x')) !!* y))} {y=z} f =
   "rassoc[" ++ showSOMorph f ++ "]"
 
 public export
+SOTerm : SubstObjMu -> Type
+SOTerm = MetaSOMorph Subst1
+
+public export
 soFromInitial : (x : SubstObjMu) -> MetaSOMorph Subst0 x
 soFromInitial _ = ()
 
@@ -3903,12 +3907,19 @@ public export
 (<!) {x = (InSO ((InSO (x !!* v)) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f =
   (<!) {x=(x !* (v !* w))} g f
 (<!) {x = (InSO SO0)} {y = (InSO (y !!* y'))} {z = z} g f = ()
-(<!) {x = (InSO SO1)} {y = (InSO (y !!* y'))} {z} g f = ?somCompose_hole_25
+(<!) {x = (InSO SO1)} {y = (InSO ((InSO SO0) !!* y'))} {z = z} g f = void (fst f)
+(<!) {x = (InSO SO1)} {y = (InSO ((InSO SO1) !!* y'))} {z = z} g ((), f) = g <! f
+(<!) {x = (InSO SO1)} {y = (InSO ((InSO (x !!+ y)) !!* y'))} {z = z} (g, g') (f, f') =
+  case f of
+    Left f'' => ?compose_hole_1
+    Right f'' => ?compose_hole_2
+(<!) {x = (InSO SO1)} {y = (InSO ((InSO (x !!* y)) !!* y'))} {z = z} g ((f, f'), f'') =
+  ?compose_hole_3 -- (<!) {x=Subst1} {y=(x !* (y !* y'))} {z} g (f, (f', f''))
 (<!) {x = (InSO (x !!+ w))} {y = (InSO (y !!* y'))} {z = z} g (f, f') =
   (g <! f, g <! f')
 (<!) {x = (InSO ((InSO SO0) !!* w))} {y = (InSO (y !!* y'))} {z = z} g f = ()
 (<!) {x = (InSO ((InSO SO1) !!* (InSO SO0)))} {y = (InSO (y !!* y'))} {z = z} g f = ()
-(<!) {x = (InSO ((InSO SO1) !!* (InSO SO1)))} {y = (InSO (y !!* y'))} {z = z} g f = ?somCompose_hole_35
+(<!) {x = (InSO ((InSO SO1) !!* (InSO SO1)))} {y} g f = (<!) {x=Subst1} {y} {z = z} g f
 (<!) {x = (InSO ((InSO SO1) !!* (InSO (x !!+ w))))} {y = (InSO (y !!* y'))} {z = z} g f =
   case f of (f, f') => (g <! f, g <! f')
 (<!) {x = (InSO ((InSO SO1) !!* (InSO (x !!* w))))} {y = (InSO (y !!* y'))} {z = z} g f =
@@ -4010,10 +4021,6 @@ soUncurry {x} {y} {z} f = ?soUncurry_hole
 public export
 soEval : (x, y : SubstObjMu) -> MetaSOMorph ((y !^ x) !* x) y
 soEval x y = ?soEval_hole
-
-public export
-SOTerm : SubstObjMu -> Type
-SOTerm = MetaSOMorph Subst1
 
 public export
 HomTerm : SubstObjMu -> SubstObjMu -> Type
