@@ -3872,7 +3872,7 @@ mutual
   SOI (InSO SO0) = ()
   SOI (InSO SO1) = ()
   SOI (InSO (x !!+ y)) = (soInjLeft x y, soInjRight x y)
-  SOI (InSO (x !!* y)) = ?somId_hole_4
+  SOI (InSO (x !!* y)) = ?SOI_prod_hole
 
   infixr 1 <!
   public export
@@ -3931,7 +3931,7 @@ mutual
   public export
   soCurry : {x, y, z : SubstObjMu} ->
     MetaSOMorph (x !* y) z -> MetaSOMorph x (z !^ y)
-  soCurry {x} {y} {z} f = ?soCurry_hole
+  soCurry {x} {y} {z} f = f
 
   public export
   soEval : (x, y : SubstObjMu) -> MetaSOMorph ((y !^ x) !* x) y
