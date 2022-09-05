@@ -3803,6 +3803,17 @@ p !*^ n = foldrNatNoUnit ((!*) p) Subst1 p n
 --------------------------------------------
 
 public export
+SubstTermAlg : MetaSOAlg Type
+SubstTermAlg SO0 = Void
+SubstTermAlg SO1 = ()
+SubstTermAlg (x !!+ y) = Either x y
+SubstTermAlg (x !!* y) = Pair x y
+
+public export
+SubstTerm : SubstObjMu -> Type
+SubstTerm = substObjCata SubstTermAlg
+
+public export
 MetaSOMorph : SubstObjMu -> SubstObjMu -> Type
 -- The unique morphism from the initial object to a given object
 MetaSOMorph (InSO SO0) _ = ()
