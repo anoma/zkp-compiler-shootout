@@ -3887,9 +3887,14 @@ mutual
   (<!) {x = (InSO ((InSO SO0) !!* y))} {y = (InSO SO0)} {z = z} g f = ()
   (<!) {x = (InSO ((InSO SO1) !!* y))} {y = (InSO SO0)} {z = z} g f =
     soFromInitial z <! f
-  (<!) {x = (InSO ((InSO (x !!+ w)) !!* y))} {y = (InSO SO0)} {z = z} g f = ?somCompose_hole_13
-  (<!) {x = (InSO ((InSO (x !!* w)) !!* y))} {y = (InSO SO0)} {z = z} g f = ?somCompose_hole_14
-  (<!) {x = x} {y = (InSO SO1)} {z = z} g f = ?somCompose_hole_15
+  (<!) {x = (InSO ((InSO (x !!+ w)) !!* y))} {y = (InSO SO0)} {z} g (f, f') =
+    (soFromInitial x <! f, soFromInitial w <! f')
+  (<!) {x = (InSO ((InSO (x !!* w)) !!* y))} {y = (InSO SO0)} {z = z} g f =
+    soFromInitial z <! f
+  (<!) {x = (InSO SO0)} {y = (InSO SO1)} {z = z} g f = ?somCompose_hole_19
+  (<!) {x = (InSO SO1)} {y = (InSO SO1)} {z = z} g f = ?somCompose_hole_20
+  (<!) {x = (InSO (x !!+ y))} {y = (InSO SO1)} {z = z} g f = ?somCompose_hole_21
+  (<!) {x = (InSO (x !!* y))} {y = (InSO SO1)} {z = z} g f = ?somCompose_hole_22
   (<!) {x = x} {y = (InSO (y !!+ y'))} {z = z} g f = ?somCompose_hole_16
   (<!) {x = x} {y = (InSO (y !!* y'))} {z = z} g f = ?somCompose_hole_17
 
