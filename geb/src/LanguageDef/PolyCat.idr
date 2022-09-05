@@ -3866,15 +3866,58 @@ showSOMorph {x=(InSO (x !!+ y))} {y=z} (f, g) =
   "[" ++ showSOMorph f ++ "|" ++ showSOMorph g ++ "]"
 showSOMorph {x=(InSO (x !!* y))} {y=z} f = "eval{" ++ showSOMorph {x} f ++ "}"
 
-public export
-SOI : (x : SubstObjMu) -> MetaSOMorph x x
-SOI x = ?somId_hole
+mutual
+  public export
+  SOI : (x : SubstObjMu) -> MetaSOMorph x x
+  SOI (InSO SO0) = ()
+  SOI (InSO SO1) = ()
+  SOI (InSO (x !!+ y)) = ?somId_hole_3
+  SOI (InSO (x !!* y)) = ?somId_hole_4
 
-infixr 1 <!
-public export
-(<!) : {x, y, z : SubstObjMu} ->
-  MetaSOMorph y z -> MetaSOMorph x y -> MetaSOMorph x z
-(<!) {x} {y} {z} g f = ?somCompose_hole
+  infixr 1 <!
+  public export
+  (<!) : {x, y, z : SubstObjMu} ->
+    MetaSOMorph y z -> MetaSOMorph x y -> MetaSOMorph x z
+  (<!) {x} {y} {z} g f = ?somCompose_hole
+
+  public export
+  soFromUnit : (x : SubstObjMu) -> MetaSOMorph x Subst0
+  soFromUnit x = ?soFromUnit_hole
+
+  public export
+  soToTerminal : (x : SubstObjMu) -> MetaSOMorph x Subst0
+  soToTerminal x = ?soToTerminal_hole
+
+  public export
+  soInjLeft : (x, y : SubstObjMu) -> MetaSOMorph x (x !+ y)
+  soInjLeft x y = ?soInjLeft_hole
+
+  public export
+  soInjRight : (x, y : SubstObjMu) -> MetaSOMorph y (x !+ y)
+  soInjRight x y = ?soInjRight_hole
+
+  public export
+  soCase : {x, y, z : SubstObjMu} ->
+    MetaSOMorph x z -> MetaSOMorph y z -> MetaSOMorph (x !+ y) z
+  soCase {x} {y} {z} f g = ?soCase_hole
+
+  public export
+  soProd : {x, y, z : SubstObjMu} ->
+    MetaSOMorph x y -> MetaSOMorph x z -> MetaSOMorph x (y !* z)
+  soProd {x} {y} {z} f g = ?soProd_hole
+
+  public export
+  soProjLeft : (x, y : SubstObjMu) -> MetaSOMorph (x !* y) x
+  soProjLeft x y = ?soProjLeft_hole
+
+  public export
+  soProjRight : (x, y : SubstObjMu) -> MetaSOMorph (x !* y) y
+  soProjRight x y = ?soProjRight_hole
+
+  public export
+  soDistribute : (x, y, z : SubstObjMu) ->
+    MetaSOMorph (x !* (y !+ z)) ((x !* y) !+ (x !* z))
+  soDistribute x y z = ?soDistribute_hole
 
 public export
 soCurry : {x, y, z : SubstObjMu} ->
