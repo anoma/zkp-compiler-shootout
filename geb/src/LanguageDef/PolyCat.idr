@@ -4006,14 +4006,18 @@ TermAsMorph {x=(InSO ((InSO SO1) !!* (InSO (x !!* y))))} {y=z} f =
   TermAsMorph {x=(x !* y)} {y=z} f
 TermAsMorph {x=(InSO ((InSO (x !!+ w)) !!* y))} {y=z} (f, g) =
   (soUncurry $ TermAsMorph f, soUncurry $ TermAsMorph g)
-TermAsMorph {x=(InSO ((InSO (x !!* w)) !!* y))} {y=z} f = ?TermAsMorph_hole_4
+TermAsMorph {x=(InSO ((InSO (x !!* w)) !!* y))} {y=z} f =
+  TermAsMorph {x=(x !* (w !* y))} {y=z} f
 
 public export
 MorphAsTerm : {x, y : SubstObjMu} -> MetaSOMorph x y -> HomTerm x y
 MorphAsTerm {x=(InSO SO0)} {y} () = ()
 MorphAsTerm {x=(InSO SO1)} {y} f = f
 MorphAsTerm {x=(InSO (x !!+ y))} {y=z} (f, g) = (MorphAsTerm f, MorphAsTerm g)
-MorphAsTerm {x=(InSO (x !!* y))} {y=z} f = ?MorphAsTerm_hole
+MorphAsTerm {x=(InSO ((InSO SO0) !!* y))} {y=z} f = ?MorphAsTerm_hole_1
+MorphAsTerm {x=(InSO ((InSO SO1) !!* y))} {y=z} f = ?MorphAsTerm_hole_2
+MorphAsTerm {x=(InSO ((InSO (x !!+ w)) !!* y))} {y=z} f = ?MorphAsTerm_hole_3
+MorphAsTerm {x=(InSO ((InSO (x !!* w)) !!* y))} {y=z} f = ?MorphAsTerm_hole_4
 
 public export
 IdTerm : (x : SubstObjMu) -> HomTerm x x
