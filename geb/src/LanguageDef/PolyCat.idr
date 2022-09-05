@@ -3776,6 +3776,10 @@ public export
 substObjRemoveOne : SubstObjMu -> SubstObjMu
 substObjRemoveOne = substObjCata SORemoveOneAlg
 
+public export
+substObjNormalize : SubstObjMu -> SubstObjMu
+substObjNormalize = substObjRemoveOne . substObjRemoveZero
+
 -----------------------------------------------------
 ---- Multiplication by a constant (via addition) ----
 -----------------------------------------------------
@@ -3817,6 +3821,50 @@ public export
 SubstExp : SubstObjMu -> SubstObjMu -> SubstObjMu
 SubstExp = flip SubstHomObj
 
+--------------------------------------------
+---- Morphisms of substitutive category ----
+--------------------------------------------
+
+public export
+MetaSOMorph : SubstObjMu -> SubstObjMu -> Type
+-- The unique morphism from the initial object to a given object
+MetaSOMorph (InSO SO0) _ = ()
+-- There are no morphisms from the terminal object to the initial object
+MetaSOMorph (InSO SO1) (InSO SO0) = Void
+-- The unique morphism from a given object to the terminal object
+-- (in this case, the given object is also the terminal object)
+MetaSOMorph (InSO SO1) (InSO SO1) = Unit
+-- To form a morphism from the terminal object to a coproduct,
+-- we choose a morphism from the terminal object to either the left
+-- or the right object of the coproduct
+MetaSOMorph (InSO SO1) (InSO (y !!+ z)) =
+  Either (MetaSOMorph (InSO SO1) y) (MetaSOMorph (InSO SO1) z)
+-- To form a morphism from the terminal object to a product,
+-- we choose morphisms from the terminal object to both the left
+-- and the right object of the product
+MetaSOMorph (InSO SO1) (InSO (y !!* z)) =
+  Pair (MetaSOMorph (InSO SO1) y) (MetaSOMorph (InSO SO1) z)
+-- Coproducts are eliminated by cases
+MetaSOMorph (InSO (x !!+ y)) z = Pair (MetaSOMorph x z) (MetaSOMorph y z)
+-- Products are eliminated by currying -- this expresses the
+-- product-hom adjunction
+MetaSOMorph (InSO (x !!* y)) z = MetaSOMorph x $ SubstHomObj y z
+
+public export
+showSOMorph : {x, y : SubstObjMu} -> MetaSOMorph x y -> String
+showSOMorph {x=(InSO SO0)} {y} () = "0->*"
+showSOMorph {x=(InSO SO1)} {y=(InSO SO0)} f = void f
+showSOMorph {x=(InSO SO1)} {y=(InSO SO1)} f = "id(1)"
+showSOMorph {x=(InSO SO1)} {y=(InSO (y !!+ z))} (Left f) =
+  "Left(" ++ showSOMorph f ++ ")"
+showSOMorph {x=(InSO SO1)} {y=(InSO (y !!+ z))} (Right g) =
+  "Right(" ++ showSOMorph g ++ ")"
+showSOMorph {x=(InSO SO1)} {y=(InSO (y !!* z))} (f, g) =
+  "Pair(" ++ showSOMorph f ++ ", " ++ showSOMorph g ++ ")"
+showSOMorph {x=(InSO (x !!+ y))} {y=z} (f, g) =
+  "[" ++ showSOMorph f ++ "|" ++ showSOMorph g ++ "]"
+showSOMorph {x=(InSO (x !!* y))} {y=z} f = "eval{" ++ showSOMorph {x} f ++ "}"
+
 ----------------------------------------------------------------------
 ---- Interpretation of substitutive objects as metalanguage types ----
 ----------------------------------------------------------------------
@@ -3831,22 +3879,6 @@ MetaSOTypeAlg (p !!* q) = Pair p q
 public export
 MetaSOType : SubstObjMu -> Type
 MetaSOType = substObjCata MetaSOTypeAlg
-
---------------------------------------------
----- Morphisms of substitutive category ----
---------------------------------------------
-
-public export
-MetaSOMorph : SubstObjMu -> SubstObjMu -> Type
--- The unique morphism from the initial object to a given object
-MetaSOMorph (InSO SO0) _ = ()
--- The type of morphisms from the terminal object to a given object
--- is isomorphic to the given object
-MetaSOMorph (InSO SO1) y = MetaSOType y
--- Coproducts are eliminated by cases
-MetaSOMorph (InSO (x !!+ y)) z = Pair (MetaSOMorph x z) (MetaSOMorph y z)
--- Products are eliminated by currying
-MetaSOMorph (InSO (x !!* y)) z = MetaSOMorph x $ SubstHomObj y z
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
