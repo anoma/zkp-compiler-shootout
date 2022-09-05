@@ -3554,8 +3554,8 @@ PolyOp = InitialColimit PolyOpF
 --------------------------------------------------------------
 --------------------------------------------------------------
 
-infixr 8 ##+
-infixr 9 ##*
+infixr 8 !!+
+infixr 9 !!*
 
 public export
 data SubstObjF : Type -> Type where
@@ -3566,17 +3566,17 @@ data SubstObjF : Type -> Type where
   SO1 : SubstObjF carrier
 
   -- Coproduct
-  (##+) : carrier -> carrier -> SubstObjF carrier
+  (!!+) : carrier -> carrier -> SubstObjF carrier
 
   -- Product
-  (##*) : carrier -> carrier -> SubstObjF carrier
+  (!!*) : carrier -> carrier -> SubstObjF carrier
 
 public export
 Functor SubstObjF where
   map m SO0 = SO0
   map m SO1 = SO1
-  map m (x ##+ y) = m x ##+ m y
-  map m (x ##* y) = m x ##* m y
+  map m (x !!+ y) = m x !!+ m y
+  map m (x !!* y) = m x !!* m y
 
 public export
 MetaSOAlg : Type -> Type
@@ -3594,24 +3594,24 @@ public export
 data SubstObjMu : Type where
   InSO : SubstObjF SubstObjMu -> SubstObjMu
 
-infixr 8 #+
-infixr 9 #*
+infixr 8 !+
+infixr 9 !*
 
 public export
-Subst0 : PolyMu
+Subst0 : SubstObjMu
 Subst0 = InSO SO0
 
 public export
-Subst1 : PolyMu
+Subst1 : SubstObjMu
 Subst1 = InSO SO1
 
 public export
-(#+) : SubstObjMu -> SubstObjMu -> SubstObjMu
-(#+) = InSO .* (##+)
+(!+) : SubstObjMu -> SubstObjMu -> SubstObjMu
+(!+) = InSO .* (!!+)
 
 public export
-(#*) : SubstObjMu -> SubstObjMu -> SubstObjMu
-(#*) = InSO .* (##*)
+(!*) : SubstObjMu -> SubstObjMu -> SubstObjMu
+(!*) = InSO .* (!!*)
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
