@@ -3842,16 +3842,16 @@ SubstMorph (InSO SO1) (InSO (y !!+ z)) =
 -- and the right object of the product
 SubstMorph (InSO SO1) (InSO (y !!* z)) =
   Pair (SubstMorph Subst1 y) (SubstMorph Subst1 z)
--- Coproducts are eliminated by cases
-SubstMorph (InSO (x !!+ y)) z = Pair (SubstMorph x z) (SubstMorph y z)
 -- 0 * y === 0
 SubstMorph (InSO ((InSO SO0) !!* y)) z = ()
 -- 1 * y === y
 SubstMorph (InSO ((InSO SO1) !!* y)) z = SubstMorph y z
--- Distributivity
+-- Coproducts are eliminated by cases
+SubstMorph (InSO (x !!+ y)) z = Pair (SubstMorph x z) (SubstMorph y z)
+-- Distributivity of products
 SubstMorph (InSO ((InSO (x !!+ x')) !!* y)) z =
   SubstMorph ((x !* y) !+ (x' !* y)) z
--- (x * x') * y === x * (x' * y)
+-- Associativity of products
 SubstMorph (InSO ((InSO (x !!* x')) !!* y)) z = SubstMorph (x !* (x' !* y)) z
 
 public export
