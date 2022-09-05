@@ -3925,9 +3925,10 @@ mutual
     (<!) {x=(x !* (v !* w))} g f
   (<!) {x = (InSO SO0)} {y = (InSO (y !!* y'))} {z = z} g f = ()
   (<!) {x = (InSO SO1)} {y = (InSO (y !!* y'))} {z} g f = ?somCompose_hole_25
-  (<!) {x = (InSO (x !!+ w))} {y = (InSO (y !!* y'))} {z = z} g f = ?somCompose_hole_28
-  (<!) {x = (InSO ((InSO SO0) !!* w))} {y = (InSO (y !!* y'))} {z = z} g f = ?somCompose_hole_31
-  (<!) {x = (InSO ((InSO SO1) !!* (InSO SO0)))} {y = (InSO (y !!* y'))} {z = z} g f = ?somCompose_hole_34
+  (<!) {x = (InSO (x !!+ w))} {y = (InSO (y !!* y'))} {z = z} g (f, f') =
+    (g <! f, g <! f')
+  (<!) {x = (InSO ((InSO SO0) !!* w))} {y = (InSO (y !!* y'))} {z = z} g f = ()
+  (<!) {x = (InSO ((InSO SO1) !!* (InSO SO0)))} {y = (InSO (y !!* y'))} {z = z} g f = ()
   (<!) {x = (InSO ((InSO SO1) !!* (InSO SO1)))} {y = (InSO (y !!* y'))} {z = z} g f = ?somCompose_hole_35
   (<!) {x = (InSO ((InSO SO1) !!* (InSO (x !!+ w))))} {y = (InSO (y !!* y'))} {z = z} g f =
     case f of (f, f') => (g <! f, g <! f')
