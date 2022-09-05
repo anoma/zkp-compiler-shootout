@@ -3854,30 +3854,55 @@ showSOMorph {x=(InSO ((InSO (x !!+ x')) !!* y))} {y=z} (f, f') =
 showSOMorph {x=(InSO ((InSO (x !!* x')) !!* y))} {y=z} f =
   "rassoc[" ++ showSOMorph f ++ "]"
 
+public export
+soFromInitial : (x : SubstObjMu) -> MetaSOMorph Subst0 x
+soFromInitial _ = ()
+
+public export
+soCase : {x, y, z : SubstObjMu} ->
+  MetaSOMorph x z -> MetaSOMorph y z -> MetaSOMorph (x !+ y) z
+soCase {x} {y} {z} f g = (f, g)
+
 mutual
   public export
   SOI : (x : SubstObjMu) -> MetaSOMorph x x
   SOI (InSO SO0) = ()
   SOI (InSO SO1) = ()
   SOI (InSO (x !!+ y)) = (soInjLeft x y, soInjRight x y)
-  SOI (InSO (x !!* y)) = ?soi_hole_prod
+  SOI (InSO ((InSO SO0) !!* y)) = ()
+  SOI (InSO ((InSO SO1) !!* y)) = soProd (soToTerminal y) (SOI y)
+  SOI (InSO ((InSO (x !!+ x')) !!* y)) =
+    (soProd ?soi_hole_prod_3 ?soi_hole_prod_3a,
+     soProd ?soi_hole_prod_3b (soProjRight x' y))
+  SOI (InSO ((InSO (x !!* x')) !!* y)) = ?soi_hole_prod_4
 
   infixr 1 <!
   public export
   (<!) : {x, y, z : SubstObjMu} ->
     MetaSOMorph y z -> MetaSOMorph x y -> MetaSOMorph x z
-  (<!) {x} {y} {z} g f = ?somCompose_hole
-
-  public export
-  soFromInitial : (x : SubstObjMu) -> MetaSOMorph Subst0 x
-  soFromInitial _ = ()
+  (<!) {x = (InSO SO0)} {y = (InSO SO0)} {z = z} g f = ()
+  (<!) {x = (InSO SO1)} {y = (InSO SO0)} {z = z} g f = void f
+  (<!) {x = (InSO (x !!+ y))} {y = (InSO SO0)} {z = z} g (f, f') =
+    (soFromInitial x <! f, soFromInitial y <! f')
+  (<!) {x = (InSO ((InSO SO0) !!* y))} {y = (InSO SO0)} {z = z} g f = ()
+  (<!) {x = (InSO ((InSO SO1) !!* y))} {y = (InSO SO0)} {z = z} g f =
+    soFromInitial z <! f
+  (<!) {x = (InSO ((InSO (x !!+ w)) !!* y))} {y = (InSO SO0)} {z = z} g f = ?somCompose_hole_13
+  (<!) {x = (InSO ((InSO (x !!* w)) !!* y))} {y = (InSO SO0)} {z = z} g f = ?somCompose_hole_14
+  (<!) {x = x} {y = (InSO SO1)} {z = z} g f = ?somCompose_hole_15
+  (<!) {x = x} {y = (InSO (y !!+ y'))} {z = z} g f = ?somCompose_hole_16
+  (<!) {x = x} {y = (InSO (y !!* y'))} {z = z} g f = ?somCompose_hole_17
 
   public export
   soToTerminal : (x : SubstObjMu) -> MetaSOMorph x Subst1
   soToTerminal (InSO SO0) = ()
   soToTerminal (InSO SO1) = ()
   soToTerminal (InSO (x !!+ y)) = (soToTerminal x, soToTerminal y)
-  soToTerminal (InSO (x !!* y)) = ?soToTerminal_hole_4
+  soToTerminal (InSO ((InSO SO0) !!* y)) = ()
+  soToTerminal (InSO ((InSO SO1) !!* y)) = soToTerminal y
+  soToTerminal (InSO ((InSO (x !!+ x')) !!* y)) =
+    (?soToTerminal_hole_8, ?soToTerminal_hole_8a)
+  soToTerminal (InSO ((InSO (x !!* x')) !!* y)) = ?soToTerminal_hole_9
 
   public export
   soInjLeft : (x, y : SubstObjMu) -> MetaSOMorph x (x !+ y)
@@ -3892,11 +3917,6 @@ mutual
   soInjRight x (InSO SO1) = Right ()
   soInjRight x (InSO (y !!+ z)) = (?soInjRight_hole_3, ?soInjRight_hole_3a)
   soInjRight x (InSO (y !!* z)) = ?soInjRight_hole_4
-
-  public export
-  soCase : {x, y, z : SubstObjMu} ->
-    MetaSOMorph x z -> MetaSOMorph y z -> MetaSOMorph (x !+ y) z
-  soCase {x} {y} {z} f g = (f, g)
 
   public export
   soProd : {x, y, z : SubstObjMu} ->
