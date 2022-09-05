@@ -3877,9 +3877,9 @@ mutual
   SOI (InSO ((InSO SO0) !!* y)) = ()
   SOI (InSO ((InSO SO1) !!* y)) = soProd (soToTerminal y) (SOI y)
   SOI (InSO ((InSO (x !!+ x')) !!* y)) =
-    (soProd ?soi_hole_prod_3 ?soi_hole_prod_3a,
+    (soProd ?soi_hole_prod_3 (soProjRight x y),
      soProd ?soi_hole_prod_3b (soProjRight x' y))
-  SOI (InSO ((InSO (x !!* x')) !!* y)) = ?soi_hole_prod_4
+  SOI (InSO ((InSO (x !!* x')) !!* y)) = prodAssocL x x' y
 
   infixr 1 <!
   public export
@@ -3900,10 +3900,13 @@ mutual
   (<!) {x = (InSO SO1)} {y = (InSO SO1)} {z = z} g f = g
   (<!) {x = (InSO (x !!+ y))} {y = (InSO SO1)} {z = z} g (f,  f') =
     (g <! f, g <! f')
-  (<!) {x = (InSO ((InSO SO0) !!* y))} {y = (InSO SO1)} {z = z} g f = ?somCompose_hole_25
-  (<!) {x = (InSO ((InSO SO1) !!* y))} {y = (InSO SO1)} {z = z} g f = ?somCompose_hole_26
-  (<!) {x = (InSO ((InSO (x !!+ w)) !!* y))} {y = (InSO SO1)} {z = z} g f = ?somCompose_hole_27
-  (<!) {x = (InSO ((InSO (x !!* w)) !!* y))} {y = (InSO SO1)} {z = z} g f = ?somCompose_hole_28
+  (<!) {x = (InSO ((InSO SO0) !!* y))} {y = (InSO SO1)} {z = z} g f = ()
+  (<!) {x = (InSO ((InSO SO1) !!* y))} {y = (InSO SO1)} {z = z} g f =
+    (<!) {x=y} {y=Subst1} {z} g f
+  (<!) {x = (InSO ((InSO (x !!+ w)) !!* y))} {y = (InSO SO1)} {z = z} g (f, f') =
+    (g <! f, g <! f')
+  (<!) {x = (InSO ((InSO (x !!* w)) !!* y))} {y = (InSO SO1)} {z = z} g f =
+    (<!) {x=(x !* (w !* y))} {y=Subst1} {z} g f
   (<!) {x = x} {y = (InSO (y !!+ y'))} {z = z} g f = ?somCompose_hole_16
   (<!) {x = x} {y = (InSO (y !!* y'))} {z = z} g f = ?somCompose_hole_17
 
