@@ -3863,6 +3863,11 @@ soCase : {x, y, z : SubstObjMu} ->
   MetaSOMorph x z -> MetaSOMorph y z -> MetaSOMorph (x !+ y) z
 soCase {x} {y} {z} f g = (f, g)
 
+public export
+prodAssocL : (x, y, z : SubstObjMu) ->
+  MetaSOMorph (x !* (y !* z)) ((x !* y) !* z)
+prodAssocL = ?prodAssocL_hole
+
 mutual
   public export
   SOI : (x : SubstObjMu) -> MetaSOMorph x x
@@ -3891,9 +3896,10 @@ mutual
     (soFromInitial x <! f, soFromInitial w <! f')
   (<!) {x = (InSO ((InSO (x !!* w)) !!* y))} {y = (InSO SO0)} {z = z} g f =
     soFromInitial z <! f
-  (<!) {x = (InSO SO0)} {y = (InSO SO1)} {z = z} g f = ?somCompose_hole_19
-  (<!) {x = (InSO SO1)} {y = (InSO SO1)} {z = z} g f = ?somCompose_hole_20
-  (<!) {x = (InSO (x !!+ y))} {y = (InSO SO1)} {z = z} g f = ?somCompose_hole_21
+  (<!) {x = (InSO SO0)} {y = (InSO SO1)} {z = z} g f = ()
+  (<!) {x = (InSO SO1)} {y = (InSO SO1)} {z = z} g f = g
+  (<!) {x = (InSO (x !!+ y))} {y = (InSO SO1)} {z = z} g (f,  f') =
+    (g <! f, g <! f')
   (<!) {x = (InSO (x !!* y))} {y = (InSO SO1)} {z = z} g f = ?somCompose_hole_22
   (<!) {x = x} {y = (InSO (y !!+ y'))} {z = z} g f = ?somCompose_hole_16
   (<!) {x = x} {y = (InSO (y !!* y'))} {z = z} g f = ?somCompose_hole_17
