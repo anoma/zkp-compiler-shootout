@@ -3974,8 +3974,8 @@ mutual
   soInjLeft : (x, y : SubstObjMu) -> MetaSOMorph x (x !+ y)
   soInjLeft (InSO SO0) y = ()
   soInjLeft (InSO SO1) y = Left ()
-  soInjLeft (InSO (x !!+ y)) z = (?soInjLeft_hole_3, ?soInjLeft_hole_3a)
-  soInjLeft (InSO (x !!* y)) z = ?soInjLeft_hole_4
+  soInjLeft (InSO (x !!+ z)) y = (?soInjLeft_hole_14, ?soInjLeft_hole_14a)
+  soInjLeft (InSO (x !!* z)) y = ?soInjLeft_hole_15
 
   public export
   soInjRight : (x, y : SubstObjMu) -> MetaSOMorph y (x !+ y)
@@ -3987,7 +3987,10 @@ mutual
   public export
   soProd : {x, y, z : SubstObjMu} ->
     MetaSOMorph x y -> MetaSOMorph x z -> MetaSOMorph x (y !* z)
-  soProd {x} {y} {z} f g = ?soProd_hole
+  soProd {x = (InSO SO0)} {y = y} {z = z} f g = ?soProd_hole_1
+  soProd {x = (InSO SO1)} {y = y} {z = z} f g = ?soProd_hole_2
+  soProd {x = (InSO (x !!+ w))} {y = y} {z = z} f g = ?soProd_hole_3
+  soProd {x = (InSO (x !!* w))} {y = y} {z = z} f g = ?soProd_hole_4
 
   public export
   soProjLeft : (x, y : SubstObjMu) -> MetaSOMorph (x !* y) x
