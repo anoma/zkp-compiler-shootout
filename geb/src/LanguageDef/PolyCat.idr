@@ -3976,6 +3976,11 @@ soCurry : {x, y, z : SubstObjMu} ->
 soCurry {x} {y} {z} f = ?soCurry_hole
 
 public export
+soUncurry : {x, y, z : SubstObjMu} ->
+  MetaSOMorph x (z !^ y) -> MetaSOMorph (x !* y) z
+soUncurry {x} {y} {z} f = ?soUncurry_hole
+
+public export
 soEval : (x, y : SubstObjMu) -> MetaSOMorph ((y !^ x) !* x) y
 soEval x y = ?soEval_hole
 
@@ -3992,7 +3997,16 @@ TermAsMorph : {x, y : SubstObjMu} -> HomTerm x y -> MetaSOMorph x y
 TermAsMorph {x=(InSO SO0)} {y} () = ()
 TermAsMorph {x=(InSO SO1)} {y} f = f
 TermAsMorph {x=(InSO (x !!+ y))} {y=z} (f, g) = (TermAsMorph f, TermAsMorph g)
-TermAsMorph {x=(InSO (x !!* y))} {y=z} f = ?TermAsMorph_hole
+TermAsMorph {x=(InSO ((InSO SO0) !!* y))} {y=z} () = ()
+TermAsMorph {x=(InSO ((InSO SO1) !!* (InSO SO0)))} {y=z} () = ()
+TermAsMorph {x=(InSO ((InSO SO1) !!* (InSO SO1)))} {y=z} f = f
+TermAsMorph {x=(InSO ((InSO SO1) !!* (InSO (x !!+ y))))} {y=z} (f, g) =
+  (TermAsMorph f, TermAsMorph g)
+TermAsMorph {x=(InSO ((InSO SO1) !!* (InSO (x !!* y))))} {y=z} f =
+  TermAsMorph {x=(x !* y)} {y=z} f
+TermAsMorph {x=(InSO ((InSO (x !!+ w)) !!* y))} {y=z} (f, g) =
+  (soUncurry $ TermAsMorph f, soUncurry $ TermAsMorph g)
+TermAsMorph {x=(InSO ((InSO (x !!* w)) !!* y))} {y=z} f = ?TermAsMorph_hole_4
 
 public export
 MorphAsTerm : {x, y : SubstObjMu} -> MetaSOMorph x y -> HomTerm x y
