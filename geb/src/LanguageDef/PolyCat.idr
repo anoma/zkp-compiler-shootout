@@ -3798,26 +3798,6 @@ public export
 (!*^) : SubstObjMu -> Nat -> SubstObjMu
 p !*^ n = foldrNatNoUnit ((!*) p) Subst1 p n
 
---------------------------------------------------------------
----- Exponentiation (hom-objects) of substitutive objects ----
---------------------------------------------------------------
-
-public export
-SubstHomObj : SubstObjMu -> SubstObjMu -> SubstObjMu
--- 0 -> y == 1
-SubstHomObj (InSO SO0) _ = Subst1
--- 1 -> y == y
-SubstHomObj (InSO SO1) y = y
--- (x + y) -> z == (x -> z) * (y -> z)
-SubstHomObj (InSO (x !!+ y)) z = SubstHomObj x z !* SubstHomObj y z
--- (x * y) -> z == x -> y -> z
-SubstHomObj (InSO (x !!* y)) z = SubstHomObj x (SubstHomObj y z)
-
-infix 10 !^
-public export
-(!^) : SubstObjMu -> SubstObjMu -> SubstObjMu
-(!^) = flip SubstHomObj
-
 --------------------------------------------
 ---- Morphisms of substitutive category ----
 --------------------------------------------
@@ -3835,17 +3815,23 @@ MetaSOMorph (InSO SO1) (InSO SO1) = Unit
 -- we choose a morphism from the terminal object to either the left
 -- or the right object of the coproduct
 MetaSOMorph (InSO SO1) (InSO (y !!+ z)) =
-  Either (MetaSOMorph (InSO SO1) y) (MetaSOMorph (InSO SO1) z)
+  Either (MetaSOMorph Subst1 y) (MetaSOMorph Subst1 z)
 -- To form a morphism from the terminal object to a product,
 -- we choose morphisms from the terminal object to both the left
 -- and the right object of the product
 MetaSOMorph (InSO SO1) (InSO (y !!* z)) =
-  Pair (MetaSOMorph (InSO SO1) y) (MetaSOMorph (InSO SO1) z)
+  Pair (MetaSOMorph Subst1 y) (MetaSOMorph Subst1 z)
 -- Coproducts are eliminated by cases
 MetaSOMorph (InSO (x !!+ y)) z = Pair (MetaSOMorph x z) (MetaSOMorph y z)
--- Products are eliminated by currying -- this expresses the
--- product-hom adjunction
-MetaSOMorph (InSO (x !!* y)) z = MetaSOMorph x $ SubstHomObj y z
+-- 0 * y === 0
+MetaSOMorph (InSO ((InSO SO0) !!* y)) z = ()
+-- 1 * y === y
+MetaSOMorph (InSO ((InSO SO1) !!* y)) z = MetaSOMorph y z
+-- Distributivity
+MetaSOMorph (InSO ((InSO (x !!+ x')) !!* y)) z =
+  MetaSOMorph ((x !* y) !+ (x' !* y)) z
+-- (x * x') * y === x * (x' * y)
+MetaSOMorph (InSO ((InSO (x !!* x')) !!* y)) z = MetaSOMorph (x !* (x' !* y)) z
 
 public export
 showSOMorph : {x, y : SubstObjMu} -> MetaSOMorph x y -> String
@@ -3860,31 +3846,13 @@ showSOMorph {x=(InSO SO1)} {y=(InSO (y !!* z))} (f, g) =
   "Pair(" ++ showSOMorph f ++ ", " ++ showSOMorph g ++ ")"
 showSOMorph {x=(InSO (x !!+ y))} {y=z} (f, g) =
   "[" ++ showSOMorph f ++ "|" ++ showSOMorph g ++ "]"
-showSOMorph {x=(InSO (x !!* y))} {y=z} f = "eval{" ++ showSOMorph {x} f ++ "}"
-
-public export
-SOTerm : SubstObjMu -> Type
-SOTerm = MetaSOMorph Subst1
-
-public export
-HomTerm : SubstObjMu -> SubstObjMu -> Type
-HomTerm = SOTerm .* SubstHomObj
-
-public export
-TermAsMorph : {x, y : SubstObjMu} -> HomTerm x y -> MetaSOMorph x y
-TermAsMorph {x=(InSO SO0)} {y} () = ()
-TermAsMorph {x=(InSO SO1)} {y} f = f
-TermAsMorph {x=(InSO (x !!+ y))} {y=z} (f, g) = (TermAsMorph f, TermAsMorph g)
-TermAsMorph {x=(InSO (x !!* y))} {y=z} f =
-  TermAsMorph {x} {y=(SubstHomObj y z)} f
-
-public export
-MorphAsTerm : {x, y : SubstObjMu} -> MetaSOMorph x y -> HomTerm x y
-MorphAsTerm {x=(InSO SO0)} {y} () = ()
-MorphAsTerm {x=(InSO SO1)} {y} f = f
-MorphAsTerm {x=(InSO (x !!+ y))} {y=z} (f, g) = (MorphAsTerm f, MorphAsTerm g)
-MorphAsTerm {x=(InSO (x !!* y))} {y=z} f =
-  MorphAsTerm {x} {y=(SubstHomObj y z)} f
+showSOMorph {x=(InSO ((InSO SO0) !!* y))} {y=z} () = "(0*_)->*"
+showSOMorph {x=(InSO ((InSO SO1) !!* y))} {y=z} f =
+  "(1 *{ " ++ showSOMorph f ++ ")"
+showSOMorph {x=(InSO ((InSO (x !!+ x')) !!* y))} {y=z} (f, f') =
+  "distrib[" ++ showSOMorph f ++ "|" ++ showSOMorph f' ++ "]"
+showSOMorph {x=(InSO ((InSO (x !!* x')) !!* y))} {y=z} f =
+  "rassoc[" ++ showSOMorph f ++ "]"
 
 mutual
   public export
@@ -3948,14 +3916,56 @@ mutual
     MetaSOMorph (x !* (y !+ z)) ((x !* y) !+ (x !* z))
   soDistribute x y z = ?soDistribute_hole
 
-  public export
-  soCurry : {x, y, z : SubstObjMu} ->
-    MetaSOMorph (x !* y) z -> MetaSOMorph x (z !^ y)
-  soCurry {x} {y} {z} f = f
+--------------------------------------------------------------
+---- Exponentiation (hom-objects) of substitutive objects ----
+--------------------------------------------------------------
 
-  public export
-  soEval : (x, y : SubstObjMu) -> MetaSOMorph ((y !^ x) !* x) y
-  soEval x y = ?soEval_hole
+public export
+SubstHomObj : SubstObjMu -> SubstObjMu -> SubstObjMu
+-- 0 -> y == 1
+SubstHomObj (InSO SO0) _ = Subst1
+-- 1 -> y == y
+SubstHomObj (InSO SO1) y = y
+-- (x + y) -> z == (x -> z) * (y -> z)
+SubstHomObj (InSO (x !!+ y)) z = SubstHomObj x z !* SubstHomObj y z
+-- (x * y) -> z == x -> y -> z
+SubstHomObj (InSO (x !!* y)) z = SubstHomObj x (SubstHomObj y z)
+
+infix 10 !^
+public export
+(!^) : SubstObjMu -> SubstObjMu -> SubstObjMu
+(!^) = flip SubstHomObj
+
+public export
+soCurry : {x, y, z : SubstObjMu} ->
+  MetaSOMorph (x !* y) z -> MetaSOMorph x (z !^ y)
+soCurry {x} {y} {z} f = ?soCurry_hole
+
+public export
+soEval : (x, y : SubstObjMu) -> MetaSOMorph ((y !^ x) !* x) y
+soEval x y = ?soEval_hole
+
+public export
+SOTerm : SubstObjMu -> Type
+SOTerm = MetaSOMorph Subst1
+
+public export
+HomTerm : SubstObjMu -> SubstObjMu -> Type
+HomTerm = SOTerm .* SubstHomObj
+
+public export
+TermAsMorph : {x, y : SubstObjMu} -> HomTerm x y -> MetaSOMorph x y
+TermAsMorph {x=(InSO SO0)} {y} () = ()
+TermAsMorph {x=(InSO SO1)} {y} f = f
+TermAsMorph {x=(InSO (x !!+ y))} {y=z} (f, g) = (TermAsMorph f, TermAsMorph g)
+TermAsMorph {x=(InSO (x !!* y))} {y=z} f = ?TermAsMorph_hole
+
+public export
+MorphAsTerm : {x, y : SubstObjMu} -> MetaSOMorph x y -> HomTerm x y
+MorphAsTerm {x=(InSO SO0)} {y} () = ()
+MorphAsTerm {x=(InSO SO1)} {y} f = f
+MorphAsTerm {x=(InSO (x !!+ y))} {y=z} (f, g) = (MorphAsTerm f, MorphAsTerm g)
+MorphAsTerm {x=(InSO (x !!* y))} {y=z} f = ?MorphAsTerm_hole
 
 public export
 IdTerm : (x : SubstObjMu) -> HomTerm x x
