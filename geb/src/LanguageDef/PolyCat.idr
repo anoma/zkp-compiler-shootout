@@ -3916,6 +3916,23 @@ data SubstMorph : SubstObjMu -> SubstObjMu -> Type where
   SMDistrib : (x, y, z : SubstObjMu) ->
     SubstMorph (x !* (y !+ z)) ((x !* y) !+ (x !* z))
 
+public export
+showSubstMorph : {x, y : SubstObjMu} -> SubstMorph x y -> String
+showSubstMorph (SMId x) = "id{" ++ show x ++ "}"
+showSubstMorph (g <! f) = showSubstMorph g ++ " . " ++ showSubstMorph f
+showSubstMorph (SMFromInit x) = "{0 -> " ++ show x ++ "}"
+showSubstMorph (SMToTerminal x) = "{" ++ show x ++ " -> 1}"
+showSubstMorph (SMInjLeft x y) = "->Left<" ++ show x ++ " | " ++ show y ++ ">"
+showSubstMorph (SMInjRight x y) = "->Right<" ++ show x ++ " | " ++ show y ++ ">"
+showSubstMorph (SMCase f g) =
+  "[" ++ showSubstMorph f ++ " | " ++ showSubstMorph g ++ "]"
+showSubstMorph (SMPair f g) = ?showSubstMorph_hole_7
+  "(" ++ showSubstMorph f ++ ", " ++ showSubstMorph g ++ ")"
+showSubstMorph (SMProjLeft x y) = "<-Left<" ++ show x ++ ", " ++ show y ++ ">"
+showSubstMorph (SMProjRight x y) = "<-Right<" ++ show x ++ ", " ++ show y ++ ">"
+showSubstMorph (SMDistrib x y z) =
+  "distrib{" ++ show x ++ ", " ++ show y ++ ", " ++ show z ++ "}"
+
 mutual
   public export
   soApply : {x, y, z : SubstObjMu} ->
@@ -3941,10 +3958,6 @@ mutual
   soApplyPair (SMAssoc f) (SMTermPair t t') t'' =
     soApplyPair f t (SMTermPair t' t'')
     -}
-
-public export
-showSubstMorph : {x, y : SubstObjMu} -> SubstMorph x y -> String
-showSubstMorph = ?showSubstMorph_hole
 
 public export
 SOTerm : SubstObjMu -> Type
