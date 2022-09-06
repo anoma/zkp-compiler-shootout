@@ -3827,6 +3827,7 @@ public export
 SubstContradiction : SubstObjMu -> Type
 SubstContradiction = substObjCata SubstContradictionAlg
 
+{-
 public export
 data SubstMorph : SubstObjMu -> SubstObjMu -> Type where
   SMFrom0 : (x : SubstObjMu) -> SubstMorph Subst0 x
@@ -4005,6 +4006,7 @@ mutual
   soDistributeRight : (x, y, z : SubstObjMu) ->
     SubstMorph (x !* (y !+ z)) ((x !* y) !+ (x !* z))
   soDistributeRight x y z = ?soDistribute_hole
+  -}
 
 --------------------------------------------------------------
 ---- Exponentiation (hom-objects) of substitutive objects ----
@@ -4026,6 +4028,7 @@ public export
 (!^) : SubstObjMu -> SubstObjMu -> SubstObjMu
 (!^) = flip SubstHomObj
 
+{-
 public export
 soCurry : {x, y, z : SubstObjMu} ->
   SubstMorph (x !* y) z -> SubstMorph x (z !^ y)
@@ -4087,6 +4090,7 @@ MorphAsTerm {x=(InSO ((InSO (x !!* w)) !!* y))} {y=z} f =
 public export
 IdTerm : (x : SubstObjMu) -> HomTerm x x
 IdTerm x = MorphAsTerm (SOI x)
+-}
 
 -------------------------------------------------------------------
 ---- Explicitly-polynomial-functor version of above definition ----
