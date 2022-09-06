@@ -3846,7 +3846,18 @@ data SubstMorphADTF : Type -> Type where
 
 public export
 Functor SubstMorphADTF where
-  map x = ?substADTMorphF_functor_hole
+  map f (SMAFrom0 x) = SMAFrom0 x
+  map f (SMACopTo1 x y) = SMACopTo1 x y
+  map f (SMAProdTo1 x y) = SMAProdTo1 x y
+  map f SMAId1 = SMAId1
+  map f (SMATermLeft x y) = SMATermLeft (f x) y
+  map f (SMATermRight x y) = SMATermRight x (f y)
+  map f (SMATermPair x y) = SMATermPair (f x) (f y)
+  map f (SMACase x y) = SMACase (f x) (f y)
+  map f (SMA0PLeft x y) = SMA0PLeft x y
+  map f (SMA1PLeft x) = SMA1PLeft (f x)
+  map f (SMADistrib x y z w) = SMADistrib x y z (f w)
+  map f (SMAAssoc x y z w) = SMAAssoc x y z (f w)
 
 public export
 data SubstMorphADT : Type where
@@ -3858,7 +3869,7 @@ SubstMorphADTAlg x = SubstMorphADTF x -> Maybe x
 
 public export
 substMorphADTCata : SubstMorphADTAlg x -> SubstMorphADT -> Maybe x
-substMorphADTCata = ?substMorphADTCata_hole
+substMorphADTCata alg (InSM x) = ?substMorphADTCata_hole
 
 public export
 SMADTCheckSigAlg :
