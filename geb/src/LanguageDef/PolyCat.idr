@@ -3897,28 +3897,26 @@ public export
 SubstContradiction : SubstObjMu -> Type
 SubstContradiction = substObjCata SubstContradictionAlg
 
-{-
+infixr 1 <!
 public export
 data SubstMorph : SubstObjMu -> SubstObjMu -> Type where
-  SMFrom0 : (x : SubstObjMu) -> SubstMorph Subst0 x
-  SMId1 : SubstMorph Subst1 Subst1
-  SMTermLeft : {y : SubstObjMu} ->
-    SubstMorph Subst1 y -> (z : SubstObjMu) -> SubstMorph Subst1 (y !+ z)
-  SMTermRight : {z : SubstObjMu} ->
-    (y : SubstObjMu) -> SubstMorph Subst1 z -> SubstMorph Subst1 (y !+ z)
-  SMTermPair : {y, z : SubstObjMu} ->
-    SubstMorph Subst1 y -> SubstMorph Subst1 z -> SubstMorph Subst1 (y !* z)
-  SMCopTo1 : (x, y : SubstObjMu) -> SubstMorph (x !+ y) Subst1
+  SMId : (x : SubstObjMu) -> SubstMorph x x
+  (<!) : {x, y, z : SubstObjMu} ->
+    SubstMorph y z -> SubstMorph x y -> SubstMorph x z
+  SMFromInit : (x : SubstObjMu) -> SubstMorph Subst0 x
+  SMToTerminal : (x : SubstObjMu) -> SubstMorph x Subst1
+  SMInjLeft : (x, y : SubstObjMu) -> SubstMorph x (x !+ y)
+  SMInjRight : (x, y : SubstObjMu) -> SubstMorph y (x !+ y)
   SMCase : {x, y, z : SubstObjMu} ->
     SubstMorph x z -> SubstMorph y z -> SubstMorph (x !+ y) z
-  SMProdTo1 : (x, y : SubstObjMu) -> SubstMorph (x !* y) Subst1
-  SMDistrib : {w, x, y, z : SubstObjMu} ->
-    SubstMorph ((w !* y) !+ (x !* y)) z ->
-    SubstMorph ((w !+ x) !* y) z
-  SMAssoc : {w, x, y, z : SubstObjMu} ->
-    SubstMorph (w !* (x !* y)) z ->
-    SubstMorph ((w !* x) !* y) z
+  SMPair : {x, y, z : SubstObjMu} ->
+    SubstMorph x y -> SubstMorph x z -> SubstMorph x (y !* z)
+  SMProjLeft : (x, y : SubstObjMu) -> SubstMorph (x !* y) x
+  SMProjRight : (x, y : SubstObjMu) -> SubstMorph (x !* y) y
+  SMDistrib : (x, y, z : SubstObjMu) ->
+    SubstMorph (x !* (y !+ z)) ((x !* y) !+ (x !* z))
 
+{-
 public export
 showSubstMorph : {x, y : SubstObjMu} -> SubstMorph x y -> String
 showSubstMorph (SMFrom0 y) = "0->(" ++ show y ++ ")"
