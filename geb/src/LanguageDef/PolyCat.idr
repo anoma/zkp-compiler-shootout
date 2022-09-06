@@ -3836,7 +3836,7 @@ data SubstMorph : SubstObjMu -> SubstObjMu -> Type where
   SMTermRight : {z : SubstObjMu} ->
     (y : SubstObjMu) -> SubstMorph Subst1 z -> SubstMorph Subst1 (y !+ z)
   SMTermPair : {y, z : SubstObjMu} ->
-    SubstMorph Subst1 y -> SubstMorph Subst1 z -> SubstMorph Subst1 (y !+ z)
+    SubstMorph Subst1 y -> SubstMorph Subst1 z -> SubstMorph Subst1 (y !* z)
   SMCopTo1 : (x, y : SubstObjMu) -> SubstMorph (x !+ y) Subst1
   SMCase : {x, y, z : SubstObjMu} ->
     SubstMorph x z -> SubstMorph y z -> SubstMorph (x !+ y) z
@@ -3845,9 +3845,11 @@ data SubstMorph : SubstObjMu -> SubstObjMu -> Type where
   SMP1Left : {x, y : SubstObjMu} ->
     SubstMorph x y -> SubstMorph (Subst1 !* x) y
   SMDistrib : {w, x, y, z : SubstObjMu} ->
-    SubstMorph ((w !+ x) !* y) z -> SubstMorph ((w !* y) !+ (x !* y)) z
+    SubstMorph ((w !+ x) !* y) z ->
+    SubstMorph ((w !* y) !+ (x !* y)) z
   SMAssoc : {w, x, y, z : SubstObjMu} ->
-    SubstMorph ((w !* x) !* y) z -> SubstMorph (w !* (x !* y)) z
+    SubstMorph ((w !* x) !* y) z ->
+    SubstMorph (w !* (x !* y)) z
 
 public export
 MetaSOMorph : SubstObjMu -> SubstObjMu -> Type
@@ -3904,162 +3906,101 @@ showSubstMorph (SMDistrib z) = "distrib[" ++ showSubstMorph z ++ "]"
 showSubstMorph (SMAssoc z) = "assoc[" ++ showSubstMorph z ++ "]"
 
 public export
-showSOMorph : {x, y : SubstObjMu} -> MetaSOMorph x y -> String
-showSOMorph {x=(InSO SO0)} f = "0->*"
-showSOMorph {x=(InSO SO1)} {y = (InSO SO0)} f = void f
-showSOMorph {x=(InSO SO1)} {y = (InSO SO1)} f = "id(1)"
-showSOMorph {x=(InSO SO1)} {y = (InSO (x !!+ y))} (Left f) =
-  "Left(" ++ showSOMorph f ++ ")"
-showSOMorph {x=(InSO SO1)} {y = (InSO (x !!+ y))} (Right f) =
-  "Right(" ++ showSOMorph f ++ ")"
-showSOMorph {x=(InSO SO1)} {y = (InSO (x !!* y))} (f, g) =
-  "(" ++ showSOMorph f ++ ", " ++ showSOMorph g ++ ")"
-showSOMorph {x=(InSO (x !!+ y))} {y=(InSO SO0)} (f, g) =
-  "[" ++ showSOMorph f ++ "|" ++ showSOMorph g ++ "]"
-showSOMorph {x=(InSO (x !!+ y))} {y=(InSO SO1)} f = "(+)->1"
-showSOMorph {x=(InSO (x !!+ y))} {y=(InSO (z !!+ w))} (f, g) =
-  "[" ++ showSOMorph f ++ "|" ++ showSOMorph g ++ "]"
-showSOMorph {x=(InSO (x !!+ y))} {y=(InSO (z !!* w))} (f, g) =
-  "[" ++ showSOMorph f ++ "|" ++ showSOMorph g ++ "]"
-showSOMorph {x=(InSO ((InSO SO0) !!* y))} {y=(InSO SO0)} f = "id(0)"
-showSOMorph {x=(InSO ((InSO SO0) !!* y))} {y=(InSO SO1)} f = ?showSOMorph_hole_11
-showSOMorph {x=(InSO ((InSO SO0) !!* y))} {y=(InSO (x !!+ z))} f = ?showSOMorph_hole_12
-showSOMorph {x=(InSO ((InSO SO0) !!* y))} {y=(InSO (x !!* z))} f = ?showSOMorph_hole_13
-showSOMorph {x=(InSO ((InSO SO1) !!* y))} {y=(InSO SO0)} f = ?showSOMorph_hole_14
-showSOMorph {x=(InSO ((InSO SO1) !!* y))} {y=(InSO SO1)} f = ?showSOMorph_hole_15
-showSOMorph {x=(InSO ((InSO SO1) !!* y))} {y=(InSO (x !!+ z))} f = ?showSOMorph_hole_16
-showSOMorph {x=(InSO ((InSO SO1) !!* y))} {y=(InSO (x !!* z))} f = ?showSOMorph_hole_17
-showSOMorph {x=(InSO ((InSO (x !!+ w)) !!* y))} {y=(InSO SO0)} f = ?showSOMorph_hole_18
-showSOMorph {x=(InSO ((InSO (x !!+ w)) !!* y))} {y=(InSO SO1)} f = ?showSOMorph_hole_19
-showSOMorph {x=(InSO ((InSO (x !!+ w)) !!* y))} {y=(InSO (z !!+ v))} f = ?showSOMorph_hole_20
-showSOMorph {x=(InSO ((InSO (x !!+ w)) !!* y))} {y=(InSO (z !!* v))} f = ?showSOMorph_hole_21
-showSOMorph {x=(InSO ((InSO (x !!* w)) !!* y))} {y=(InSO SO0)} f = ?showSOMorph_hole_22
-showSOMorph {x=(InSO ((InSO (x !!* w)) !!* y))} {y=(InSO SO1)} f = ?showSOMorph_hole_23
-showSOMorph {x=(InSO ((InSO (x !!* w)) !!* y))} {y=(InSO (z !!+ v))} f = ?showSOMorph_hole_24
-showSOMorph {x=(InSO ((InSO (x !!* w)) !!* y))} {y=(InSO (z !!* v))} f =
-  "rassoc*[" ++ showSOMorph f ++ "]"
-{-
-showSOMorph {x=(InSO SO0)} {y} () = "0->*"
-showSOMorph {x=(InSO SO1)} {y=(InSO SO0)} f = void f
-showSOMorph {x=(InSO SO1)} {y=(InSO SO1)} f = "id(1)"
-showSOMorph {x=(InSO SO1)} {y=(InSO (y !!+ z))} (Left f) =
-  "Left(" ++ showSOMorph f ++ ")"
-showSOMorph {x=(InSO SO1)} {y=(InSO (y !!+ z))} (Right g) =
-  "Right(" ++ showSOMorph g ++ ")"
-showSOMorph {x=(InSO SO1)} {y=(InSO (y !!* z))} (f, g) =
-  ?showSOMorph_hole_1 -- "Pair(" ++ showSOMorph f ++ ", " ++ showSOMorph g ++ ")"
-showSOMorph {x=(InSO (x !!+ y))} {y=z} f = -- (f, g) =
-  ?showSOMorph_hole_2 -- "[" ++ showSOMorph f ++ "|" ++ showSOMorph g ++ "]"
-showSOMorph {x=(InSO ((InSO SO0) !!* y))} {y=z} f = ?showSOMorph_hole_5 -- () = "(0*_)->*"
-showSOMorph {x=(InSO ((InSO SO1) !!* y))} {y=z} f =
-  "(1 *{ " ++ showSOMorph f ++ ")"
-showSOMorph {x=(InSO ((InSO (x !!+ x')) !!* y))} {y=z} f = -- (f, f') =
-  ?showSOMorph_hole_3 -- "distrib[" ++ showSOMorph f ++ "|" ++ showSOMorph f' ++ "]"
-showSOMorph {x=(InSO ((InSO (x !!* x')) !!* y))} {y=z} f =
-  "rassoc[" ++ showSOMorph f ++ "]"
-  -}
-
-public export
 SOTerm : SubstObjMu -> Type
-SOTerm = MetaSOMorph Subst1
+SOTerm = SubstMorph Subst1
 
 public export
-soFromInitial : (x : SubstObjMu) -> MetaSOMorph Subst0 x
-soFromInitial _ = ()
+soFromInitial : (x : SubstObjMu) -> SubstMorph Subst0 x
+soFromInitial = SMFrom0
 
 public export
-soToTerminal : (x : SubstObjMu) -> MetaSOMorph x Subst1
-soToTerminal (InSO SO0) = ()
-soToTerminal (InSO SO1) = ()
-soToTerminal (InSO (_ !!+ _)) = ()
-soToTerminal (InSO (_ !!* _)) = ()
+soToTerminal : (x : SubstObjMu) -> SubstMorph x Subst1
+soToTerminal (InSO SO0) = SMFrom0 Subst1
+soToTerminal (InSO SO1) = SMId1
+soToTerminal (InSO (x !!+ y)) = SMCopTo1 x y
+soToTerminal (InSO (x !!* y)) = SMProdTo1 x y
 
 public export
 soCase : {x, y, z : SubstObjMu} ->
-  MetaSOMorph x z -> MetaSOMorph y z -> MetaSOMorph (x !+ y) z
-soCase {x} {y} {z} f g = ?soCase_hole -- (f, g)
+  SubstMorph x z -> SubstMorph y z -> SubstMorph (x !+ y) z
+soCase = SMCase
 
 mutual
   public export
-  soApply : {x, y : SubstObjMu} -> MetaSOMorph x y -> SOTerm x -> SOTerm y
-  soApply {x} {y} f t = ?soApply_hole
-  {-
-  soApply {x = (InSO SO0)} {y = y} f t = void t
-  soApply {x = (InSO SO1)} {y = y} f t = f
-  soApply {x = (InSO (x !!+ y))} {y = z} f t = ?soApply_hole_1 -- (f, f') (Left t) = soApply f t
-  -- soApply {x = (InSO (x !!+ y))} {y = z} f t = ?soApply_hole_2 -- (f, f') (Right t) = soApply f' t
-  soApply {x = (InSO (x !!* y))} {y = z} f (tx, ty) = soApplyPair f tx ty
+  soApply : {x, y : SubstObjMu} -> SubstMorph x y -> SOTerm x -> SOTerm y
+  soApply f SMId1 = f
+  soApply (SMCopTo1 _ _) _ = SMId1
+  soApply (SMCase f g) (SMTermLeft t _) = soApply f t
+  soApply (SMCase f g) (SMTermRight _ t) = soApply g t
+  soApply (SMDistrib f) (SMTermLeft t _) = ?soApply_hole_1
+  soApply (SMDistrib f) (SMTermRight _ t) = ?soApply_hole_2
+  soApply f (SMTermPair t t') = soApplyPair f t t'
 
   public export
   soApplyPair : {x, y, z : SubstObjMu} ->
-    MetaSOMorph (x !* y) z -> SOTerm x -> SOTerm y -> SOTerm z
-  soApplyPair {x = (InSO SO0)} {y = y} {z = z} f tx ty = void tx
-  soApplyPair {x = (InSO SO1)} {y = y} {z = z} f tx ty = ?soApply_hole_something -- soApply f ty
-  soApplyPair {x = (InSO (x !!+ w))} {y = y} {z = z} f tx ty = ?soApplyPair_hole -- (fx, fw) (Left tx) ty =
-    -- soApply fx (tx, ty)
- --  soApplyPair {x = (InSO (x !!+ w))} {y = y} {z = z} f tw ty = ?soApplyPair_hole_2 -- (fx, fw) (Right tw) ty =
-    -- soApply fw (tw, ty)
-  soApplyPair {x = (InSO (x !!* w))} {y = y} {z = z} f (tx, tw) ty =
-    ?soApplyPair_hole_3 -- soApply f (tx, tw, ty)
-    -}
+    SubstMorph (x !* y) z -> SOTerm x -> SOTerm y -> SOTerm z
+  soApplyPair (SMProdTo1 _ _) _ _ = SMId1
+  soApplyPair (SMP0Left _ _) tx _ impossible
+  soApplyPair (SMP1Left f) SMId1 ty = soApply f ty
+  soApplyPair (SMAssoc f) tx ty = ?soApplyPair_hole_4
 
-infixr 1 <!
-public export
-(<!) : {x, y, z : SubstObjMu} ->
-  MetaSOMorph y z -> MetaSOMorph x y -> MetaSOMorph x z
-(<!) {x} {y} {z} g f = ?comphole
-{-
-(<!) {x = (InSO SO0)} {y = (InSO SO0)} {z = z} g f = ()
-(<!) {x = (InSO SO1)} {y = (InSO SO0)} {z = z} g f = void f
-(<!) {x = (InSO (x !!+ y))} {y = (InSO SO0)} {z = z} g (f, f') =
-  ?compo_hole_1 -- (soFromInitial x <! f, soFromInitial y <! f')
-(<!) {x = (InSO ((InSO SO0) !!* y))} {y = (InSO SO0)} {z = z} g f = ?comp_mult_hole_1 -- ()
-(<!) {x = (InSO ((InSO SO1) !!* y))} {y = (InSO SO0)} {z = z} g f =
-  ?comp_mult_hole_2 -- soFromInitial z <! f
-(<!) {x = (InSO ((InSO (x !!+ w)) !!* y))} {y = (InSO SO0)} {z} g (f, f') =
-  ?compoe_hole_2 -- (soFromInitial x <! f, soFromInitial w <! f')
-(<!) {x = (InSO ((InSO (x !!* w)) !!* y))} {y = (InSO SO0)} {z = z} g f =
-  ?comp_mult_hole_3 -- soFromInitial z <! f
-(<!) {x = (InSO SO0)} {y = (InSO SO1)} {z = z} g f = ()
-(<!) {x = (InSO SO1)} {y = (InSO SO1)} {z = z} g f = g
-(<!) {x = (InSO (x !!+ y))} {y = (InSO SO1)} {z = z} g f = ?compo_hole_3 -- g (f,  f') =
-  -- (g <! f, g <! f')
-(<!) {x = (InSO ((InSO SO0) !!* y))} {y = (InSO SO1)} {z = z} g f = ?comp_mult_hole_4 -- ()
-(<!) {x = (InSO ((InSO SO1) !!* y))} {y = (InSO SO1)} {z = z} g f =
-  ?comp_mult_hole_5 -- (<!) {x=y} {y=Subst1} {z} g f
-(<!) {x = (InSO ((InSO (x !!+ w)) !!* y))} {y = (InSO SO1)} {z = z} g f = ?compo_hole_4 -- g (f, f') =
-  -- (g <! f, g <! f')
-(<!) {x = (InSO ((InSO (x !!* w)) !!* y))} {y = (InSO SO1)} {z = z} g f =
-  ?comp_mult_hole_6 -- (<!) {x=(x !* (w !* y))} {y=Subst1} {z} g f
-(<!) {x = (InSO SO0)} {y = (InSO (y !!+ y'))} {z = z} g f = ()
-(<!) {x = (InSO SO1)} {y = (InSO (y !!+ y'))} {z = z} g f = ?compo_hole_5 -- (g, g') f = case f of
-  -- Left f' => g <! f'
-  -- Right f' => g' <! f'
-(<!) {x = (InSO (x !!+ w))} {y = (InSO (y !!+ y'))} {z = z} g (f, f') =
-  ?compoo_hole_6 -- (g <! f, g <! f')
-(<!) {x = (InSO ((InSO SO0) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f = ?comp_mult_hole_7 -- ()
-(<!) {x = (InSO ((InSO SO1) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f =
-  ?comp_mult_hol_8 -- (<!) {x=w} g f
-(<!) {x = (InSO ((InSO (x !!+ v)) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g (f, f') =
-  ?compo_hole_7 -- (g <! f, g <! f')
-(<!) {x = (InSO ((InSO (x !!* v)) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f =
-  ?comp_mult_hole_8 -- (<!) {x=(x !* (v !* w))} g f
-(<!) {x = (InSO SO0)} {y = (InSO (y !!* y'))} {z = z} g f = ()
-(<!) {x = (InSO SO1)} {y} {z} g f = soApply g f
-(<!) {x = (InSO (x !!+ w))} {y = (InSO (y !!* y'))} {z = z} g (f, f') =
-  ?compo_hole_8 -- (g <! f, g <! f')
-(<!) {x = (InSO ((InSO SO0) !!* w))} {y = (InSO (y !!* y'))} {z = z} g f = ?comp_mult_hole_9 -- ()
-(<!) {x = (InSO ((InSO SO1) !!* (InSO SO0)))} {y = (InSO (y !!* y'))} {z = z} g f = ?comp_mult_hole_10 -- ()
-(<!) {x = (InSO ((InSO SO1) !!* (InSO SO1)))} {y} g f = ?comp_mult_hole_11 -- (<!) {x=Subst1} {y} {z = z} g f
-(<!) {x = (InSO ((InSO SO1) !!* (InSO (x !!+ w))))} {y = (InSO (y !!* y'))} {z = z} g f =
-  ?compo_hole_9 -- case f of (f, f') => (g <! f, g <! f')
-(<!) {x = (InSO ((InSO SO1) !!* (InSO (x !!* w))))} {y = (InSO (y !!* y'))} {z = z} g f =
-  ?comp_mult_hole_12 -- (<!) {x=(x !* w)} g f
-(<!) {x = (InSO ((InSO (x !!+ v)) !!* w))} {y = (InSO (y !!* y'))} {z = z} g (f, f') =
-  ?comopo_hole_10 -- (g <! f, g <! f')
-(<!) {x = (InSO ((InSO (x !!* v)) !!* w))} {y = (InSO (y !!* y'))} {z = z} g f =
-  ?comp_mult_hole_13 -- (<!) {x=(x !* (v !* w))} g f
-  -}
+  infixr 1 <!
+  public export
+  (<!) : {x, y, z : SubstObjMu} ->
+    MetaSOMorph y z -> MetaSOMorph x y -> MetaSOMorph x z
+  (<!) {x} {y} {z} g f = ?comphole
+  {-
+  (<!) {x = (InSO SO0)} {y = (InSO SO0)} {z = z} g f = ()
+  (<!) {x = (InSO SO1)} {y = (InSO SO0)} {z = z} g f = void f
+  (<!) {x = (InSO (x !!+ y))} {y = (InSO SO0)} {z = z} g (f, f') =
+    ?compo_hole_1 -- (soFromInitial x <! f, soFromInitial y <! f')
+  (<!) {x = (InSO ((InSO SO0) !!* y))} {y = (InSO SO0)} {z = z} g f = ?comp_mult_hole_1 -- ()
+  (<!) {x = (InSO ((InSO SO1) !!* y))} {y = (InSO SO0)} {z = z} g f =
+    ?comp_mult_hole_2 -- soFromInitial z <! f
+  (<!) {x = (InSO ((InSO (x !!+ w)) !!* y))} {y = (InSO SO0)} {z} g (f, f') =
+    ?compoe_hole_2 -- (soFromInitial x <! f, soFromInitial w <! f')
+  (<!) {x = (InSO ((InSO (x !!* w)) !!* y))} {y = (InSO SO0)} {z = z} g f =
+    ?comp_mult_hole_3 -- soFromInitial z <! f
+  (<!) {x = (InSO SO0)} {y = (InSO SO1)} {z = z} g f = ()
+  (<!) {x = (InSO SO1)} {y = (InSO SO1)} {z = z} g f = g
+  (<!) {x = (InSO (x !!+ y))} {y = (InSO SO1)} {z = z} g f = ?compo_hole_3 -- g (f,  f') =
+    -- (g <! f, g <! f')
+  (<!) {x = (InSO ((InSO SO0) !!* y))} {y = (InSO SO1)} {z = z} g f = ?comp_mult_hole_4 -- ()
+  (<!) {x = (InSO ((InSO SO1) !!* y))} {y = (InSO SO1)} {z = z} g f =
+    ?comp_mult_hole_5 -- (<!) {x=y} {y=Subst1} {z} g f
+  (<!) {x = (InSO ((InSO (x !!+ w)) !!* y))} {y = (InSO SO1)} {z = z} g f = ?compo_hole_4 -- g (f, f') =
+    -- (g <! f, g <! f')
+  (<!) {x = (InSO ((InSO (x !!* w)) !!* y))} {y = (InSO SO1)} {z = z} g f =
+    ?comp_mult_hole_6 -- (<!) {x=(x !* (w !* y))} {y=Subst1} {z} g f
+  (<!) {x = (InSO SO0)} {y = (InSO (y !!+ y'))} {z = z} g f = ()
+  (<!) {x = (InSO SO1)} {y = (InSO (y !!+ y'))} {z = z} g f = ?compo_hole_5 -- (g, g') f = case f of
+    -- Left f' => g <! f'
+    -- Right f' => g' <! f'
+  (<!) {x = (InSO (x !!+ w))} {y = (InSO (y !!+ y'))} {z = z} g (f, f') =
+    ?compoo_hole_6 -- (g <! f, g <! f')
+  (<!) {x = (InSO ((InSO SO0) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f = ?comp_mult_hole_7 -- ()
+  (<!) {x = (InSO ((InSO SO1) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f =
+    ?comp_mult_hol_8 -- (<!) {x=w} g f
+  (<!) {x = (InSO ((InSO (x !!+ v)) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g (f, f') =
+    ?compo_hole_7 -- (g <! f, g <! f')
+  (<!) {x = (InSO ((InSO (x !!* v)) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f =
+    ?comp_mult_hole_8 -- (<!) {x=(x !* (v !* w))} g f
+  (<!) {x = (InSO SO0)} {y = (InSO (y !!* y'))} {z = z} g f = ()
+  (<!) {x = (InSO SO1)} {y} {z} g f = soApply g f
+  (<!) {x = (InSO (x !!+ w))} {y = (InSO (y !!* y'))} {z = z} g (f, f') =
+    ?compo_hole_8 -- (g <! f, g <! f')
+  (<!) {x = (InSO ((InSO SO0) !!* w))} {y = (InSO (y !!* y'))} {z = z} g f = ?comp_mult_hole_9 -- ()
+  (<!) {x = (InSO ((InSO SO1) !!* (InSO SO0)))} {y = (InSO (y !!* y'))} {z = z} g f = ?comp_mult_hole_10 -- ()
+  (<!) {x = (InSO ((InSO SO1) !!* (InSO SO1)))} {y} g f = ?comp_mult_hole_11 -- (<!) {x=Subst1} {y} {z = z} g f
+  (<!) {x = (InSO ((InSO SO1) !!* (InSO (x !!+ w))))} {y = (InSO (y !!* y'))} {z = z} g f =
+    ?compo_hole_9 -- case f of (f, f') => (g <! f, g <! f')
+  (<!) {x = (InSO ((InSO SO1) !!* (InSO (x !!* w))))} {y = (InSO (y !!* y'))} {z = z} g f =
+    ?comp_mult_hole_12 -- (<!) {x=(x !* w)} g f
+  (<!) {x = (InSO ((InSO (x !!+ v)) !!* w))} {y = (InSO (y !!* y'))} {z = z} g (f, f') =
+    ?comopo_hole_10 -- (g <! f, g <! f')
+  (<!) {x = (InSO ((InSO (x !!* v)) !!* w))} {y = (InSO (y !!* y'))} {z = z} g f =
+    ?comp_mult_hole_13 -- (<!) {x=(x !* (v !* w))} g f
+    -}
 
 mutual
   public export
