@@ -3961,39 +3961,26 @@ smadtCheckSig : SubstMorphADT -> Maybe (SubstObjMu, SubstObjMu)
 smadtCheckSig = substMorphADTCata SMADTCheckSigAlg
 
 public export
-SubstMorph : SubstObjMu -> SubstObjMu -> Type
--- The unique morphism from the initial object to a given object
-SubstMorph (InSO SO0) _ = ()
--- There are no morphisms from the terminal object to the initial object
-SubstMorph (InSO SO1) (InSO SO0) = Void
--- The unique morphism from a given object to the terminal object
--- (in this case, the given object is also the terminal object)
-SubstMorph (InSO SO1) (InSO SO1) = Unit
--- To form a morphism from the terminal object to a coproduct,
--- we choose a morphism from the terminal object to either the left
--- or the right object of the coproduct
-SubstMorph (InSO SO1) (InSO (y !!+ z)) =
-  Either (SubstMorph Subst1 y) (SubstMorph Subst1 z)
--- To form a morphism from the terminal object to a product,
--- we choose morphisms from the terminal object to both the left
--- and the right object of the product
-SubstMorph (InSO SO1) (InSO (y !!* z)) =
-  Pair (SubstMorph Subst1 y) (SubstMorph Subst1 z)
--- The unique morphism from a coproduct to the terminal object
-SubstMorph (InSO (_ !!+ _)) (InSO SO1) = ()
--- Coproducts are eliminated by cases
-SubstMorph (InSO (x !!+ y)) z = Pair (SubstMorph x z) (SubstMorph y z)
--- The unique morphism from a product to the terminal object
-SubstMorph (InSO (_ !!* _)) (InSO SO1) = ()
--- 0 * y === 0
-SubstMorph (InSO ((InSO SO0) !!* y)) z = ()
--- 1 * y === y
-SubstMorph (InSO ((InSO SO1) !!* y)) z = SubstMorph y z
--- Distributivity of products over coproducts
-SubstMorph (InSO ((InSO (x !!+ x')) !!* y)) z =
-  SubstMorph ((x !* y) !+ (x' !* y)) z
--- Associativity of products
-SubstMorph (InSO ((InSO (x !!* x')) !!* y)) z = SubstMorph (x !* (x' !* y)) z
+data SubstMorph : SubstObjMu -> SubstObjMu -> Type where
+  SMFrom0 : (x : SubstObjMu) -> SubstMorph Subst0 x
+  SMId1 : SubstMorph Subst1 Subst1
+  SMTermLeft : {y : SubstObjMu} ->
+    SubstMorph Subst1 y -> (z : SubstObjMu) -> SubstMorph Subst1 (y !+ z)
+  SMTermRight : {z : SubstObjMu} ->
+    (y : SubstObjMu) -> SubstMorph Subst1 z -> SubstMorph Subst1 (y !+ z)
+  SMTermPair : {y, z : SubstObjMu} ->
+    SubstMorph Subst1 y -> SubstMorph Subst1 z -> SubstMorph Subst1 (y !+ z)
+  SMCopTo1 : (x, y : SubstObjMu) -> SubstMorph (x !+ y) Subst1
+  SMCase : {x, y, z : SubstObjMu} ->
+    SubstMorph x z -> SubstMorph y z -> SubstMorph (x !+ y) z
+  SMProdTo1 : (x, y : SubstObjMu) -> SubstMorph (x !* y) Subst1
+  SMP0Left : (x, y : SubstObjMu) -> SubstMorph (Subst0 !* x) y
+  SMP1Left : {x, y : SubstObjMu} ->
+    SubstMorph x y -> SubstMorph (Subst1 !* x) y
+  SMDistrib : {w, x, y, z : SubstObjMu} ->
+    SubstMorph ((w !+ x) !* y) z -> SubstMorph ((w !* y) !+ (x !* y)) z
+  SMAssoc : {w, x, y, z : SubstObjMu} ->
+    SubstMorph ((w !* x) !* y) z -> SubstMorph (w !* (x !* y)) z
 
 public export
 MetaSOMorph : SubstObjMu -> SubstObjMu -> Type
