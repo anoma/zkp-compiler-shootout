@@ -3928,7 +3928,11 @@ public export
 (<!) (SMDistrib (SMCase f g)) (SMTermPair t t'') = case t of
   SMTermLeft t _ => soApplyPair f t t''
   SMTermRight _ t' => soApplyPair g t' t''
-(<!) (SMAssoc {w} {x} {y} {z} f) (SMTermPair t t') = ?comhole_16
+(<!) (SMAssoc (SMProdTo1 _ _)) (SMTermPair _ _) = SMId1
+(<!) (SMAssoc {w=Subst0} {x} {y} {z} (SMP0Left _ _)) (SMTermPair t _) = ?comhole_21
+(<!) (SMAssoc {w = Subst1} {x = x} {y = y} {z = z} (SMP1Left f)) (SMTermPair t t') = ?comhole_17
+(<!) (SMAssoc {x = x} {y = y} {z = z} (SMDistrib f)) (SMTermPair t t') = ?comhole_18
+(<!) (SMAssoc {x = x} {y = y} {z = z} (SMAssoc f)) (SMTermPair t t') = ?comhole_19
 (<!) g (SMCopTo1 x y) = ?comhole_5
 (<!) g (SMCase f f') = ?comhole_6
 (<!) g (SMProdTo1 x y) = ?comhole_7
