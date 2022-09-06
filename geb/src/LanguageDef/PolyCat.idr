@@ -3845,11 +3845,11 @@ data SubstMorph : SubstObjMu -> SubstObjMu -> Type where
   SMP1Left : {x, y : SubstObjMu} ->
     SubstMorph x y -> SubstMorph (Subst1 !* x) y
   SMDistrib : {w, x, y, z : SubstObjMu} ->
-    SubstMorph ((w !+ x) !* y) z ->
-    SubstMorph ((w !* y) !+ (x !* y)) z
+    SubstMorph ((w !* y) !+ (x !* y)) z ->
+    SubstMorph ((w !+ x) !* y) z
   SMAssoc : {w, x, y, z : SubstObjMu} ->
-    SubstMorph ((w !* x) !* y) z ->
-    SubstMorph (w !* (x !* y)) z
+    SubstMorph (w !* (x !* y)) z ->
+    SubstMorph ((w !* x) !* y) z
 
 public export
 showSubstMorph : {x, y : SubstObjMu} -> SubstMorph x y -> String
@@ -3897,23 +3897,37 @@ mutual
   soApply (SMCopTo1 _ _) _ = SMId1
   soApply (SMCase f g) (SMTermLeft t _) = soApply f t
   soApply (SMCase f g) (SMTermRight _ t) = soApply g t
-  soApply (SMDistrib f) (SMTermLeft t _) = ?soApply_hole_1
-  soApply (SMDistrib f) (SMTermRight _ t) = ?soApply_hole_2
   soApply f (SMTermPair t t') = soApplyPair f t t'
 
   public export
   soApplyPair : {x, y, z : SubstObjMu} ->
     SubstMorph (x !* y) z -> SOTerm x -> SOTerm y -> SOTerm z
   soApplyPair (SMProdTo1 _ _) _ _ = SMId1
-  soApplyPair (SMP0Left _ _) tx _ impossible
+  soApplyPair (SMP0Left _ _) _ _ impossible
   soApplyPair (SMP1Left f) SMId1 ty = soApply f ty
-  soApplyPair (SMAssoc f) tx ty = ?soApplyPair_hole_4
+  soApplyPair (SMDistrib (SMCopTo1 _ _)) _ _ = SMId1
+  soApplyPair (SMDistrib (SMCase f g)) (SMTermLeft t _) t' = soApplyPair f t t'
+  soApplyPair (SMDistrib (SMCase f g)) (SMTermRight _ t) t' = soApplyPair g t t'
+  soApplyPair (SMAssoc f) (SMTermPair t t') t'' =
+    soApplyPair f t (SMTermPair t' t'')
 
   infixr 1 <!
   public export
   (<!) : {x, y, z : SubstObjMu} ->
     SubstMorph y z -> SubstMorph x y -> SubstMorph x z
-  (<!) g f = ?comhole
+  (<!) g (SMFrom0 _) = SMFrom0 _
+  (<!) g SMId1 = g
+  (<!) (SMCopTo1 x y) (SMTermLeft t _) = SMId1
+  (<!) (SMCase f g) (SMTermLeft t x) = f <! t
+  (<!) g (SMTermRight x t) = ?comhole_3
+  (<!) g (SMTermPair t t') = ?comhole_4
+  (<!) g (SMCopTo1 x y) = ?comhole_5
+  (<!) g (SMCase f f') = ?comhole_6
+  (<!) g (SMProdTo1 x y) = ?comhole_7
+  (<!) g (SMP0Left w y) = ?comhole_8
+  (<!) g (SMP1Left f) = ?comhole_9
+  (<!) g (SMDistrib f) = ?comhole_10
+  (<!) g (SMAssoc f) = ?comhole_11
   {-
   (<!) {x = (InSO SO0)} {y = (InSO SO0)} {z = z} g f = ()
   (<!) {x = (InSO SO1)} {y = (InSO SO0)} {z = z} g f = void f
