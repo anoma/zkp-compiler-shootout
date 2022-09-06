@@ -3916,9 +3916,41 @@ data SubstMorph : SubstObjMu -> SubstObjMu -> Type where
   SMDistrib : (x, y, z : SubstObjMu) ->
     SubstMorph (x !* (y !+ z)) ((x !* y) !+ (x !* z))
 
-{-
+mutual
+  public export
+  soApply : {x, y, z : SubstObjMu} ->
+    SubstMorph y z -> SubstMorph x y -> SubstMorph x z
+  soApply = ?soApply_hole
+  {-
+  soApply f SMId1 = f
+  soApply (SMCopTo1 _ _) _ = SMId1
+  soApply (SMCase f g) (SMTermLeft t _) = soApply f t
+  soApply (SMCase f g) (SMTermRight _ t) = soApply g t
+  soApply f (SMTermPair t t') = soApplyPair f t t'
+  -}
+
+  public export
+  soApplyPair : {w, x, y, z : SubstObjMu} ->
+    SubstMorph (x !* y) z -> SubstMorph w x -> SubstMorph w y -> SubstMorph w z
+  soApplyPair = ?soApplyPair_hole
+  {-
+  soApplyPair (SMProdTo1 _ _) _ _ = SMId1
+  soApplyPair (SMDistrib (SMCopTo1 _ _)) _ _ = SMId1
+  soApplyPair (SMDistrib (SMCase f g)) (SMTermLeft t _) t' = soApplyPair f t t'
+  soApplyPair (SMDistrib (SMCase f g)) (SMTermRight _ t) t' = soApplyPair g t t'
+  soApplyPair (SMAssoc f) (SMTermPair t t') t'' =
+    soApplyPair f t (SMTermPair t' t'')
+    -}
+
 public export
 showSubstMorph : {x, y : SubstObjMu} -> SubstMorph x y -> String
+showSubstMorph = ?showSubstMorph_hole
+
+public export
+SOTerm : SubstObjMu -> Type
+SOTerm = SubstMorph Subst1
+
+{-
 showSubstMorph (SMFrom0 y) = "0->(" ++ show y ++ ")"
 showSubstMorph SMId1 = "id(1)"
 showSubstMorph (SMTermLeft z w) = "Left(" ++ showSubstMorph z ++ ")"
@@ -3931,10 +3963,6 @@ showSubstMorph (SMCase z w) =
 showSubstMorph (SMProdTo1 z w) = "(" ++ show z ++ ", " ++ show w ++ ")->1"
 showSubstMorph (SMDistrib z) = "distrib[" ++ showSubstMorph z ++ "]"
 showSubstMorph (SMAssoc z) = "assoc[" ++ showSubstMorph z ++ "]"
-
-public export
-SOTerm : SubstObjMu -> Type
-SOTerm = SubstMorph Subst1
 
 public export
 soFromInitial : (x : SubstObjMu) -> SubstMorph Subst0 x
@@ -3951,25 +3979,6 @@ public export
 soCase : {x, y, z : SubstObjMu} ->
   SubstMorph x z -> SubstMorph y z -> SubstMorph (x !+ y) z
 soCase = SMCase
-
-mutual
-  public export
-  soApply : {x, y : SubstObjMu} -> SubstMorph x y -> SOTerm x -> SOTerm y
-  soApply f SMId1 = f
-  soApply (SMCopTo1 _ _) _ = SMId1
-  soApply (SMCase f g) (SMTermLeft t _) = soApply f t
-  soApply (SMCase f g) (SMTermRight _ t) = soApply g t
-  soApply f (SMTermPair t t') = soApplyPair f t t'
-
-  public export
-  soApplyPair : {x, y, z : SubstObjMu} ->
-    SubstMorph (x !* y) z -> SOTerm x -> SOTerm y -> SOTerm z
-  soApplyPair (SMProdTo1 _ _) _ _ = SMId1
-  soApplyPair (SMDistrib (SMCopTo1 _ _)) _ _ = SMId1
-  soApplyPair (SMDistrib (SMCase f g)) (SMTermLeft t _) t' = soApplyPair f t t'
-  soApplyPair (SMDistrib (SMCase f g)) (SMTermRight _ t) t' = soApplyPair g t t'
-  soApplyPair (SMAssoc f) (SMTermPair t t') t'' =
-    soApplyPair f t (SMTermPair t' t'')
 
 infixr 1 <!
 public export
@@ -4096,7 +4105,6 @@ public export
 (!^) : SubstObjMu -> SubstObjMu -> SubstObjMu
 (!^) = flip SubstHomObj
 
-{-
 public export
 soCurry : {x, y, z : SubstObjMu} ->
   SubstMorph (x !* y) z -> SubstMorph x (z !^ y)
@@ -4108,7 +4116,8 @@ soUncurry : {x, y, z : SubstObjMu} ->
 soUncurry {x} {y} {z} f = ?soUncurry_hole
 
 public export
-soEval : (x, y : SubstObjMu) -> SubstMorph ((y !^ x) !* x) y
+soEval : (x, y : SubstObjMu) ->
+  SubstMorph ((y !^ x) !* x) y
 soEval x y = ?soEval_hole
 
 public export
@@ -4157,8 +4166,7 @@ MorphAsTerm {x=(InSO ((InSO (x !!* w)) !!* y))} {y=z} f =
 
 public export
 IdTerm : (x : SubstObjMu) -> HomTerm x x
-IdTerm x = MorphAsTerm (SOI x)
--}
+IdTerm x = MorphAsTerm (SMId x)
 
 -------------------------------------------------------------------
 ---- Explicitly-polynomial-functor version of above definition ----
@@ -4771,8 +4779,7 @@ PolyExp = flip PolyHomObj
 ---------------------------------
 
 public export
-PolyMuNT : PolyMu -> PolyMu -> Type
-PolyMuNT = ?PolyMuNT_hole
+data PolyMuNT : PolyMu -> PolyMu -> Type where
 
 ----------------------------------------
 ---- Polynomial monads and comonads ----
