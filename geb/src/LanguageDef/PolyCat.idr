@@ -366,6 +366,20 @@ public export
 pfnCata : {p : PolyFuncN} -> {0 a : Type} -> PFNAlg p a -> PolyFuncNMu p -> a
 pfnCata = pfCata . PFAlgFromN
 
+public export
+pfnFold : {p : PolyFuncN} -> {0 a : Type} -> PFNAlg p a -> PolyFuncNMu p -> a
+pfnFold {p=p@(pos ** dir)} {a} alg = pfnFold' id where
+  mutual
+    pfnFold' : (a -> a) -> PolyFuncNMu p -> a
+    pfnFold' cont (InPFM i da) with (dir i) proof ndir
+      pfnFold' cont (InPFM i da) | pdi =
+        pfnFoldMap pdi (\v => cont $ alg i $ rewrite ndir in v) $ finFToVect da
+
+    pfnFoldMap : (n : Nat) -> (Vect n a -> a) -> Vect n (PolyFuncNMu p) -> a
+    pfnFoldMap Z cont [] = cont []
+    pfnFoldMap (S n) cont (e :: v) =
+      pfnFoldMap n (\v' => cont $ ?pfnFoldMap_hole_s :: v') v
+
 ----------------------------------
 ---- Polynomial (free) monads ----
 ----------------------------------
