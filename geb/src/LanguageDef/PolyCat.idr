@@ -3828,6 +3828,60 @@ SubstContradiction : SubstObjMu -> Type
 SubstContradiction = substObjCata SubstContradictionAlg
 
 public export
+data SubstMorphADTF : Type -> Type where
+  SMAFrom0 : SubstObjMu -> SubstMorphADTF carrier
+  SMACopTo1 : SubstObjMu -> SubstObjMu -> SubstMorphADTF carrier
+  SMAProdTo1 : SubstObjMu -> SubstObjMu -> SubstMorphADTF carrier
+  SMAId1 : SubstMorphADTF carrier
+  SMATermLeft : carrier -> SubstObjMu -> SubstMorphADTF carrier
+  SMATermRight : SubstObjMu -> carrier -> SubstMorphADTF carrier
+  SMATermPair : carrier -> carrier -> SubstMorphADTF carrier
+  SMACase : carrier -> carrier -> SubstMorphADTF carrier
+  SMA0PLeft : SubstObjMu -> SubstObjMu -> SubstMorphADTF carrier
+  SMA1PLeft : carrier -> SubstMorphADTF carrier
+  SMADistrib : carrier -> SubstMorphADTF carrier
+
+public export
+SMADTCheckSigAlg :
+  SubstMorphADTF (SubstObjMu, SubstObjMu) -> Maybe (SubstObjMu, SubstObjMu)
+SMADTCheckSigAlg sig = ?SMATDCheckSigAlg_hole
+
+public export
+SubstMorph : SubstObjMu -> SubstObjMu -> Type
+-- The unique morphism from the initial object to a given object
+SubstMorph (InSO SO0) _ = ()
+-- There are no morphisms from the terminal object to the initial object
+SubstMorph (InSO SO1) (InSO SO0) = Void
+-- The unique morphism from a given object to the terminal object
+-- (in this case, the given object is also the terminal object)
+SubstMorph (InSO SO1) (InSO SO1) = Unit
+-- To form a morphism from the terminal object to a coproduct,
+-- we choose a morphism from the terminal object to either the left
+-- or the right object of the coproduct
+SubstMorph (InSO SO1) (InSO (y !!+ z)) =
+  Either (SubstMorph Subst1 y) (SubstMorph Subst1 z)
+-- To form a morphism from the terminal object to a product,
+-- we choose morphisms from the terminal object to both the left
+-- and the right object of the product
+SubstMorph (InSO SO1) (InSO (y !!* z)) =
+  Pair (SubstMorph Subst1 y) (SubstMorph Subst1 z)
+-- The unique morphism from a coproduct to the terminal object
+SubstMorph (InSO (_ !!+ _)) (InSO SO1) = ()
+-- Coproducts are eliminated by cases
+SubstMorph (InSO (x !!+ y)) z = Pair (SubstMorph x z) (SubstMorph y z)
+-- The unique morphism from a product to the terminal object
+SubstMorph (InSO (_ !!* _)) (InSO SO1) = ()
+-- 0 * y === 0
+SubstMorph (InSO ((InSO SO0) !!* y)) z = ()
+-- 1 * y === y
+SubstMorph (InSO ((InSO SO1) !!* y)) z = SubstMorph y z
+-- Distributivity of products over coproducts
+SubstMorph (InSO ((InSO (x !!+ x')) !!* y)) z =
+  SubstMorph ((x !* y) !+ (x' !* y)) z
+-- Associativity of products
+SubstMorph (InSO ((InSO (x !!* x')) !!* y)) z = SubstMorph (x !* (x' !* y)) z
+
+public export
 MetaSOMorph : SubstObjMu -> SubstObjMu -> Type
 -- The unique morphism from the initial object to a given object
 MetaSOMorph (InSO SO0) _ = ()
