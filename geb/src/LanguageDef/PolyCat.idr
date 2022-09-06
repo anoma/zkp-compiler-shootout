@@ -232,6 +232,23 @@ public export
 SliceToPolyFunc : {a : Type} -> SliceObj a -> PolyFunc
 SliceToPolyFunc {a} sl = (a ** sl)
 
+--------------------------------------------------------
+---- Polynomial functors with finite direction-sets ----
+--------------------------------------------------------
+
+-- A version of PolyFunc where all direction-sets are finite.
+public export
+PolyFuncNDir : Type -> Type
+PolyFuncNDir pos = pos -> Nat
+
+public export
+PolyFuncDirFromN : {0 pos : Type} -> PolyFuncNDir pos -> PolyFuncDir pos
+PolyFuncDirFromN dir = let fn = Fin in fn . dir -- Fin . dir
+
+public export
+PolyFuncN : Type
+PolyFuncN = DPair Type PolyFuncNDir
+
 ------------------------------------------------------------
 ---- Natural transformations on polynomial endofunctors ----
 ------------------------------------------------------------
