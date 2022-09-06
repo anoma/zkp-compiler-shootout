@@ -243,11 +243,27 @@ PolyFuncNDir pos = pos -> Nat
 
 public export
 PolyFuncDirFromN : {0 pos : Type} -> PolyFuncNDir pos -> PolyFuncDir pos
-PolyFuncDirFromN dir = let fn = Fin in fn . dir -- Fin . dir
+PolyFuncDirFromN dir = Fin . dir
 
 public export
 PolyFuncN : Type
 PolyFuncN = DPair Type PolyFuncNDir
+
+public export
+pfnPos : PolyFuncN -> Type
+pfnPos = fst
+
+public export
+pfnDir : (p : PolyFuncN) -> pfnPos p -> Nat
+pfnDir = snd
+
+public export
+pfnDirFromN : (p : PolyFuncN) -> pfnPos p -> Type
+pfnDirFromN p = PolyFuncDirFromN $ pfnDir p
+
+public export
+pfnFunc : PolyFuncN -> PolyFunc
+pfnFunc p = (pfnPos p ** pfnDirFromN p)
 
 ------------------------------------------------------------
 ---- Natural transformations on polynomial endofunctors ----
@@ -310,6 +326,10 @@ public export
 PFAlg : PolyFunc -> Type -> Type
 PFAlg (pos ** dir) a = (i : pos) -> (dir i -> a) -> a
 
+public export
+PFNAlg : PolyFuncN -> Type -> Type
+PFNAlg (pos ** dir) a = (i : pos) -> (PolyFuncDirFromN dir i -> a) -> a
+
 -------------------------------------------------
 ---- Initial algebras of polynomial functors ----
 -------------------------------------------------
@@ -318,6 +338,12 @@ public export
 data PolyFuncMu : PolyFunc -> Type where
   InPFM : {0 p : PolyFunc} ->
     (i : pfPos p) -> (pfDir {p} i -> PolyFuncMu p) -> PolyFuncMu p
+
+public export
+InPFMN : {0 p : PolyFuncN} ->
+  (i : pfnPos p) -> Vect (pfnDir p i) (PolyFuncMu (pfnFunc p)) ->
+  PolyFuncMu (pfnFunc p)
+InPFMN {p=(pos ** dir)} i = InPFM i . flip index
 
 ----------------------------------------------
 ---- Catamorphisms of polynomial functors ----
