@@ -3917,9 +3917,10 @@ public export
   SubstMorph y z -> SubstMorph x y -> SubstMorph x z
 (<!) g (SMFrom0 _) = SMFrom0 _
 (<!) g SMId1 = g
-(<!) (SMCopTo1 x y) (SMTermLeft t _) = SMId1
-(<!) (SMCase f g) (SMTermLeft t x) = f <! t
-(<!) g (SMTermRight x t) = ?comhole_3
+(<!) (SMCopTo1 _ _) (SMTermLeft _ _) = SMId1
+(<!) (SMCase f g) (SMTermLeft t _) = f <! t
+(<!) (SMCopTo1 _ _) (SMTermRight _ _) = SMId1
+(<!) (SMCase f g) (SMTermRight _ t) = g <! t
 (<!) g (SMTermPair t t') = ?comhole_4
 (<!) g (SMCopTo1 x y) = ?comhole_5
 (<!) g (SMCase f f') = ?comhole_6
