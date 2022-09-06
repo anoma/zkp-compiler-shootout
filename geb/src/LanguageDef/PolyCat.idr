@@ -3841,9 +3841,6 @@ data SubstMorph : SubstObjMu -> SubstObjMu -> Type where
   SMCase : {x, y, z : SubstObjMu} ->
     SubstMorph x z -> SubstMorph y z -> SubstMorph (x !+ y) z
   SMProdTo1 : (x, y : SubstObjMu) -> SubstMorph (x !* y) Subst1
-  SMP0Left : (x, y : SubstObjMu) -> SubstMorph (Subst0 !* x) y
-  SMP1Left : {x, y : SubstObjMu} ->
-    SubstMorph x y -> SubstMorph (Subst1 !* x) y
   SMDistrib : {w, x, y, z : SubstObjMu} ->
     SubstMorph ((w !* y) !+ (x !* y)) z ->
     SubstMorph ((w !+ x) !* y) z
@@ -3863,10 +3860,6 @@ showSubstMorph (SMCopTo1 z w) = "(" ++ show z ++ " + " ++ show w ++ ")->1"
 showSubstMorph (SMCase z w) =
   "[" ++ showSubstMorph z ++ "|" ++ showSubstMorph w ++ "]"
 showSubstMorph (SMProdTo1 z w) = "(" ++ show z ++ ", " ++ show w ++ ")->1"
-showSubstMorph (SMP0Left z y) =
-  "(0 * " ++ show z ++ ") -> " ++ show y
-showSubstMorph (SMP1Left z) =
-  "(1 * " ++ showSubstMorph z ++ ")"
 showSubstMorph (SMDistrib z) = "distrib[" ++ showSubstMorph z ++ "]"
 showSubstMorph (SMAssoc z) = "assoc[" ++ showSubstMorph z ++ "]"
 
@@ -3903,8 +3896,6 @@ mutual
   soApplyPair : {x, y, z : SubstObjMu} ->
     SubstMorph (x !* y) z -> SOTerm x -> SOTerm y -> SOTerm z
   soApplyPair (SMProdTo1 _ _) _ _ = SMId1
-  soApplyPair (SMP0Left _ _) _ _ impossible
-  soApplyPair (SMP1Left f) SMId1 ty = soApply f ty
   soApplyPair (SMDistrib (SMCopTo1 _ _)) _ _ = SMId1
   soApplyPair (SMDistrib (SMCase f g)) (SMTermLeft t _) t' = soApplyPair f t t'
   soApplyPair (SMDistrib (SMCase f g)) (SMTermRight _ t) t' = soApplyPair g t t'
@@ -3922,17 +3913,11 @@ public export
 (<!) (SMCopTo1 _ _) (SMTermRight _ _) = SMId1
 (<!) (SMCase f g) (SMTermRight _ t) = g <! t
 (<!) (SMProdTo1 _ _) (SMTermPair _ _) = SMId1
-(<!) (SMP0Left _ _) (SMTermPair t _) impossible
-(<!) (SMP1Left f) (SMTermPair _ t') = soApply f t'
 (<!) (SMDistrib (SMCopTo1 _ _)) (SMTermPair t t') = SMId1
 (<!) (SMDistrib (SMCase f g)) (SMTermPair t t'') = case t of
   SMTermLeft t _ => soApplyPair f t t''
   SMTermRight _ t' => soApplyPair g t' t''
 (<!) (SMAssoc (SMProdTo1 _ _)) (SMTermPair _ _) = SMId1
-(<!) (SMAssoc (SMP0Left _ _)) (SMTermPair t _) =
-  case t of SMTermPair t' _ => case t' of _ impossible
-(<!) (SMAssoc (SMP1Left f)) (SMTermPair t t') =
-  case t of SMTermPair SMId1 t'' => soApplyPair f t'' t'
 (<!) (SMAssoc {w=(v !+ w)} {x} {y} {z} (SMDistrib f)) (SMTermPair tvwx ty) =
   case (f, tvwx) of
     (SMCopTo1 _ _, _) => SMId1
@@ -3948,8 +3933,6 @@ public export
   SMCase (g <! soToTerminal x) (g <! soToTerminal y)
 (<!) {x=(x' !+ y')} {y} {z} g (SMCase f f') = SMCase (g <! f) (g <! f')
 (<!) g (SMProdTo1 x y) = g <! soToTerminal _
-(<!) g (SMP0Left _ _) = SMP0Left _ _
-(<!) g (SMP1Left f) = ?compose_with_p1left_hole -- SMP1Left $ g <! f
 (<!) g (SMDistrib f) = ?compose_with_distrib_hole
 (<!) g (SMAssoc f) = ?compose_with_assoc_hole
 
