@@ -367,6 +367,7 @@ pfnCata : {p : PolyFuncN} -> {0 a : Type} -> PFNAlg p a -> PolyFuncNMu p -> a
 pfnCata = pfCata . PFAlgFromN
 
 public export
+partial
 pfnFold : {p : PolyFuncN} -> {0 a : Type} -> PFNAlg p a -> PolyFuncNMu p -> a
 pfnFold {p=p@(pos ** dir)} {a} alg = pfnFold' id where
   mutual
