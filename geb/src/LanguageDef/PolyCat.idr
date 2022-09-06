@@ -3947,63 +3947,11 @@ public export
 (<!) {x=(x !+ y)} {y=Subst1} {z} g (SMCopTo1 _ _) =
   SMCase (g <! soToTerminal x) (g <! soToTerminal y)
 (<!) {x=(x' !+ y')} {y} {z} g (SMCase f f') = SMCase (g <! f) (g <! f')
-(<!) g (SMProdTo1 x y) = ?comhole_7
-(<!) g (SMP0Left w y) = ?comhole_8
-(<!) g (SMP1Left f) = ?comhole_9
-(<!) g (SMDistrib f) = ?comhole_10
-(<!) g (SMAssoc f) = ?comhole_11
-{-
-(<!) {x = (InSO SO0)} {y = (InSO SO0)} {z = z} g f = ()
-(<!) {x = (InSO SO1)} {y = (InSO SO0)} {z = z} g f = void f
-(<!) {x = (InSO (x !!+ y))} {y = (InSO SO0)} {z = z} g (f, f') =
-  ?compo_hole_1 -- (soFromInitial x <! f, soFromInitial y <! f')
-(<!) {x = (InSO ((InSO SO0) !!* y))} {y = (InSO SO0)} {z = z} g f = ?comp_mult_hole_1 -- ()
-(<!) {x = (InSO ((InSO SO1) !!* y))} {y = (InSO SO0)} {z = z} g f =
-  ?comp_mult_hole_2 -- soFromInitial z <! f
-(<!) {x = (InSO ((InSO (x !!+ w)) !!* y))} {y = (InSO SO0)} {z} g (f, f') =
-  ?compoe_hole_2 -- (soFromInitial x <! f, soFromInitial w <! f')
-(<!) {x = (InSO ((InSO (x !!* w)) !!* y))} {y = (InSO SO0)} {z = z} g f =
-  ?comp_mult_hole_3 -- soFromInitial z <! f
-(<!) {x = (InSO SO0)} {y = (InSO SO1)} {z = z} g f = ()
-(<!) {x = (InSO SO1)} {y = (InSO SO1)} {z = z} g f = g
-(<!) {x = (InSO (x !!+ y))} {y = (InSO SO1)} {z = z} g f = ?compo_hole_3 -- g (f,  f') =
-  -- (g <! f, g <! f')
-(<!) {x = (InSO ((InSO SO0) !!* y))} {y = (InSO SO1)} {z = z} g f = ?comp_mult_hole_4 -- ()
-(<!) {x = (InSO ((InSO SO1) !!* y))} {y = (InSO SO1)} {z = z} g f =
-  ?comp_mult_hole_5 -- (<!) {x=y} {y=Subst1} {z} g f
-(<!) {x = (InSO ((InSO (x !!+ w)) !!* y))} {y = (InSO SO1)} {z = z} g f = ?compo_hole_4 -- g (f, f') =
-  -- (g <! f, g <! f')
-(<!) {x = (InSO ((InSO (x !!* w)) !!* y))} {y = (InSO SO1)} {z = z} g f =
-  ?comp_mult_hole_6 -- (<!) {x=(x !* (w !* y))} {y=Subst1} {z} g f
-(<!) {x = (InSO SO0)} {y = (InSO (y !!+ y'))} {z = z} g f = ()
-(<!) {x = (InSO SO1)} {y = (InSO (y !!+ y'))} {z = z} g f = ?compo_hole_5 -- (g, g') f = case f of
-  -- Left f' => g <! f'
-  -- Right f' => g' <! f'
-(<!) {x = (InSO (x !!+ w))} {y = (InSO (y !!+ y'))} {z = z} g (f, f') =
-  ?compoo_hole_6 -- (g <! f, g <! f')
-(<!) {x = (InSO ((InSO SO0) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f = ?comp_mult_hole_7 -- ()
-(<!) {x = (InSO ((InSO SO1) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f =
-  ?comp_mult_hol_8 -- (<!) {x=w} g f
-(<!) {x = (InSO ((InSO (x !!+ v)) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g (f, f') =
-  ?compo_hole_7 -- (g <! f, g <! f')
-(<!) {x = (InSO ((InSO (x !!* v)) !!* w))} {y = (InSO (y !!+ y'))} {z = z} g f =
-  ?comp_mult_hole_8 -- (<!) {x=(x !* (v !* w))} g f
-(<!) {x = (InSO SO0)} {y = (InSO (y !!* y'))} {z = z} g f = ()
-(<!) {x = (InSO SO1)} {y} {z} g f = soApply g f
-(<!) {x = (InSO (x !!+ w))} {y = (InSO (y !!* y'))} {z = z} g (f, f') =
-  ?compo_hole_8 -- (g <! f, g <! f')
-(<!) {x = (InSO ((InSO SO0) !!* w))} {y = (InSO (y !!* y'))} {z = z} g f = ?comp_mult_hole_9 -- ()
-(<!) {x = (InSO ((InSO SO1) !!* (InSO SO0)))} {y = (InSO (y !!* y'))} {z = z} g f = ?comp_mult_hole_10 -- ()
-(<!) {x = (InSO ((InSO SO1) !!* (InSO SO1)))} {y} g f = ?comp_mult_hole_11 -- (<!) {x=Subst1} {y} {z = z} g f
-(<!) {x = (InSO ((InSO SO1) !!* (InSO (x !!+ w))))} {y = (InSO (y !!* y'))} {z = z} g f =
-  ?compo_hole_9 -- case f of (f, f') => (g <! f, g <! f')
-(<!) {x = (InSO ((InSO SO1) !!* (InSO (x !!* w))))} {y = (InSO (y !!* y'))} {z = z} g f =
-  ?comp_mult_hole_12 -- (<!) {x=(x !* w)} g f
-(<!) {x = (InSO ((InSO (x !!+ v)) !!* w))} {y = (InSO (y !!* y'))} {z = z} g (f, f') =
-  ?comopo_hole_10 -- (g <! f, g <! f')
-(<!) {x = (InSO ((InSO (x !!* v)) !!* w))} {y = (InSO (y !!* y'))} {z = z} g f =
-  ?comp_mult_hole_13 -- (<!) {x=(x !* (v !* w))} g f
-  -}
+(<!) g (SMProdTo1 x y) = ?compose_with_prod1_hole -- g <! soToTerminal _
+(<!) g (SMP0Left _ _) = SMP0Left _ _
+(<!) g (SMP1Left f) = ?compose_with_p1left_hole -- SMP1Left $ g <! f
+(<!) g (SMDistrib f) = ?compose_with_distrib_hole
+(<!) g (SMAssoc f) = ?compose_with_assoc_hole
 
 mutual
   public export
