@@ -3803,23 +3803,29 @@ p !*^ n = foldrNatNoUnit ((!*) p) Subst1 p n
 --------------------------------------------
 
 public export
+SubstTermAlg : MetaSOAlg Type
+SubstTermAlg SO0 = Void
+SubstTermAlg SO1 = ()
+SubstTermAlg (x !!+ y) = Either x y
+SubstTermAlg (x !!* y) = Pair x y
+
+public export
 SubstTerm : SubstObjMu -> Type
-SubstTerm (InSO SO0) = Void
-SubstTerm (InSO SO1) = ()
-SubstTerm (InSO (x !!+ y)) = Either (SubstTerm x) (SubstTerm y)
-SubstTerm (InSO (x !!* y)) = Pair (SubstTerm x) (SubstTerm y)
+SubstTerm = substObjCata SubstTermAlg
+
+public export
+SubstContradictionAlg : MetaSOAlg Type
+SubstContradictionAlg SO0 = ()
+SubstContradictionAlg SO1 = Void
+SubstContradictionAlg (x !!+ y) = Pair x y
+SubstContradictionAlg (x !!* y) = Either x y
 
 -- `SubstContradiction x` is inhabited if and only if `x` is uninhabited;
 -- it is the dual of `SubstTerm x` (reflecting that a type is contradictory
 -- if and only if it has no terms)
 public export
 SubstContradiction : SubstObjMu -> Type
-SubstContradiction (InSO SO0) = ()
-SubstContradiction (InSO SO1) = Void
-SubstContradiction (InSO (x !!+ y)) =
-  Pair (SubstContradiction x) (SubstContradiction y)
-SubstContradiction (InSO (x !!* y)) =
-  Either (SubstContradiction x) (SubstContradiction y)
+SubstContradiction = substObjCata SubstContradictionAlg
 
 public export
 MetaSOMorph : SubstObjMu -> SubstObjMu -> Type
