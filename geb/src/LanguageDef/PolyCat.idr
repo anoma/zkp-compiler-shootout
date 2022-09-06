@@ -328,7 +328,12 @@ PFAlg (pos ** dir) a = (i : pos) -> (dir i -> a) -> a
 
 public export
 PFNAlg : PolyFuncN -> Type -> Type
-PFNAlg (pos ** dir) a = (i : pos) -> (PolyFuncDirFromN dir i -> a) -> a
+PFNAlg (pos ** dir) a = (i : pos) -> Vect (dir i) a -> a
+
+public export
+PFAlgFromN : {0 a : Type} -> {p : PolyFuncN} ->
+  PFNAlg p a -> PFAlg (pfnFunc p) a
+PFAlgFromN {a} {p=(pos ** dir)} alg i = alg i . finFToVect
 
 -------------------------------------------------
 ---- Initial algebras of polynomial functors ----
@@ -340,9 +345,12 @@ data PolyFuncMu : PolyFunc -> Type where
     (i : pfPos p) -> (pfDir {p} i -> PolyFuncMu p) -> PolyFuncMu p
 
 public export
+PolyFuncNMu : PolyFuncN -> Type
+PolyFuncNMu p = PolyFuncMu (pfnFunc p)
+
+public export
 InPFMN : {0 p : PolyFuncN} ->
-  (i : pfnPos p) -> Vect (pfnDir p i) (PolyFuncMu (pfnFunc p)) ->
-  PolyFuncMu (pfnFunc p)
+  (i : pfnPos p) -> Vect (pfnDir p i) (PolyFuncNMu p) -> PolyFuncNMu p
 InPFMN {p=(pos ** dir)} i = InPFM i . flip index
 
 ----------------------------------------------
@@ -353,6 +361,10 @@ public export
 pfCata : {0 p : PolyFunc} -> {0 a : Type} -> PFAlg p a -> PolyFuncMu p -> a
 pfCata {p=p@(pos ** dir)} {a} alg (InPFM i da) =
   alg i $ \d : dir i => pfCata {p} alg $ da d
+
+public export
+pfnCata : {p : PolyFuncN} -> {0 a : Type} -> PFNAlg p a -> PolyFuncNMu p -> a
+pfnCata = pfCata . PFAlgFromN
 
 ----------------------------------
 ---- Polynomial (free) monads ----

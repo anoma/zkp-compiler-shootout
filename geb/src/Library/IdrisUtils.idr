@@ -268,6 +268,20 @@ fromIsYes {x=(Yes x)} Refl = x
 fromIsYes {x=(No n)} Refl impossible
 
 public export
+indexN : {0 a : Type} -> {n : Nat} ->
+  (i : Nat) -> {auto ok : IsJustTrue (natToFin i n)} -> Vect n a -> a
+indexN _ {ok} = index (fromIsJust ok)
+
+public export
+finFTrunc : {0 a : Type} -> {n : Nat} -> (Fin (S n) -> a) -> Fin n -> a
+finFTrunc {a} {n} f = f . weaken
+
+public export
+finFToVect : {0 a : Type} -> {n : Nat} -> (Fin n -> a) -> Vect n a
+finFToVect {a} {n=Z} f = []
+finFToVect {a} {n=(S n)} f = f (last {n}) :: (finFToVect {n} $ finFTrunc {n} f)
+
+public export
 foldrNat : (a -> a) -> a -> Nat -> a
 foldrNat f acc Z = acc
 foldrNat f acc (S n) = foldrNat f (f acc) n
