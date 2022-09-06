@@ -3947,8 +3947,8 @@ mutual
   infixr 1 <!
   public export
   (<!) : {x, y, z : SubstObjMu} ->
-    MetaSOMorph y z -> MetaSOMorph x y -> MetaSOMorph x z
-  (<!) {x} {y} {z} g f = ?comphole
+    SubstMorph y z -> SubstMorph x y -> SubstMorph x z
+  (<!) g f = ?comhole
   {-
   (<!) {x = (InSO SO0)} {y = (InSO SO0)} {z = z} g f = ()
   (<!) {x = (InSO SO1)} {y = (InSO SO0)} {z = z} g f = void f
@@ -4004,7 +4004,7 @@ mutual
 
 mutual
   public export
-  SOI : (x : SubstObjMu) -> MetaSOMorph x x
+  SOI : (x : SubstObjMu) -> SubstMorph x x
   SOI x = ?SOI_hole
   {-
   SOI (InSO SO0) = ()
@@ -4026,7 +4026,7 @@ mutual
       -}
 
   public export
-  soInjLeft : (x, y : SubstObjMu) -> MetaSOMorph x (x !+ y)
+  soInjLeft : (x, y : SubstObjMu) -> SubstMorph x (x !+ y)
   soInjLeft x y = ?soInjLeft_hole
   {-
   soInjLeft (InSO SO0) y = ()
@@ -4039,7 +4039,7 @@ mutual
   -}
 
   public export
-  soInjRight : (x, y : SubstObjMu) -> MetaSOMorph y (x !+ y)
+  soInjRight : (x, y : SubstObjMu) -> SubstMorph y (x !+ y)
   soInjRight x y = ?soInjRight_hole
   {-
   soInjRight x (InSO SO0) = ()
@@ -4050,7 +4050,7 @@ mutual
 
   public export
   soProd : {x, y, z : SubstObjMu} ->
-    MetaSOMorph x y -> MetaSOMorph x z -> MetaSOMorph x (y !* z)
+    SubstMorph x y -> SubstMorph x z -> SubstMorph x (y !* z)
   soProd {x} {y} {z} f g = ?soProd_hole
   {-
   soProd {x = (InSO SO0)} {y = y} {z = z} f g = ?soProd_hole_1
@@ -4060,16 +4060,16 @@ mutual
   -}
 
   public export
-  soProjLeft : (x, y : SubstObjMu) -> MetaSOMorph (x !* y) x
+  soProjLeft : (x, y : SubstObjMu) -> SubstMorph (x !* y) x
   soProjLeft x y = ?soProjLeft_hole
 
   public export
-  soProjRight : (x, y : SubstObjMu) -> MetaSOMorph (x !* y) y
+  soProjRight : (x, y : SubstObjMu) -> SubstMorph (x !* y) y
   soProjRight x y = ?soProjRight_hole
 
   public export
   soDistributeRight : (x, y, z : SubstObjMu) ->
-    MetaSOMorph (x !* (y !+ z)) ((x !* y) !+ (x !* z))
+    SubstMorph (x !* (y !+ z)) ((x !* y) !+ (x !* z))
   soDistributeRight x y z = ?soDistribute_hole
 
 --------------------------------------------------------------
@@ -4094,16 +4094,16 @@ public export
 
 public export
 soCurry : {x, y, z : SubstObjMu} ->
-  MetaSOMorph (x !* y) z -> MetaSOMorph x (z !^ y)
+  SubstMorph (x !* y) z -> SubstMorph x (z !^ y)
 soCurry {x} {y} {z} f = ?soCurry_hole
 
 public export
 soUncurry : {x, y, z : SubstObjMu} ->
-  MetaSOMorph x (z !^ y) -> MetaSOMorph (x !* y) z
+  SubstMorph x (z !^ y) -> SubstMorph (x !* y) z
 soUncurry {x} {y} {z} f = ?soUncurry_hole
 
 public export
-soEval : (x, y : SubstObjMu) -> MetaSOMorph ((y !^ x) !* x) y
+soEval : (x, y : SubstObjMu) -> SubstMorph ((y !^ x) !* x) y
 soEval x y = ?soEval_hole
 
 public export
@@ -4111,7 +4111,7 @@ HomTerm : SubstObjMu -> SubstObjMu -> Type
 HomTerm = SOTerm .* SubstHomObj
 
 public export
-TermAsMorph : {x, y : SubstObjMu} -> HomTerm x y -> MetaSOMorph x y
+TermAsMorph : {x, y : SubstObjMu} -> HomTerm x y -> SubstMorph x y
 TermAsMorph {x} {y} t = ?TermAsMorph_hole
 {-
 TermAsMorph {x=(InSO SO0)} {y} () = ()
@@ -4131,7 +4131,7 @@ TermAsMorph {x=(InSO ((InSO (x !!* w)) !!* y))} {y=z} f =
   -}
 
 public export
-MorphAsTerm : {x, y : SubstObjMu} -> MetaSOMorph x y -> HomTerm x y
+MorphAsTerm : {x, y : SubstObjMu} -> SubstMorph x y -> HomTerm x y
 MorphAsTerm {x} {y} f = ?MorphAsTerm_hole
 {-
 MorphAsTerm {x=(InSO SO0)} {y} () = ()
