@@ -8,6 +8,3 @@ risc0-build = "0.10"
 
 [package.metadata.risc0]
 methods = ["guest"]
-
-[profile.release]
-debug = 1

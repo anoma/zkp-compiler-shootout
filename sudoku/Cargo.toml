@@ -4,3 +4,13 @@ members = [
     "starter",
 ]
 
+# Including from Simon's code
+[patch.crates-io]
+ark-serialize = { git="https://github.com/simonmasson/algebra", rev="e2ea75c" }
+ark-ff = { git="https://github.com/simonmasson/algebra", rev="e2ea75c" }
+ark-ec = { git="https://github.com/simonmasson/algebra", rev="e2ea75c" }
+ark-std = { git = "https://github.com/arkworks-rs/std/", rev = "2b3568f" }
+
+
+[profile.release]
+debug = 1

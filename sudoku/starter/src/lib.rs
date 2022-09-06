@@ -1,5 +1,4 @@
-
-pub mod starter{
+pub mod starter {
     use std::fs;
     use methods::{MULTIPLY_ID, MULTIPLY_PATH};
     use risc0_zkvm_core::Digest;
@@ -7,7 +6,6 @@ pub mod starter{
     use risc0_zkvm_serde::{from_slice, to_vec};
     use sudoku_core::Sudoku;
     use risc0_zkvm_host::Receipt;
-    use std::time::Instant;
 
     pub fn setup () -> Prover {
         // Setup
