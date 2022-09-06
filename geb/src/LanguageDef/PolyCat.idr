@@ -3839,12 +3839,52 @@ data SubstMorphADTF : Type -> Type where
   SMACase : carrier -> carrier -> SubstMorphADTF carrier
   SMA0PLeft : SubstObjMu -> SubstObjMu -> SubstMorphADTF carrier
   SMA1PLeft : carrier -> SubstMorphADTF carrier
-  SMADistrib : carrier -> SubstMorphADTF carrier
+  SMADistrib : SubstObjMu -> SubstObjMu -> SubstObjMu ->
+    carrier -> SubstMorphADTF carrier
+  SMAAssoc : SubstObjMu -> SubstObjMu -> SubstObjMu ->
+    carrier -> SubstMorphADTF carrier
+
+public export
+Functor SubstMorphADTF where
+  map x = ?substADTMorphF_functor_hole
+
+public export
+data SubstMorphADT : Type where
+  InSM : SubstMorphADTF SubstMorphADT -> SubstMorphADT
+
+public export
+SubstMorphADTAlg : Type -> Type
+SubstMorphADTAlg x = SubstMorphADTF x -> Maybe x
+
+public export
+substMorphADTCata : SubstMorphADTAlg x -> SubstMorphADT -> Maybe x
+substMorphADTCata = ?substMorphADTCata_hole
 
 public export
 SMADTCheckSigAlg :
   SubstMorphADTF (SubstObjMu, SubstObjMu) -> Maybe (SubstObjMu, SubstObjMu)
-SMADTCheckSigAlg sig = ?SMATDCheckSigAlg_hole
+SMADTCheckSigAlg (SMAFrom0 x) = Just (Subst0, x)
+SMADTCheckSigAlg SMAId1 = Just (Subst1, Subst1)
+SMADTCheckSigAlg (SMACopTo1 x y) = Just (x !+ y, Subst1)
+SMADTCheckSigAlg (SMAProdTo1 x y) = Just (x !* y, Subst1)
+SMADTCheckSigAlg (SMATermLeft (d, c) y) =
+  if d == Subst1 then Just (Subst1, c !+ y) else Nothing
+SMADTCheckSigAlg (SMATermRight x (d, c)) =
+  if d == Subst1 then Just (Subst1, x !+ c) else Nothing
+SMADTCheckSigAlg (SMATermPair (d, c) (d', c')) =
+  if d == Subst1 && d' == Subst1 then Just (Subst1, c !* c') else Nothing
+SMADTCheckSigAlg (SMACase (d, c) (d', c')) =
+  if c == c' then Just (d !+ d', c) else Nothing
+SMADTCheckSigAlg (SMA0PLeft x y) = Just (Subst0 !* x, y)
+SMADTCheckSigAlg (SMA1PLeft (d, c)) = Just (Subst1 !* d, c)
+SMADTCheckSigAlg (SMADistrib x y z (d, c)) =
+  if d == (x !+ y) !* z then Just ((x !* z) !+ (y !* z), c) else Nothing
+SMADTCheckSigAlg (SMAAssoc x y z (d, c)) =
+  if d == (x !* y) !* z then Just (x !* (y !* z), c) else Nothing
+
+public export
+smadtCheckSig : SubstMorphADT -> Maybe (SubstObjMu, SubstObjMu)
+smadtCheckSig = substMorphADTCata SMADTCheckSigAlg
 
 public export
 SubstMorph : SubstObjMu -> SubstObjMu -> Type
