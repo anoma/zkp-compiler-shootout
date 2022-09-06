@@ -3946,7 +3946,7 @@ public export
       soApplyPair f tv $ SMTermPair tw $ SMTermPair tx ty
 (<!) {x=(x !+ y)} {y=Subst1} {z} g (SMCopTo1 _ _) =
   SMCase (g <! soToTerminal x) (g <! soToTerminal y)
-(<!) g (SMCase f f') = ?comhole_6
+(<!) {x=(x' !+ y')} {y} {z} g (SMCase f f') = SMCase (g <! f) (g <! f')
 (<!) g (SMProdTo1 x y) = ?comhole_7
 (<!) g (SMP0Left w y) = ?comhole_8
 (<!) g (SMP1Left f) = ?comhole_9
