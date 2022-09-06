@@ -3828,6 +3828,69 @@ SubstContradiction : SubstObjMu -> Type
 SubstContradiction = substObjCata SubstContradictionAlg
 
 public export
+data SubstMorphADTPos : Type where
+  SMAPFrom0 : SubstObjMu -> SubstMorphADTPos
+  SMAPCopTo1 : SubstObjMu -> SubstObjMu -> SubstMorphADTPos
+  SMAPProdTo1 : SubstObjMu -> SubstObjMu -> SubstMorphADTPos
+  SMAPId1 : SubstMorphADTPos
+  SMAPTermLeft : SubstObjMu -> SubstMorphADTPos
+  SMAPTermRight : SubstObjMu -> SubstMorphADTPos
+  SMAPTermPair : SubstMorphADTPos
+  SMAPCase : SubstMorphADTPos
+  SMAP0PLeft : SubstObjMu -> SubstObjMu -> SubstMorphADTPos
+  SMAP1PLeft : SubstMorphADTPos
+  SMAPDistrib : SubstObjMu -> SubstObjMu -> SubstObjMu -> SubstMorphADTPos
+  SMAPAssoc : SubstObjMu -> SubstObjMu -> SubstObjMu -> SubstMorphADTPos
+
+public export
+SubstMorphADTNDir : SubstMorphADTPos -> Nat
+SubstMorphADTNDir (SMAPFrom0 _) = 0
+SubstMorphADTNDir (SMAPCopTo1 _ _) = 0
+SubstMorphADTNDir (SMAPProdTo1 _ _) = 0
+SubstMorphADTNDir SMAPId1 = 0
+SubstMorphADTNDir (SMAPTermLeft _) = 1
+SubstMorphADTNDir (SMAPTermRight _) = 1
+SubstMorphADTNDir SMAPTermPair = 2
+SubstMorphADTNDir SMAPCase = 2
+SubstMorphADTNDir (SMAP0PLeft _ _) = 0
+SubstMorphADTNDir SMAP1PLeft = 1
+SubstMorphADTNDir (SMAPDistrib _ _ _) = 1
+SubstMorphADTNDir (SMAPAssoc _ _ _) = 1
+
+public export
+SubstMorphADTDir : SubstMorphADTPos -> Type
+SubstMorphADTDir = Fin . SubstMorphADTNDir
+
+public export
+SubstMorphADTPoly : PolyFunc
+SubstMorphADTPoly = (SubstMorphADTPos ** SubstMorphADTDir)
+
+public export
+SubstMorphADTPFAlg : Type -> Type
+SubstMorphADTPFAlg = PFAlg SubstMorphADTPoly
+
+public export
+SubstMorphADTSig : Type
+SubstMorphADTSig = (SubstObjMu, SubstObjMu)
+
+public export
+SubstMorphADTPFAlgCheckSig : SubstMorphADTPFAlg (Maybe SubstMorphADTSig)
+SubstMorphADTPFAlgCheckSig (SMAPFrom0 x) d = Just (Subst0, x)
+SubstMorphADTPFAlgCheckSig SMAPId1 d = Just (Subst1, Subst1)
+SubstMorphADTPFAlgCheckSig (SMAPCopTo1 x y) d = Just (x !+ y, Subst1)
+SubstMorphADTPFAlgCheckSig (SMAPProdTo1 x y) d = Just (x !* y, Subst1)
+SubstMorphADTPFAlgCheckSig (SMAPTermLeft x) d = case d FZ of
+  Just (y, z) => if y == Subst1 then Just (Subst1, z !+ x) else Nothing
+  Nothing => Nothing
+SubstMorphADTPFAlgCheckSig (SMAPTermRight x) d = ?SubstMorphADTPFAlgCheckSig_hole_5
+SubstMorphADTPFAlgCheckSig SMAPTermPair d = ?SubstMorphADTPFAlgCheckSig_hole_6
+SubstMorphADTPFAlgCheckSig SMAPCase d = ?SubstMorphADTPFAlgCheckSig_hole_7
+SubstMorphADTPFAlgCheckSig (SMAP0PLeft x y) d = ?SubstMorphADTPFAlgCheckSig_hole_8
+SubstMorphADTPFAlgCheckSig SMAP1PLeft d = ?SubstMorphADTPFAlgCheckSig_hole_9
+SubstMorphADTPFAlgCheckSig (SMAPDistrib x y z) d = ?SubstMorphADTPFAlgCheckSig_hole_10
+SubstMorphADTPFAlgCheckSig (SMAPAssoc x y z) d = ?SubstMorphADTPFAlgCheckSig_hole_11
+
+public export
 data SubstMorphADTF : Type -> Type where
   SMAFrom0 : SubstObjMu -> SubstMorphADTF carrier
   SMACopTo1 : SubstObjMu -> SubstObjMu -> SubstMorphADTF carrier
