@@ -3947,7 +3947,7 @@ public export
 (<!) {x=(x !+ y)} {y=Subst1} {z} g (SMCopTo1 _ _) =
   SMCase (g <! soToTerminal x) (g <! soToTerminal y)
 (<!) {x=(x' !+ y')} {y} {z} g (SMCase f f') = SMCase (g <! f) (g <! f')
-(<!) g (SMProdTo1 x y) = ?compose_with_prod1_hole -- g <! soToTerminal _
+(<!) g (SMProdTo1 x y) = g <! soToTerminal _
 (<!) g (SMP0Left _ _) = SMP0Left _ _
 (<!) g (SMP1Left f) = ?compose_with_p1left_hole -- SMP1Left $ g <! f
 (<!) g (SMDistrib f) = ?compose_with_distrib_hole
