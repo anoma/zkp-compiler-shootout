@@ -3885,6 +3885,25 @@ MetaSOMorph (InSO ((InSO (x !!+ x')) !!* y)) z =
 MetaSOMorph (InSO ((InSO (x !!* x')) !!* y)) z = MetaSOMorph (x !* (x' !* y)) z
 
 public export
+showSubstMorph : {x, y : SubstObjMu} -> SubstMorph x y -> String
+showSubstMorph (SMFrom0 y) = "0->(" ++ show y ++ ")"
+showSubstMorph SMId1 = "id(1)"
+showSubstMorph (SMTermLeft z w) = "Left(" ++ showSubstMorph z ++ ")"
+showSubstMorph (SMTermRight z w) = "Right(" ++ showSubstMorph w ++ ")"
+showSubstMorph (SMTermPair z w) =
+  "(" ++ showSubstMorph z ++ ", " ++ showSubstMorph w ++ ")"
+showSubstMorph (SMCopTo1 z w) = "(" ++ show z ++ " + " ++ show w ++ ")->1"
+showSubstMorph (SMCase z w) =
+  "[" ++ showSubstMorph z ++ "|" ++ showSubstMorph w ++ "]"
+showSubstMorph (SMProdTo1 z w) = "(" ++ show z ++ ", " ++ show w ++ ")->1"
+showSubstMorph (SMP0Left z y) =
+  "(0 * " ++ show z ++ ") -> " ++ show y
+showSubstMorph (SMP1Left z) =
+  "(1 * " ++ showSubstMorph z ++ ")"
+showSubstMorph (SMDistrib z) = "distrib[" ++ showSubstMorph z ++ "]"
+showSubstMorph (SMAssoc z) = "assoc[" ++ showSubstMorph z ++ "]"
+
+public export
 showSOMorph : {x, y : SubstObjMu} -> MetaSOMorph x y -> String
 showSOMorph {x=(InSO SO0)} f = "0->*"
 showSOMorph {x=(InSO SO1)} {y = (InSO SO0)} f = void f
