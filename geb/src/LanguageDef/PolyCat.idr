@@ -3933,14 +3933,17 @@ public export
   case t of SMTermPair t' _ => case t' of _ impossible
 (<!) (SMAssoc (SMP1Left f)) (SMTermPair t t') =
   case t of SMTermPair SMId1 t'' => soApplyPair f t'' t'
-(<!) (SMAssoc (SMDistrib f)) (SMTermPair twxx tz) =
-  case (f, twxx) of
+(<!) (SMAssoc {w=(v !+ w)} {x} {y} {z} (SMDistrib f)) (SMTermPair tvwx ty) =
+  case (f, tvwx) of
     (SMCopTo1 _ _, _) => SMId1
-    (SMCase fw fx, SMTermPair (SMTermLeft tw _) tx) =>
-      soApplyPair fw tw $ SMTermPair tx tz
-    (SMCase fw fx, SMTermPair (SMTermRight _ tx) tx') =>
-      soApplyPair fx tx $ SMTermPair tx' tz
-(<!) (SMAssoc {x = x} {y = y} {z = z} (SMAssoc f)) (SMTermPair t t') = ?comhole_19
+    (SMCase fv fw, SMTermPair (SMTermLeft tv _) tx) =>
+      soApplyPair fv tv $ SMTermPair tx ty
+    (SMCase fv fw, SMTermPair (SMTermRight _ tw) tx) =>
+      soApplyPair fw tw $ SMTermPair tx ty
+(<!) (SMAssoc {w=(v !* w)} {x} {y} {z} (SMAssoc f)) (SMTermPair tvwx ty) =
+  case tvwx of
+    SMTermPair (SMTermPair tv tw) tx =>
+      soApplyPair f tv $ SMTermPair tw $ SMTermPair tx ty
 (<!) g (SMCopTo1 x y) = ?comhole_5
 (<!) g (SMCase f f') = ?comhole_6
 (<!) g (SMProdTo1 x y) = ?comhole_7
