@@ -4004,6 +4004,16 @@ soProdLeftIntro : {x, y, z : SubstObjMu} ->
   SubstMorph y z -> SubstMorph (x !* y) z
 soProdLeftIntro f = f <! SMProjRight _ _
 
+public export
+soProdLeftApply : {x, y, z : SubstObjMu} ->
+  SubstMorph y z -> SubstMorph (x !* y) (x !* z)
+soProdLeftApply f = SMPair (SMProjLeft _ _) (soProdLeftIntro f)
+
+public export
+soProdLeftAssoc : {w, x, y, z : SubstObjMu} ->
+  SubstMorph (w !* (x !* y)) z -> SubstMorph ((w !* x) !* y) z
+soProdLeftAssoc {w} {x} {y} {z} f = ?soProdLeftAssoc_hole
+
 -- The inverse of SMDistrib.
 public export
 soGather : (x, y, z : SubstObjMu) ->
@@ -4070,20 +4080,10 @@ soCurry {x} {y=(InSO (y !!+ y'))} {z} f =
   SMPair (soCurry $ soLeft fg) (soCurry $ soRight fg)
 soCurry {x} {y=(InSO (y !!* y'))} {z} f =
   let
-    cyz = soCurry {x=y} {y=y'} {z}
+    cxyz = soCurry {x=(x !* y)} {y=y'} {z}
+    cxhyz = soCurry {x} {y} {z=(SubstHomObj y' z)}
   in
-  ?soCurry_prod_hole
-{-
-soCurry {x} {y} {z=(x !* y)} (SMId _) = soCurry_hole_5
-soCurry {x} {y} {z} (g <! f) = soCurry_hole_0
-soCurry {x} {y} (SMToTerminal _) = soCurry_hole
-soCurry {x} {y} {z=((x !* y) !+ z)} (SMInjLeft _ _) = soCurry_hole_9
-soCurry {x} {y} {z=(z !+ (x !* y))} (SMInjRight _ _) = soCurry_hole_8
-soCurry {x} {y} {z=(y !* z)} (SMPair f g) = soCurry_hole_1
-soCurry {x} {y} {z=x} (SMProjLeft _ _) = soCurry_hole_2
-soCurry {x} {y} {z=y} (SMProjRight _ _) = soCurry_hole_3
-soCurry {x} {y=(x' !+ z')} {z=((x !* x') !+ (x !* z'))} (SMDistrib _ _ _) = soCurry_hole_4
--}
+  cxhyz $ cxyz $ soProdLeftAssoc f
 
 public export
 soUncurry : {x, y, z : SubstObjMu} ->
