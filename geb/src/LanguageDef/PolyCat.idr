@@ -4066,15 +4066,8 @@ soCurry : {x, y, z : SubstObjMu} ->
 soCurry {x} {y=(InSO SO0)} f = SMToTerminal x
 soCurry {x} {y=(InSO SO1)} {z} f = f <! SMPair (SMId x) (SMToTerminal x)
 soCurry {x} {y=(InSO (y !!+ y'))} {z} f =
-  let
-    c = soCurry {x} {y} {z}
-    c' = soCurry {x} {y=y'} {z}
-    d = SMDistrib x y y'
-    g = soGather x y y'
-    fg = f <! g
-    fgc = fg <! SMCase ?soCurry_cop_hole_case1 ?soCurry_cop_hole_case2
-  in
-  ?soCurry_cop_hole -- SMPair (soCurry h1) (soCurry h2)
+  let fg = f <! soGather x y y' in
+  SMPair (soCurry $ soLeft fg) (soCurry $ soRight fg)
 soCurry {x} {y=(InSO (y !!* y'))} {z} f =
   let
     cyz = soCurry {x=y} {y=y'} {z}
