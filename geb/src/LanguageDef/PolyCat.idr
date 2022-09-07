@@ -5186,32 +5186,22 @@ substMorphToBNC (SMCase {x} {y} {z} f g) with (substObjToNat x)
         (PI #/ #| cx)
         (substMorphToBNC f)
         (substMorphToBNC g #. PI #- #| cx)
-substMorphToBNC (SMPair {x} {y} {z} f g) = ?substMorphToBNC_hole_7
-substMorphToBNC (SMProjLeft x y) = ?substMorphToBNC_hole_8
-substMorphToBNC (SMProjRight x y) = ?substMorphToBNC_hole_9
+substMorphToBNC (SMPair {x} {y} {z} f g) with (substObjToNat x, substObjToNat y)
+  substMorphToBNC (SMPair {x} {y} {z} f g) | (cx, cy) =
+    #| cy #* substMorphToBNC f #+ substMorphToBNC g
+substMorphToBNC (SMProjLeft x y) with (substObjToNat x, substObjToNat y)
+  substMorphToBNC (SMProjLeft x y) | (cx, cy) =
+    if cy == 0 then
+      #| 0
+    else
+      PI #/ #| cy
+substMorphToBNC (SMProjRight x y) with (substObjToNat x, substObjToNat y)
+  substMorphToBNC (SMProjRight x y) | (cx, cy) =
+    if cy == 0 then
+      #| 0
+    else
+      PI #% #| cy
 substMorphToBNC (SMDistrib x y z) = PI
-{-
-  -- Constant
-  (#|) : Nat -> BNCPolyM
-  -- Identity
-  PI : BNCPolyM
-  -- Compose
-  (#.) : BNCPolyM -> BNCPolyM -> BNCPolyM
-  -- Add
-  (#+) : BNCPolyM -> BNCPolyM -> BNCPolyM
-  -- Multiply
-  (#*) : BNCPolyM -> BNCPolyM -> BNCPolyM
-  -- Inverse operations --
-  -- Subtract
-  (#-) : BNCPolyM -> BNCPolyM -> BNCPolyM
-  -- Divide (division by zero returns zero)
-  (#/) : BNCPolyM -> BNCPolyM -> BNCPolyM
-  -- Modulus (modulus by zero returns zero)
-  (#%) : BNCPolyM -> BNCPolyM -> BNCPolyM
-  -- Branch operation(s)
-  -- Compare with zero: equal takes first branch; not-equal takes second branch
-  IfZero : BNCPolyM -> BNCPolyM -> BNCPolyM -> BNCPolyM
-  -}
 
 ---------------------------------------------------
 ---------------------------------------------------
