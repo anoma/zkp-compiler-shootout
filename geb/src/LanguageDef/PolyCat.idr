@@ -4111,6 +4111,7 @@ soSubst : {x, y, z : SubstObjMu} ->
 soSubst (SMId y) f = f
 soSubst g (SMId _) = g
 soSubst (h <! g) f = h <! soSubst g f
+soSubst h (g <! f) = soSubst h g <! f
 soSubst {y=Subst0} {z} (SMFromInit _) (g <! f) = SMFromInit z <! soSubst g f
 soSubst {z} (SMFromInit _) (SMCase f g) =
   SMCase (soSubst (SMFromInit z) f) (soSubst (SMFromInit z) g)
@@ -4118,13 +4119,19 @@ soSubst (SMFromInit _) (SMProjLeft _ _) = SMFromInit _ <! SMProjLeft _ _
 soSubst (SMFromInit _) (SMProjRight _ _) = SMFromInit _ <! SMProjRight _ _
 soSubst _ (SMFromInit _) = SMFromInit _
 soSubst (SMToTerminal _) _ = SMToTerminal _
-soSubst (SMInjLeft _ _) f = ?soSubst_hole_27
-soSubst (SMInjRight x y) f = ?soSubst_hole_2
-soSubst (SMCase g h) f = ?soSubst_hole_3
+soSubst (SMInjLeft _ _) f = SMInjLeft _ _ <! f
+soSubst (SMInjRight _ _) f = SMInjRight _ _ <! f
+soSubst (SMCase h j) (g <! f) = ?soSubst_hole_1
+soSubst (SMCase g h) (SMInjLeft x y) = ?soSubst_hole_2
+soSubst (SMCase g h) (SMInjRight x y) = ?soSubst_hole_3
+soSubst (SMCase g h) (SMProjLeft _ _) = ?soSubst_hole_4
+soSubst (SMCase g h) (SMProjRight _ _) = ?soSubst_hole_5
+soSubst (SMCase h j) (SMCase g f) = ?soSubst_hole_6
+soSubst (SMCase g h) (SMDistrib x y z) = ?soSubst_hole_7
 soSubst (SMPair g h) f = SMPair (soSubst g f) (soSubst h f)
-soSubst (SMProjLeft x y) f = ?soSubst_hole_5
-soSubst (SMProjRight x y) f = ?soSubst_hole_6
-soSubst (SMDistrib x y z) f = ?soSubst_hole_7
+soSubst (SMProjLeft _ _) f = ?soSubst_hole_8
+soSubst (SMProjRight _ _) f = ?soSubst_hole_9
+soSubst (SMDistrib _ _ _) f = ?soSubst_hole_10
 
 public export
 soReduce : {x, y : SubstObjMu} -> SubstMorph x y -> SubstMorph x y
