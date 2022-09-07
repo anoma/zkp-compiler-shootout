@@ -4262,45 +4262,6 @@ public export
 MetaSOType : SubstObjMu -> Type
 MetaSOType = substObjCata MetaSOTypeAlg
 
--------------------------------------------
----- Older version of above definition ----
--------------------------------------------
-
-public export
-MetaSOMorph : SubstObjMu -> SubstObjMu -> Type
--- The unique morphism from the initial object to a given object
-MetaSOMorph (InSO SO0) _ = ()
--- There are no morphisms from the terminal object to the initial object
-MetaSOMorph (InSO SO1) (InSO SO0) = Void
--- The unique morphism from a given object to the terminal object
--- (in this case, the given object is also the terminal object)
-MetaSOMorph (InSO SO1) (InSO SO1) = Unit
--- To form a morphism from the terminal object to a coproduct,
--- we choose a morphism from the terminal object to either the left
--- or the right object of the coproduct
-MetaSOMorph (InSO SO1) (InSO (y !!+ z)) =
-  Either (MetaSOMorph Subst1 y) (MetaSOMorph Subst1 z)
--- To form a morphism from the terminal object to a product,
--- we choose morphisms from the terminal object to both the left
--- and the right object of the product
-MetaSOMorph (InSO SO1) (InSO (y !!* z)) =
-  Pair (MetaSOMorph Subst1 y) (MetaSOMorph Subst1 z)
--- The unique morphism from a coproduct to the terminal object
-MetaSOMorph (InSO (_ !!+ _)) (InSO SO1) = ()
--- Coproducts are eliminated by cases
-MetaSOMorph (InSO (x !!+ y)) z = Pair (MetaSOMorph x z) (MetaSOMorph y z)
--- The unique morphism from a product to the terminal object
-MetaSOMorph (InSO (_ !!* _)) (InSO SO1) = ()
--- 0 * y === 0
-MetaSOMorph (InSO ((InSO SO0) !!* y)) z = ()
--- 1 * y === y
-MetaSOMorph (InSO ((InSO SO1) !!* y)) z = MetaSOMorph y z
--- Distributivity of products over coproducts
-MetaSOMorph (InSO ((InSO (x !!+ x')) !!* y)) z =
-  MetaSOMorph ((x !* y) !+ (x' !* y)) z
--- Associativity of products
-MetaSOMorph (InSO ((InSO (x !!* x')) !!* y)) z = MetaSOMorph (x !* (x' !* y)) z
-
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ---- Inductive definition of substitutive polynomial endofunctors ----
@@ -5197,6 +5158,47 @@ metaBNCPolyM modpred p = bncPolyMInd MetaBNCPolyMAlg p modpred
 public export
 baPolyM : {m, n : Nat} -> BNCPolyM -> BANat m -> BANat (S n)
 baPolyM {n} p = metaToBNCToBNC (metaBNCPolyM (natToInteger n) p)
+
+---------------------------------------------------
+---------------------------------------------------
+---- Older version of polynomial-type category ----
+---------------------------------------------------
+---------------------------------------------------
+
+public export
+MetaSOMorph : SubstObjMu -> SubstObjMu -> Type
+-- The unique morphism from the initial object to a given object
+MetaSOMorph (InSO SO0) _ = ()
+-- There are no morphisms from the terminal object to the initial object
+MetaSOMorph (InSO SO1) (InSO SO0) = Void
+-- The unique morphism from a given object to the terminal object
+-- (in this case, the given object is also the terminal object)
+MetaSOMorph (InSO SO1) (InSO SO1) = Unit
+-- To form a morphism from the terminal object to a coproduct,
+-- we choose a morphism from the terminal object to either the left
+-- or the right object of the coproduct
+MetaSOMorph (InSO SO1) (InSO (y !!+ z)) =
+  Either (MetaSOMorph Subst1 y) (MetaSOMorph Subst1 z)
+-- To form a morphism from the terminal object to a product,
+-- we choose morphisms from the terminal object to both the left
+-- and the right object of the product
+MetaSOMorph (InSO SO1) (InSO (y !!* z)) =
+  Pair (MetaSOMorph Subst1 y) (MetaSOMorph Subst1 z)
+-- The unique morphism from a coproduct to the terminal object
+MetaSOMorph (InSO (_ !!+ _)) (InSO SO1) = ()
+-- Coproducts are eliminated by cases
+MetaSOMorph (InSO (x !!+ y)) z = Pair (MetaSOMorph x z) (MetaSOMorph y z)
+-- The unique morphism from a product to the terminal object
+MetaSOMorph (InSO (_ !!* _)) (InSO SO1) = ()
+-- 0 * y === 0
+MetaSOMorph (InSO ((InSO SO0) !!* y)) z = ()
+-- 1 * y === y
+MetaSOMorph (InSO ((InSO SO1) !!* y)) z = MetaSOMorph y z
+-- Distributivity of products over coproducts
+MetaSOMorph (InSO ((InSO (x !!+ x')) !!* y)) z =
+  MetaSOMorph ((x !* y) !+ (x' !* y)) z
+-- Associativity of products
+MetaSOMorph (InSO ((InSO (x !!* x')) !!* y)) z = MetaSOMorph (x !* (x' !* y)) z
 
 -----------------------------------------------------------
 -----------------------------------------------------------
