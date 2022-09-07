@@ -4157,27 +4157,6 @@ public export
 (!^) = flip SubstHomObj
 
 public export
-soCurry : {x, y, z : SubstObjMu} ->
-  SubstMorph (x !* y) z -> SubstMorph x (z !^ y)
-soCurry (SMId _) = ?soCurry_hole_5
-soCurry (g <! f) = ?soCurry_hole_0
-soCurry (SMToTerminal _) = ?soCurry_hole_7
-soCurry (SMInjLeft _ y) = ?soCurry_hole_9
-soCurry (SMInjRight x _) = ?soCurry_hole_8
-soCurry (SMPair f g) = ?soCurry_hole_1
-soCurry (SMProjLeft x y) = ?soCurry_hole_2
-soCurry (SMProjRight x y) = ?soCurry_hole_3
-soCurry (SMDistrib x y z) = ?soCurry_hole_4
-
-public export
-soUncurry : {x, y, z : SubstObjMu} ->
-  SubstMorph x (z !^ y) -> SubstMorph (x !* y) z
-soUncurry {x} {y=(InSO SO0)} {z} = ?soUncurry_hole_2
-soUncurry {x} {y=(InSO SO1)} {z} = ?soUncurry_hole_3
-soUncurry {x} {y=(InSO (y !!+ y'))} {z} = ?soUncurry_hole_4
-soUncurry {x} {y=(InSO (y !!* y'))} {z} = ?soUncurry_hole_5
-
-public export
 soEval : (x, y : SubstObjMu) ->
   SubstMorph ((y !^ x) !* x) y
 soEval (InSO SO0) y = SMFromInit y <! SMProjRight Subst1 Subst0
@@ -4199,6 +4178,24 @@ soEval (InSO (x !!* y)) z =
     SMPair
       (exhyz <! SMPair (SMProjLeft _ _) (SMProjLeft _ _ <! SMProjRight _ _))
       (SMProjRight _ _ <! SMProjRight _ _)
+
+public export
+soCurry : {x, y, z : SubstObjMu} ->
+  SubstMorph (x !* y) z -> SubstMorph x (z !^ y)
+soCurry (SMId _) = ?soCurry_hole_5
+soCurry (g <! f) = ?soCurry_hole_0
+soCurry (SMToTerminal _) = ?soCurry_hole_7
+soCurry (SMInjLeft _ y) = ?soCurry_hole_9
+soCurry (SMInjRight x _) = ?soCurry_hole_8
+soCurry (SMPair f g) = ?soCurry_hole_1
+soCurry (SMProjLeft x y) = ?soCurry_hole_2
+soCurry (SMProjRight x y) = ?soCurry_hole_3
+soCurry (SMDistrib x y z) = ?soCurry_hole_4
+
+public export
+soUncurry : {x, y, z : SubstObjMu} ->
+  SubstMorph x (z !^ y) -> SubstMorph (x !* y) z
+soUncurry f = soEval y z <! SMPair (f <! SMProjLeft _ _) (SMProjRight _ _)
 
 public export
 HomTerm : SubstObjMu -> SubstObjMu -> Type
