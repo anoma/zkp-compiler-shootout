@@ -3926,30 +3926,68 @@ showSubstMorph (SMInjLeft x y) = "->Left<" ++ show x ++ " | " ++ show y ++ ">"
 showSubstMorph (SMInjRight x y) = "->Right<" ++ show x ++ " | " ++ show y ++ ">"
 showSubstMorph (SMCase f g) =
   "[" ++ showSubstMorph f ++ " | " ++ showSubstMorph g ++ "]"
-showSubstMorph (SMPair f g) = ?showSubstMorph_hole_7
+showSubstMorph (SMPair f g) =
   "(" ++ showSubstMorph f ++ ", " ++ showSubstMorph g ++ ")"
 showSubstMorph (SMProjLeft x y) = "<-Left<" ++ show x ++ ", " ++ show y ++ ">"
 showSubstMorph (SMProjRight x y) = "<-Right<" ++ show x ++ ", " ++ show y ++ ">"
 showSubstMorph (SMDistrib x y z) =
   "distrib{" ++ show x ++ ", " ++ show y ++ ", " ++ show z ++ "}"
 
+public export
+soProdCommutes : (x, y : SubstObjMu) -> SubstMorph (x !* y) (y !* x)
+soProdCommutes x y = SMPair (SMProjRight x y) (SMProjLeft x y)
+
+public export
+soProdCommutesLeft : {x, y, z : SubstObjMu} ->
+  SubstMorph (x !* y) z -> SubstMorph (y !* x) z
+soProdCommutesLeft f = f <! soProdCommutes y x
+
+public export
+soProdCommutesRight : {x, y, z : SubstObjMu} ->
+  SubstMorph x (y !* z) -> SubstMorph x (z !* y)
+soProdCommutesRight f = soProdCommutes y z <! f
+
+public export
+soCopCommutes : (x, y : SubstObjMu) -> SubstMorph (x !+ y) (y !+ x)
+soCopCommutes x y = SMCase (SMInjRight y x) (SMInjLeft y x)
+
+public export
+soCopCommutesLeft : {x, y, z : SubstObjMu} ->
+  SubstMorph (x !+ y) z -> SubstMorph (y !+ x) z
+soCopCommutesLeft f = f <! soCopCommutes y x
+
+public export
+soCopCommutesRight : {x, y, z : SubstObjMu} ->
+  SubstMorph x (y !+ z) -> SubstMorph x (z !+ y)
+soCopCommutesRight f = soCopCommutes y z <! f
+
+  {-
 mutual
   public export
   soApply : {x, y, z : SubstObjMu} ->
     SubstMorph y z -> SubstMorph x y -> SubstMorph x z
-  soApply = ?soApply_hole
-  {-
+  soApply (SMId _) e = e  --SMId is left identity
+  soApply (g <! f) e = g <! soApply f e  -- composition is associative
+  soApply f@(SMFromInit y) e = soApply_hole
+  soApply {x} (SMToTerminal _) e = SMToTerminal x
+  soApply {x} {y=z} {z=(z !+ z')} (SMInjLeft z z') e = soApply_hole_4
+  soApply (SMInjRight w y) e = soApply_hole_5
+  soApply (SMCase w v) e = soApply_hole_6
+  soApply (SMPair w v) e = soApply_hole_7
+  soApply (SMProjLeft z v) e = soApply_hole_8
+  soApply (SMProjRight w z) e = soApply_hole_9
+  soApply (SMDistrib w v s) e = soApply_hole_10
   soApply f SMId1 = f
   soApply (SMCopTo1 _ _) _ = SMId1
   soApply (SMCase f g) (SMTermLeft t _) = soApply f t
   soApply (SMCase f g) (SMTermRight _ t) = soApply g t
   soApply f (SMTermPair t t') = soApplyPair f t t'
-  -}
 
   public export
   soApplyPair : {w, x, y, z : SubstObjMu} ->
     SubstMorph (x !* y) z -> SubstMorph w x -> SubstMorph w y -> SubstMorph w z
-  soApplyPair = ?soApplyPair_hole
+  soApplyPair h f g = soApplyPair_hole
+  -}
   {-
   soApplyPair (SMProdTo1 _ _) _ _ = SMId1
   soApplyPair (SMDistrib (SMCopTo1 _ _)) _ _ = SMId1
@@ -4024,25 +4062,25 @@ public export
   SMCase (g <! soToTerminal x) (g <! soToTerminal y)
 (<!) {x=(x' !+ y')} {y} {z} g (SMCase f f') = SMCase (g <! f) (g <! f')
 (<!) g (SMProdTo1 x y) = g <! soToTerminal _
-(<!) g (SMDistrib f) = ?compose_with_distrib_hole
-(<!) g (SMAssoc f) = ?compose_with_assoc_hole
+(<!) g (SMDistrib f) = compose_with_distrib_hole
+(<!) g (SMAssoc f) = compose_with_assoc_hole
 
 mutual
   public export
   SOI : (x : SubstObjMu) -> SubstMorph x x
-  SOI x = ?SOI_hole
+  SOI x = SOI_hole
   {-
   SOI (InSO SO0) = ()
   SOI (InSO SO1) = ()
   SOI (InSO (x !!+ y)) = (soInjLeft x y, soInjRight x y)
   SOI (InSO ((InSO SO0) !!* y)) = ()
   SOI (InSO ((InSO SO1) !!* y)) = soProd (soToTerminal y) (SOI y)
-  SOI (InSO ((InSO (x !!+ x')) !!* y)) = ?soi_hole_1
+  SOI (InSO ((InSO (x !!+ x')) !!* y)) = soi_hole_1
   -}
   {-
     (soProd (soInjLeft _ _ <! soProjLeft _ _) (soProjRight x y),
      soProd (soInjRight _ _ <! soProjLeft _ _) (soProjRight x' y))
-  SOI (InSO ((InSO (x !!* x')) !!* y)) = ?soi_hole_2
+  SOI (InSO ((InSO (x !!* x')) !!* y)) = soi_hole_2
      -}
   {-
     soProd
@@ -4052,50 +4090,50 @@ mutual
 
   public export
   soInjLeft : (x, y : SubstObjMu) -> SubstMorph x (x !+ y)
-  soInjLeft x y = ?soInjLeft_hole
+  soInjLeft x y = soInjLeft_hole
   {-
   soInjLeft (InSO SO0) y = ()
   soInjLeft (InSO SO1) y = Left ()
-  soInjLeft (InSO (x !!+ z)) y = (?soInjLeft_hole_14, ?soInjLeft_hole_14a)
-  soInjLeft (InSO ((InSO SO0) !!* z)) y = ?soInjLeft_hole_17
-  soInjLeft (InSO ((InSO SO1) !!* z)) y = ?soInjLeft_hole_18
-  soInjLeft (InSO ((InSO (x !!+ w)) !!* z)) y = ?soInjLeft_hole_19
-  soInjLeft (InSO ((InSO (x !!* w)) !!* z)) y = ?soInjLeft_hole_20
+  soInjLeft (InSO (x !!+ z)) y = (soInjLeft_hole_14, soInjLeft_hole_14a)
+  soInjLeft (InSO ((InSO SO0) !!* z)) y = soInjLeft_hole_17
+  soInjLeft (InSO ((InSO SO1) !!* z)) y = soInjLeft_hole_18
+  soInjLeft (InSO ((InSO (x !!+ w)) !!* z)) y = soInjLeft_hole_19
+  soInjLeft (InSO ((InSO (x !!* w)) !!* z)) y = soInjLeft_hole_20
   -}
 
   public export
   soInjRight : (x, y : SubstObjMu) -> SubstMorph y (x !+ y)
-  soInjRight x y = ?soInjRight_hole
+  soInjRight x y = soInjRight_hole
   {-
   soInjRight x (InSO SO0) = ()
   soInjRight x (InSO SO1) = Right ()
-  soInjRight x (InSO (y !!+ z)) = (?soInjRight_hole_3, ?soInjRight_hole_3a)
-  soInjRight x (InSO (y !!* z)) = ?soInjRight_hole_4
+  soInjRight x (InSO (y !!+ z)) = (soInjRight_hole_3, soInjRight_hole_3a)
+  soInjRight x (InSO (y !!* z)) = soInjRight_hole_4
   -}
 
   public export
   soProd : {x, y, z : SubstObjMu} ->
     SubstMorph x y -> SubstMorph x z -> SubstMorph x (y !* z)
-  soProd {x} {y} {z} f g = ?soProd_hole
+  soProd {x} {y} {z} f g = soProd_hole
   {-
-  soProd {x = (InSO SO0)} {y = y} {z = z} f g = ?soProd_hole_1
-  soProd {x = (InSO SO1)} {y = y} {z = z} f g = ?soProd_hole_2
-  soProd {x = (InSO (x !!+ w))} {y = y} {z = z} f g = ?soProd_hole_3
-  soProd {x = (InSO (x !!* w))} {y = y} {z = z} f g = ?soProd_hole_4
+  soProd {x = (InSO SO0)} {y = y} {z = z} f g = soProd_hole_1
+  soProd {x = (InSO SO1)} {y = y} {z = z} f g = soProd_hole_2
+  soProd {x = (InSO (x !!+ w))} {y = y} {z = z} f g = soProd_hole_3
+  soProd {x = (InSO (x !!* w))} {y = y} {z = z} f g = soProd_hole_4
   -}
 
   public export
   soProjLeft : (x, y : SubstObjMu) -> SubstMorph (x !* y) x
-  soProjLeft x y = ?soProjLeft_hole
+  soProjLeft x y = soProjLeft_hole
 
   public export
   soProjRight : (x, y : SubstObjMu) -> SubstMorph (x !* y) y
-  soProjRight x y = ?soProjRight_hole
+  soProjRight x y = soProjRight_hole
 
   public export
   soDistributeRight : (x, y, z : SubstObjMu) ->
     SubstMorph (x !* (y !+ z)) ((x !* y) !+ (x !* z))
-  soDistributeRight x y z = ?soDistribute_hole
+  soDistributeRight x y z = soDistribute_hole
   -}
 
 --------------------------------------------------------------
@@ -4131,7 +4169,25 @@ soUncurry {x} {y} {z} f = ?soUncurry_hole
 public export
 soEval : (x, y : SubstObjMu) ->
   SubstMorph ((y !^ x) !* x) y
-soEval x y = ?soEval_hole
+soEval (InSO SO0) y = SMFromInit y <! SMProjRight Subst1 Subst0
+soEval (InSO SO1) y = SMProjLeft y Subst1
+soEval (InSO (x !!+ y)) z =
+  SMCase (soEval x z) (soEval y z) <!
+    SMCase
+      (SMInjLeft _ _ <!
+        SMPair (SMProjLeft _ _ <! SMProjLeft _ _) (SMProjRight _ _))
+      (SMInjRight _ _ <!
+        SMPair (SMProjRight _ _ <! SMProjLeft _ _) (SMProjRight _ _))
+    <! SMDistrib _ _ _
+soEval (InSO (x !!* y)) z =
+  let
+    eyz = soEval y z
+    exhyz = soEval x (SubstHomObj y z)
+  in
+  eyz <!
+    SMPair
+      (exhyz <! SMPair (SMProjLeft _ _) (SMProjLeft _ _ <! SMProjRight _ _))
+      (SMProjRight _ _ <! SMProjRight _ _)
 
 public export
 HomTerm : SubstObjMu -> SubstObjMu -> Type
@@ -4143,18 +4199,18 @@ TermAsMorph {x} {y} t = ?TermAsMorph_hole
 {-
 TermAsMorph {x=(InSO SO0)} {y} () = ()
 TermAsMorph {x=(InSO SO1)} {y} f = f
-TermAsMorph {x=(InSO (x !!+ y))} {y=z} f = ?tam_hole_1 -- (f, g) = (TermAsMorph f, TermAsMorph g)
-TermAsMorph {x=(InSO ((InSO SO0) !!* y))} {y=z} () = ?tam_hole_again -- ()
-TermAsMorph {x=(InSO ((InSO SO1) !!* (InSO SO0)))} {y=z} () = ?tam_hole_again_2 -- ()
-TermAsMorph {x=(InSO ((InSO SO1) !!* (InSO SO1)))} {y=z} f = ?tam_hole_sigh -- f
+TermAsMorph {x=(InSO (x !!+ y))} {y=z} f = tam_hole_1 -- (f, g) = (TermAsMorph f, TermAsMorph g)
+TermAsMorph {x=(InSO ((InSO SO0) !!* y))} {y=z} () = tam_hole_again -- ()
+TermAsMorph {x=(InSO ((InSO SO1) !!* (InSO SO0)))} {y=z} () = tam_hole_again_2 -- ()
+TermAsMorph {x=(InSO ((InSO SO1) !!* (InSO SO1)))} {y=z} f = tam_hole_sigh -- f
 TermAsMorph {x=(InSO ((InSO SO1) !!* (InSO (x !!+ y))))} {y=z} (f, g) =
-  ?tam_hoe_2 -- (TermAsMorph f, TermAsMorph g)
+  tam_hoe_2 -- (TermAsMorph f, TermAsMorph g)
 TermAsMorph {x=(InSO ((InSO SO1) !!* (InSO (x !!* y))))} {y=z} f =
-  ?tam_hole_mostofit -- TermAsMorph {x=(x !* y)} {y=z} f
+  tam_hole_mostofit -- TermAsMorph {x=(x !* y)} {y=z} f
 TermAsMorph {x=(InSO ((InSO (x !!+ w)) !!* y))} {y=z} (f, g) =
-  ?tm_hole_3 -- (soUncurry $ TermAsMorph f, soUncurry $ TermAsMorph g)
+  tm_hole_3 -- (soUncurry $ TermAsMorph f, soUncurry $ TermAsMorph g)
 TermAsMorph {x=(InSO ((InSO (x !!* w)) !!* y))} {y=z} f =
-  ?tam_hole_onemore -- TermAsMorph {x=(x !* (w !* y))} {y=z} f
+  tam_hole_onemore -- TermAsMorph {x=(x !* (w !* y))} {y=z} f
   -}
 
 public export
@@ -4163,18 +4219,18 @@ MorphAsTerm {x} {y} f = ?MorphAsTerm_hole
 {-
 MorphAsTerm {x=(InSO SO0)} {y} () = ()
 MorphAsTerm {x=(InSO SO1)} {y} f = f
-MorphAsTerm {x=(InSO (x !!+ y))} {y=z} f = ?mat_hole_1 -- (f, g) = (MorphAsTerm f, MorphAsTerm g)
+MorphAsTerm {x=(InSO (x !!+ y))} {y=z} f = mat_hole_1 -- (f, g) = (MorphAsTerm f, MorphAsTerm g)
 MorphAsTerm {x=(InSO ((InSO SO0) !!* y))} {y=z} f = ()
 -- MorphAsTerm {x=(InSO ((InSO SO1) !!* (InSO SO0)))} {y=z} () = ()
-MorphAsTerm {x=(InSO ((InSO SO1) !!* (InSO SO1)))} {y=z} f = ?mat_holey -- f
-MorphAsTerm {x=(InSO ((InSO SO1) !!* (InSO (x !!+ y))))} {y=z} f = ?mat_hole_2 -- (f, g) =
+MorphAsTerm {x=(InSO ((InSO SO1) !!* (InSO SO1)))} {y=z} f = mat_holey -- f
+MorphAsTerm {x=(InSO ((InSO SO1) !!* (InSO (x !!+ y))))} {y=z} f = mat_hole_2 -- (f, g) =
   -- (MorphAsTerm f, MorphAsTerm g)
 MorphAsTerm {x=(InSO ((InSO SO1) !!* (InSO (x !!* y))))} {y=z} f =
-  ?mat_more_holes -- MorphAsTerm {x=(x !* y)} {y=z} f
-MorphAsTerm {x=(InSO ((InSO (x !!+ w)) !!* y))} {y=z} f = ?mat_hole_3 -- (f, g) =
+  mat_more_holes -- MorphAsTerm {x=(x !* y)} {y=z} f
+MorphAsTerm {x=(InSO ((InSO (x !!+ w)) !!* y))} {y=z} f = mat_hole_3 -- (f, g) =
   --(MorphAsTerm f, MorphAsTerm g)
 MorphAsTerm {x=(InSO ((InSO (x !!* w)) !!* y))} {y=z} f =
-  ?mat_this_too -- MorphAsTerm {x=(x !* (w !* y))} {y=z} f
+  mat_this_too -- MorphAsTerm {x=(x !* (w !* y))} {y=z} f
   -}
 
 public export
