@@ -3980,6 +3980,22 @@ soProdRight : {x, y, z : SubstObjMu} ->
 soProdRight f = f <! SMProjLeft _ _
 
 public export
+soForgetFirst : (x, y, z : SubstObjMu) -> SubstMorph ((x !* y) !* z) (y !* z)
+soForgetFirst x y z =
+  SMPair (SMProjRight _ _ <! SMProjLeft _ _) (SMProjRight _ _)
+
+public export
+soForgetMiddle : (x, y, z : SubstObjMu) -> SubstMorph ((x !* y) !* z) (x !* z)
+soForgetMiddle x y z =
+  SMPair (SMProjLeft _ _ <! SMProjLeft _ _) (SMProjRight _ _)
+
+public export
+soForgetRight : (x, y, z : SubstObjMu) -> SubstMorph (x !* (y !* z)) (x !* y)
+soForgetRight x y z =
+  SMPair (SMProjLeft _ _) (SMProjLeft _ _ <! SMProjRight _ _)
+
+-- The inverse of SMDistrib.
+public export
 soGather : (x, y, z : SubstObjMu) ->
   SubstMorph ((x !* y) !+ (x !* z)) (x !* (y !+ z))
 soGather x y z =
@@ -4192,10 +4208,8 @@ soEval (InSO SO1) y = SMProjLeft y Subst1
 soEval (InSO (x !!+ y)) z =
   SMCase (soEval x z) (soEval y z) <!
     SMCase
-      (SMInjLeft _ _ <!
-        SMPair (SMProjLeft _ _ <! SMProjLeft _ _) (SMProjRight _ _))
-      (SMInjRight _ _ <!
-        SMPair (SMProjRight _ _ <! SMProjLeft _ _) (SMProjRight _ _))
+      (SMInjLeft _ _ <! soForgetMiddle _ _ _)
+      (SMInjRight _ _ <! soForgetFirst _ _ _)
     <! SMDistrib _ _ _
 soEval (InSO (x !!* y)) z =
   let
@@ -4204,7 +4218,7 @@ soEval (InSO (x !!* y)) z =
   in
   eyz <!
     SMPair
-      (exhyz <! SMPair (SMProjLeft _ _) (SMProjLeft _ _ <! SMProjRight _ _))
+      (exhyz <! soForgetRight _ _ _)
       (SMProjRight _ _ <! SMProjRight _ _)
 
 public export
@@ -4212,8 +4226,23 @@ soCurry : {x, y, z : SubstObjMu} ->
   SubstMorph (x !* y) z -> SubstMorph x (z !^ y)
 soCurry {x} {y=(InSO SO0)} f = SMToTerminal x
 soCurry {x} {y=(InSO SO1)} {z} f = f <! SMPair (SMId x) (SMToTerminal x)
-soCurry {y=(InSO (y !!+ y'))} f = ?soCurry_hole_3
-soCurry {y=(InSO (y !!* z'))} f = ?soCurry_hole_4
+soCurry {x} {y=(InSO (y !!+ y'))} {z} f =
+  let
+  {-
+    c = soCurry {x} {y} {z}
+    c' = soCurry {x} {y=y'} {z}
+    -}
+    d = SMDistrib x y y'
+    g = soGather x y y'
+    fg = f <! g
+    fgc = fg <! SMCase ?h3 ?h4
+  in
+  ?ggghhh -- SMPair (soCurry ?h1) (soCurry ?h2)
+soCurry {x} {y=(InSO (y !!* y'))} {z} f =
+  let
+    cyz = soCurry {x=y} {y=y'} {z}
+  in
+  ?soCurry_hole_4
 {-
 soCurry {x} {y} {z=(x !* y)} (SMId _) = ?soCurry_hole_5
 soCurry {x} {y} {z} (g <! f) = ?soCurry_hole_0
