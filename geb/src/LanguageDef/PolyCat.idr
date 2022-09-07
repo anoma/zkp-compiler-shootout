@@ -5176,12 +5176,20 @@ substMorphToBNC ((<!) {x} {y} {z} g f) = substMorphToBNC g #. substMorphToBNC f
 substMorphToBNC {x=Subst0} (SMFromInit y) = #| 0
 substMorphToBNC {y=Subst1} (SMToTerminal x) = #| 1
 substMorphToBNC (SMInjLeft x y) = PI
-substMorphToBNC (SMInjRight x y) = PI #+ #| (substObjToNat x)
-substMorphToBNC (SMCase {x} {y} {z} f g) = ?substMorphToBNC_hole_6
+substMorphToBNC (SMInjRight x y) = #| (substObjToNat x) #+ PI
+substMorphToBNC (SMCase {x} {y} {z} f g) with (substObjToNat x, substObjToNat y)
+  substMorphToBNC (SMCase {x} {y} {z} f g) | (cx, cy) =
+    if cx == 0 then
+      substMorphToBNC g
+    else
+      IfZero
+        (PI #/ #| cx)
+        (substMorphToBNC f)
+        (#| (substObjToNat x) #+ substMorphToBNC g)
 substMorphToBNC (SMPair {x} {y} {z} f g) = ?substMorphToBNC_hole_7
 substMorphToBNC (SMProjLeft x y) = ?substMorphToBNC_hole_8
 substMorphToBNC (SMProjRight x y) = ?substMorphToBNC_hole_9
-substMorphToBNC (SMDistrib x y z) = ?substMorphToBNC_hole_10
+substMorphToBNC (SMDistrib x y z) = PI
 {-
   -- Constant
   (#|) : Nat -> BNCPolyM
