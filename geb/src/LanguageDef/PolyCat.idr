@@ -4114,18 +4114,19 @@ mutual
   soSubst (h <! g) f = h <! soSubst g f
   soSubst h (g <! f) = soSubst h g <! f
   soSubst {y=Subst0} {z} (SMFromInit _) (g <! f) = SMFromInit z <! soSubst g f
-  soSubst (SMFromInit _) (SMFromInit _) = ?soSubst_hole_13
-  soSubst (SMFromInit _) (SMCase f g) = ?soSubst_hole_17
-  soSubst (SMFromInit _) (SMProjLeft _ _) = ?soSubst_hole_14
-  soSubst (SMFromInit _) (SMProjRight _ _) = ?soSubst_hole_15
-  soSubst (SMToTerminal x) f = ?soSubst_hole_3
-  soSubst (SMInjLeft x y) f = ?soSubst_hole_4
-  soSubst (SMInjRight x y) f = ?soSubst_hole_5
-  soSubst (SMCase g h) f = ?soSubst_hole_6
-  soSubst (SMPair g h) f = ?soSubst_hole_7
-  soSubst (SMProjLeft x y) f = ?soSubst_hole_8
-  soSubst (SMProjRight x y) f = ?soSubst_hole_9
-  soSubst (SMDistrib x y z) f = ?soSubst_hole_10
+  soSubst {z} (SMFromInit _) (SMFromInit _) = SMFromInit z
+  soSubst {z} (SMFromInit _) (SMCase f g) =
+    SMCase (soSubst (SMFromInit z) f) (soSubst (SMFromInit z) g)
+  soSubst (SMFromInit _) (SMProjLeft _ _) = SMFromInit _ <! SMProjLeft _ _
+  soSubst (SMFromInit _) (SMProjRight _ _) = SMFromInit _ <! SMProjRight _ _
+  soSubst (SMToTerminal _) _ = SMToTerminal _
+  soSubst (SMInjLeft x y) f = ?soSubst_hole_1
+  soSubst (SMInjRight x y) f = ?soSubst_hole_2
+  soSubst (SMCase g h) f = ?soSubst_hole_3
+  soSubst (SMPair g h) f = ?soSubst_hole_4
+  soSubst (SMProjLeft x y) f = ?soSubst_hole_5
+  soSubst (SMProjRight x y) f = ?soSubst_hole_6
+  soSubst (SMDistrib x y z) f = ?soSubst_hole_7
 
   public export
   soSubstPair : {w, x, y, z : SubstObjMu} ->
