@@ -4122,6 +4122,10 @@ IdTerm : (x : SubstObjMu) -> HomTerm x x
 IdTerm x = MorphAsTerm (SMId x)
 
 public export
+soHigherEval : (x, y : SubstObjMu) -> HomTerm ((x !-> y) !* x) y
+soHigherEval x y = MorphAsTerm $ SMId (x !-> y)
+
+public export
 soHigherCurry : (x, y, z : SubstObjMu) ->
   SubstMorph ((x !* y) !-> z) (x !-> (y !-> z))
 soHigherCurry x y z = SMId (x !-> (y !-> z))
