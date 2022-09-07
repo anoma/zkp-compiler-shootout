@@ -578,7 +578,7 @@ Functor InitialComonad where
   map _ v = v
 
 public export
-InitialNTCounit : (a : Type) -> InitialComonad a -> a
+InitialNTCounit : (0 a : Type) -> InitialComonad a -> a
 InitialNTCounit = voidF
 
 public export
@@ -1309,10 +1309,10 @@ PolyData : Type
 PolyData = List (Type, Type)
 
 public export
-PolyFunc : PolyData -> (Type -> Type)
-PolyFunc [] _ = Void
-PolyFunc ((coeff, rep) :: l) ty =
-  Either (coeff, CovarHomFunc rep ty) (PolyFunc l ty)
+PolyDFunc : PolyData -> (Type -> Type)
+PolyDFunc [] _ = Void
+PolyDFunc ((coeff, rep) :: l) ty =
+  Either (coeff, CovarHomFunc rep ty) (PolyDFunc l ty)
 
 public export
 DirichFunc : PolyData -> (Type -> Type)
@@ -2317,13 +2317,19 @@ public export
 InitialColimit : (Type -> Type) -> Type
 InitialColimit f = OmegaColimit f Void
 
+-- AKA parameterized catamorphism.
 public export
-ColimitCata : (Type -> Type) -> Type
-ColimitCata f = (x : Type) -> Algebra f x -> InitialColimit f -> x
+InitialColimitMapAlg : (Type -> Type) -> Type -> Type
+InitialColimitMapAlg f x = Algebra f x -> InitialColimit f -> x
 
 public export
-colimitCata : {f : Type -> Type} -> {isF : Functor f} -> ColimitCata f
-colimitCata {f} {isF} x alg = colimitMapAlg {f} {isF} {x} {v=Void} alg (voidF _)
+ColimitCata : (Type -> Type) -> Type
+ColimitCata f = (x : Type) -> InitialColimitMapAlg f x
+
+public export
+colimitCata : {0 f : Type -> Type} -> {isF : Functor f} -> ColimitCata f
+colimitCata {f} {isF} x alg =
+  colimitMapAlg {f} {isF} {x} {v=Void} alg (voidF _)
 
 -----------------------------------
 ---- Product functor iteration ----
@@ -2390,7 +2396,7 @@ public export
 fInitAlgInv : {f : Type -> Type} -> {isF : Functor f} ->
   FInitAlg f -> FInitAlgInv f
 fInitAlgInv {f} {isF} alg =
-  colimitCata {isF} (f (InitialColimit f)) (map {f} alg)
+  colimitCata {f} {isF} (f (InitialColimit f)) (map {f} alg)
 
 public export
 InitAlgCorrect : {f : Type -> Type} -> {isF : Functor f} -> FInitAlg f -> Type
@@ -3956,6 +3962,27 @@ depPrefixContraMapFromLists :
   Maybe (DepPrefixContraMap {domPos} {codPos} domDir codDir posMap)
 depPrefixContraMapFromLists domDir codDir posMap =
   depPrefixContraMapFromListsRev domDir codDir posMap . reverse
+
+------------------------------------------
+------------------------------------------
+---- Types founded in natural numbers ----
+------------------------------------------
+------------------------------------------
+
+public export
+natFoldIdx : {0 x : Type} -> (Nat -> x -> x) -> x -> Nat -> Nat -> x
+natFoldIdx op acc idx Z = acc
+natFoldIdx op acc idx (S n) = natFoldIdx op (op idx acc) (S idx) n
+
+public export
+record NatFoldAlg (0 x : Type) where
+  constructor MkNatFold
+  nfOp : Nat -> x -> x
+  nfZero : x
+
+public export
+natFold : {0 x : Type} -> NatFoldAlg x -> Nat -> x
+natFold {x} (MkNatFold op z) = natFoldIdx op z Z
 
 --------------------------------
 ---- Dependent endofunctors ----

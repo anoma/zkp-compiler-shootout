@@ -11,6 +11,7 @@ import public Data.Bool
 import public Decidable.Decidable
 import public Decidable.Equality
 import public Control.Function
+import public Control.Function.FunExt
 import public Control.Relation
 import public Control.Order
 import public Control.Monad.Identity
@@ -38,13 +39,18 @@ public export
   (d -> e) -> (a -> b -> c -> d) -> (a -> b -> c -> e)
 (.**) = (.) . (.) . (.)
 
+public export
+eitherElim : {0 a, b, c : Type} -> (a -> c) -> (b -> c) -> Either a b -> c
+eitherElim f g (Left e) = f e
+eitherElim f g (Right e) = g e
+
 -- Like Idris's standard `Subset`, but with even the `pred` type
 -- parameter erased.
 public export
 record Subset0 (type : Type) (0 dep : type -> Type) where
   constructor Element0
-  fst : type
-  0 snd : dep fst
+  fst0 : type
+  0 snd0 : dep fst0
 
 public export
 curry : {0 p : a -> Type} -> (Subset0 a p -> c) -> (x : a) -> (0 _ : p x) -> c
@@ -52,7 +58,7 @@ curry f x y = f $ Element0 x y
 
 public export
 uncurry : {0 p : a -> Type} -> ((x : a) -> (0 _ : p x) -> c) -> Subset0 a p -> c
-uncurry f s = f s.fst s.snd
+uncurry f s = f s.fst0 s.snd0
 
 export
 elementInjectiveFst : Element0 x p = Element0 y q -> x = y
@@ -69,15 +75,32 @@ bimap f g (Element0 x y) = Element0 (f x) (g y)
 
 public export
 Eq type => Eq (Subset0 type dep) where
-  (==) = (==) `on` fst
+  (==) = (==) `on` fst0
 
 public export
 Ord type => Ord (Subset0 type dep) where
-  compare = compare `on` fst
+  compare = compare `on` fst0
 
 public export
 Show type => Show (Subset0 type dep) where
-  show = show . fst
+  show = show . fst0
+
+-- Like Idris's standard `Exists`, but with the `this` dependent type
+-- taking a zero-usage type parameter.
+public export
+record Exists0 (0 type : Type) (this : (0 _ : type) -> Type) where
+  constructor Evidence0
+  0 fst0 : type
+  snd0 : this fst0
+
+public export
+const0 : {0 a, b : Type} -> b -> (0 _ : a) -> b
+const0 x _ = x
+
+-- Non-dependent `Exists0`.
+public export
+CExists0 : (0 a: Type) -> Type -> Type
+CExists0 a b = Exists0 a (const0 b)
 
 public export
 DecNonZero : (n : Nat) -> Dec (NonZero n)
@@ -97,9 +120,37 @@ modMaybe n m with (DecNonZero m)
   modMaybe n m | No _ = Nothing
 
 public export
+divWithZtoZ : Integer -> Integer -> Integer
+divWithZtoZ n m = if m == 0 then 0 else div n m
+
+public export
+modWithZtoZ : Integer -> Integer -> Integer
+modWithZtoZ n m = if m == 0 then 0 else mod n m
+
+public export
+divSucc : Integer -> Integer -> Integer
+divSucc n m = div n (m + 1)
+
+public export
+modSucc : Integer -> Integer -> Integer
+modSucc n m = mod n (m + 1)
+
+public export
 boolToDigit : Bool -> Digit
 boolToDigit True = I
 boolToDigit False = O
+
+public export
+exfalsoFT : {0 a : Type} -> (0 ft : False = True) -> a
+exfalsoFT Refl impossible
+
+public export
+exfalsoTF : {0 a : Type} -> (0 tf : True = False) -> a
+exfalsoTF Refl impossible
+
+public export
+uip : {0 a : Type} -> {0 x, x' : a} -> {eq, eq' : x = x'} -> eq = eq'
+uip {eq=Refl} {eq'=Refl} = Refl
 
 public export
 lteTolt : {m, n : Nat} -> LTE m n -> Not (m = n) -> LT m n
@@ -131,7 +182,39 @@ lteSuccEitherEqLte {m} {n} lte with (decEq m (S n))
     Right $ fromLteSucc $ lteTolt lte neq
 
 public export
-voidF : (a : Type) -> Void -> a
+maxLTE : {m, n, k : Nat} -> LTE m k -> LTE n k -> LTE (maximum m n) k
+maxLTE {m=Z} {n} {k} ltmk ltnk = ltnk
+maxLTE {m=(S m)} {n=Z} {k} ltmk ltnk = ltmk
+maxLTE {m=(S m)} {n=(S n)} {k=Z} ltmk ltnk = void $ succNotLTEzero ltmk
+maxLTE {m=(S m)} {n=(S n)} {k=(S k)} ltmk ltnk =
+  LTESucc $ maxLTE {m} {n} {k} (fromLteSucc ltmk) (fromLteSucc ltnk)
+
+public export
+maxLTELeft : (m, n : Nat) -> LTE m (maximum m n)
+maxLTELeft = maximumLeftUpperBound
+
+public export
+maxLTERight : (m, n : Nat) -> LTE n (maximum m n)
+maxLTERight = maximumRightUpperBound
+
+public export
+smax : Nat -> Nat -> Nat
+smax = S .* maximum
+
+public export
+smaxLTLeft : (m, n : Nat) -> LT m (smax m n)
+smaxLTLeft m n = LTESucc $ maxLTELeft m n
+
+public export
+smaxLTRight : (m, n : Nat) -> LT n (smax m n)
+smaxLTRight m n = LTESucc $ maxLTERight m n
+
+public export
+smaxLTMax : (m, n : Nat) -> LT (maximum m n) (smax m n)
+smaxLTMax m n = LTESucc reflexive
+
+public export
+voidF : (0 a : Type) -> Void -> a
 voidF _ x = void x
 
 public export
@@ -139,8 +222,26 @@ IsTrue : Bool -> Type
 IsTrue b = b = True
 
 public export
+IsFalse : Bool -> Type
+IsFalse b = b = False
+
+public export
 IsJustTrue : {a : Type} -> Maybe a -> Type
 IsJustTrue x = isJust x = True
+
+public export
+andLeft : {p, q : Bool} -> IsTrue (p && q) -> IsTrue p
+andLeft {p=True} {q=True} Refl = Refl
+andLeft {p=True} {q=False} Refl impossible
+andLeft {p=False} {q=True} Refl impossible
+andLeft {p=False} {q=False} Refl impossible
+
+public export
+andRight : {p, q : Bool} -> IsTrue (p && q) -> IsTrue q
+andRight {p=True} {q=True} Refl = Refl
+andRight {p=True} {q=False} Refl impossible
+andRight {p=False} {q=True} Refl impossible
+andRight {p=False} {q=False} Refl impossible
 
 public export
 repeatIdx : {0 x : Type} -> (Nat -> x -> x) -> Nat -> Nat -> x -> x
@@ -167,6 +268,44 @@ fromIsYes {x=(Yes x)} Refl = x
 fromIsYes {x=(No n)} Refl impossible
 
 public export
+indexN : {0 a : Type} -> {n : Nat} ->
+  (i : Nat) -> {auto ok : IsJustTrue (natToFin i n)} -> Vect n a -> a
+indexN _ {ok} = index (fromIsJust ok)
+
+public export
+finFTrunc : {0 a : Type} -> {n : Nat} -> (Fin (S n) -> a) -> Fin n -> a
+finFTrunc {a} {n} f = f . weaken
+
+public export
+finFToVect : {0 a : Type} -> {n : Nat} -> (Fin n -> a) -> Vect n a
+finFToVect {a} {n=Z} f = []
+finFToVect {a} {n=(S n)} f = f (last {n}) :: (finFToVect {n} $ finFTrunc {n} f)
+
+public export
+foldrNat : (a -> a) -> a -> Nat -> a
+foldrNat f acc Z = acc
+foldrNat f acc (S n) = foldrNat f (f acc) n
+
+public export
+foldrNatNoUnit : (a -> a) -> a -> a -> Nat -> a
+foldrNatNoUnit f unit acc Z = unit
+foldrNatNoUnit f unit acc (S n) = foldrNat f acc n
+
+public export
+collectPairsAcc : List Nat -> List (Nat, Nat) -> List (Nat, Nat)
+collectPairsAcc [] acc = acc
+collectPairsAcc (n :: ns) [] = collectPairsAcc ns [(n, 1)]
+collectPairsAcc (n :: ns) ps@((n', c) :: ps') =
+  if n == n' then
+    collectPairsAcc ns ((n', S c) :: ps')
+  else
+    collectPairsAcc ns $ (n, 1) :: ps
+
+public export
+collectPairs : List Nat -> List (Nat, Nat)
+collectPairs l = collectPairsAcc l []
+
+public export
 equalNatCorrect : {m : Nat} -> equalNat m m = True
 equalNatCorrect {m=Z} = Refl
 equalNatCorrect {m=(S m')} = equalNatCorrect {m=m'}
@@ -174,6 +313,42 @@ equalNatCorrect {m=(S m')} = equalNatCorrect {m=m'}
 public export
 predLen : {0 a : Type} -> List a -> Nat
 predLen = pred . length
+
+public export
+powerZeroOne : (0 n : Nat) -> power n 0 = 1
+powerZeroOne n = Refl
+
+public export
+mulPowerZeroRightNeutral : {0 m, n : Nat} -> m * (power n 0) = m
+mulPowerZeroRightNeutral {m} {n} = rewrite multOneRightNeutral m in Refl
+
+public export
+powerOfSum : (x, y, z : Nat) -> power x (y + z) = power x y * power x z
+powerOfSum x y z = ?powerOfSum_hole
+
+public export
+powerOfMul : (x, y, z : Nat) -> power x (y * z) = power (power x y) z
+powerOfMul x y z = ?powerOfMul_hole
+
+public export
+powerOfMulSym : (x, y, z : Nat) -> power x (y * z) = power (power x z) y
+powerOfMulSym x y z = rewrite multCommutative y z in powerOfMul x z y
+
+public export
+modLtDivisor : (m, n : Nat) -> IsTrue $ gt (S n) $ modNatNZ m (S n) SIsNonZero
+modLtDivisor = ?mod_lt_divisor_correct
+
+public export
+minusModulo : (modulus, m, n : Integer) -> Integer
+minusModulo modulus m n =
+  if modulus == 0 then
+    0
+  else
+    if m >= n then
+      mod (m - n) modulus
+    else
+      let r = mod (n - m) modulus in
+      if r == 0 then 0 else modulus - r
 
 public export
 magmaFromNonEmptyList : {a : Type} -> (a -> a -> a) -> a -> List a -> a

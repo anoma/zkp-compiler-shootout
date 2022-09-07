@@ -605,6 +605,399 @@ testARNM3Sig : Assertion
 testARNM3Sig = Assert $
   arnmCheck testARNM3 == Just (Just (4, 8), Just (92, 2764))
 
+-----------------------
+-----------------------
+---- Nat as object ----
+-----------------------
+-----------------------
+
+bbt1 : Assertion
+bbt1 = Assert $ BoundedBy 4 0
+
+bbt2 : Assertion
+bbt2 = Assert $ BoundedBy 4 3
+
+bbt3 : Assertion
+bbt3 = Assert $ NotBoundedBy 4 4
+
+bbt4 : Assertion
+bbt4 = Assert $ NotBoundedBy 4 5
+
+but1 : BUNat 4
+but1 = Left ()
+
+bat1 : BANat 4
+bat1 = u2a but1
+
+bat2 : BANat 4
+bat2 = MkBANat 3
+
+but2 : BUNat 4
+but2 = a2u bat2
+
+tbut21 : Assertion
+tbut21 = Assert $ MkBUNat {n=4} 3 == but2
+
+tbut22 : Assertion
+tbut22 = Assert $ u2a but2 == bat2
+
+bnclm0 : BNCListMorph
+bnclm0 = [ 3, 1, 5, 0 ]
+
+bnclm1 : BNCListMorph
+bnclm1 = [ 6, 1 ]
+
+bnclm2 : BNCListMorph
+bnclm2 = []
+
+bnclmt0 : Assertion
+bnclmt0 = Assert $ checkVBNCLM 4 6 bnclm0
+
+bncvlm0 : VBNCLM 4 6
+bncvlm0 = MkVBNCLM bnclm0
+
+bnclmt1 : Assertion
+bnclmt1 = Assert $ not $ checkVBNCLM 4 5 bnclm0
+
+bnclmt2 : Assertion
+bnclmt2 = Assert $ checkVBNCLM 4 7 bnclm0
+
+bnclmt3 : Assertion
+bnclmt3 = Assert $ not $ checkVBNCLM 3 6 bnclm0
+
+bnclmt4 : Assertion
+bnclmt4 = Assert $ not $ checkVBNCLM 5 6 bnclm0
+
+bnclmt5 : Assertion
+bnclmt5 = Assert $ not $ checkVBNCLM 2 7 bnclm0
+
+bnclmt6 : Assertion
+bnclmt6 = Assert $ checkVBNCLM 2 7 bnclm1
+
+bnclmt7 : Assertion
+bnclmt7 = Assert $ checkVBNCLM 0 0 bnclm2
+
+bnclmt8 : Assertion
+bnclmt8 = Assert $ checkVBNCLM 0 1 bnclm2
+
+bnclmt9 : Assertion
+bnclmt9 = Assert $ not $ checkVBNCLM 1 0 bnclm2
+
+bnclmt10 : Assertion
+bnclmt10 = Assert $ not $ checkVBNCLM 1 1 bnclm2
+-- bnclm0 = [ 3, 1, 5, 0 ]
+
+bnclmt11 : Assertion
+bnclmt11 = Assert $ bncLMANN bncvlm0 0 == 3
+
+bnclmt12 : Assertion
+bnclmt12 = Assert $ bncLMANN bncvlm0 1 == 1
+
+bnclmt13 : Assertion
+bnclmt13 = Assert $ bncLMANN bncvlm0 2 == 5
+
+bnclmt14 : Assertion
+bnclmt14 = Assert $ bncLMANN bncvlm0 3 == 0
+
+bncpm0 : BNCPolyM
+bncpm0 = #| 4 #+ #| 2 #* PI #^ 3 #+ PI #^ 4
+
+bncpm0mod200 : BANat 200 -> BANat 200
+bncpm0mod200 = baPolyM bncpm0
+
+bncpm0mod100 : BANat 200 -> BANat 100
+bncpm0mod100 = baPolyM bncpm0
+
+bncpm1 : BNCPolyM
+bncpm1 = (PI #+ #| 1) #^ 3
+
+bncpmt0 : Assertion
+bncpmt0 = Assert $ metaBNCPolyM 200 bncpm0 0 == 4
+
+bncpmt1 : Assertion
+bncpmt1 = Assert $ metaBNCPolyM 200 bncpm1 0 == 1
+
+bncpmt2 : Assertion
+bncpmt2 = Assert $ metaBNCPolyM 200 bncpm0 1 == 7
+
+bncpmt3 : Assertion
+bncpmt3 = Assert $ metaBNCPolyM 200 bncpm1 1 == 8
+
+bncpmt4 : Assertion
+bncpmt4 = Assert $ metaBNCPolyM 200 bncpm0 2 == 36
+
+bncpmt5 : Assertion
+bncpmt5 = Assert $ metaBNCPolyM 200 bncpm1 2 == 27
+
+bncpmt6 : Assertion
+bncpmt6 = Assert $ metaBNCPolyM 200 bncpm0 3 == 139
+
+bncpmt7 : Assertion
+bncpmt7 = Assert $ metaBNCPolyM 200 bncpm1 3 == 64
+
+bncpmt8 : Assertion
+bncpmt8 = Assert $ metaBNCPolyM 100 bncpm0 3 == 38
+
+bncpmt9 : Assertion
+bncpmt9 = Assert $ fst0 (bncpm0mod200 (MkBANat 3)) == 139
+
+bncpmt10 : Assertion
+bncpmt10 = Assert $ fst0 (bncpm0mod100 (MkBANat 3)) == 39
+
+bncpmt11 : Assertion
+bncpmt11 = Assert $ metaBNCPolyM 200 (bncpm0 #- bncpm1) 3 == 75
+
+bncpmt12 : Assertion
+bncpmt12 = Assert $ metaBNCPolyM 200 (bncpm1 #- bncpm0) 3 == 126
+
+bncpmt13 : Assertion
+bncpmt13 = Assert $ metaBNCPolyM 200 (bncpm0 #/ bncpm1) 3 == 2
+
+bncpmt14 : Assertion
+bncpmt14 = Assert $ metaBNCPolyM 200 (bncpm1 #/ bncpm0) 3 == 0
+
+bncpmt15 : Assertion
+bncpmt15 = Assert $ metaBNCPolyM 200 (bncpm0 #% bncpm1) 3 == 11
+
+bncpmt16 : Assertion
+bncpmt16 = Assert $ metaBNCPolyM 200 (bncpm1 #% bncpm0) 3 == 64
+
+bncpmt17 : Assertion
+bncpmt17 = Assert $
+  metaBNCPolyM 200 (IfZero (bncpm0 #/ bncpm1) bncpm0 bncpm1) 3 == 64
+
+bncpmt18 : Assertion
+bncpmt18 = Assert $
+  metaBNCPolyM 200 (IfZero (bncpm1 #/ bncpm0) bncpm0 bncpm1) 3 == 139
+
+bncpmt19 : Assertion
+bncpmt19 = Assert $
+  metaBNCPolyM 100 (IfZero (bncpm0 #/ bncpm1) bncpm0 bncpm1) 3 == 38
+
+bncpmt20 : Assertion
+bncpmt20 = Assert $
+  metaBNCPolyM 100 (IfZero (bncpm1 #/ bncpm0) bncpm0 bncpm1) 3 == 64
+
+bncpmt21 : Assertion
+bncpmt21 = Assert $ metaBNCPolyM 200 (bncpm1 #. (bncpm0 #/ bncpm1)) 3 == 27
+
+---------------
+---------------
+---- PolyF ----
+---------------
+---------------
+
+polybool : PolyMu
+polybool = Poly1 $+ Poly1
+
+polyfnat : PolyMu
+polyfnat = Poly1 $+ PolyI
+
+polyf0 : PolyMu
+polyf0 = (polyfnat $. Poly1) $*^ 5
+
+polyf1 : PolyMu
+polyf1 = (Poly1 $+ PolyI $*^ 2) $.^ 3
+
+polyf2 : PolyMu
+polyf2 = polyf0 $.^ 0
+
+Polyf0f : Type -> Type
+Polyf0f = MetaPolyFMetaF polyf0
+
+Polyf1f : Type -> Type
+Polyf1f = MetaPolyFMetaF polyf1
+
+Polyf2f : Type -> Type
+Polyf2f = MetaPolyFMetaF polyf2
+
+Polyf0t : Type
+Polyf0t = ConstComponent polyf0
+
+Polyf1t : Type
+Polyf1t = ConstComponent polyf1
+
+Polyf2t : Type
+Polyf2t = ConstComponent polyf2
+
+polyf0i : Polyf0t
+polyf0i = (Left (), Left (), Right (), Left (), Right ())
+
+polyf2i : Not Polyf2t
+polyf2i = id
+
+PolyFreeNat : (0 _ : Type) -> Type
+PolyFreeNat = MetaPolyFreeM polyfnat
+
+PolyNat : Type
+PolyNat = MetaPolyMu polyfnat
+
+polyFNatT0 : PolyFreeNat Nat
+polyFNatT0 = InFVar 7
+
+polyFNatT1 : PolyFreeNat Nat
+polyFNatT1 = InFCom $ Left ()
+
+polyFNatT2 : PolyFreeNat Nat
+polyFNatT2 = InFCom $ Right $ InFVar 5
+
+polyFNatT3 : PolyFreeNat Nat
+polyFNatT3 = InFCom $ Right $ InFCom $ Left ()
+
+polyFNatT4 : PolyFreeNat Nat
+polyFNatT4 = InFCom $ Right $ InFCom $ Right $ InFVar 3
+
+polyFNatT5 : PolyFreeNat Nat
+polyFNatT5 = InFCom $ Right $ InFCom $ Right $ InFCom $ Left ()
+
+polyFNatT6 : PolyFreeNat Nat
+polyFNatT6 = InFCom $ Right $ InFCom $ Right $ InFCom $ Right $ InFCom $ Left ()
+
+polynatT0 : PolyNat
+polynatT0 = InFCom $ Left ()
+
+polynatT1 : PolyNat
+polynatT1 = InFCom $ Right $ InFCom $ Left ()
+
+polynatT2 : PolyNat
+polynatT2 = InFCom $ Right $ InFCom $ Right $ InFCom $ Left ()
+
+polyNatIter : Nat -> PolyMu
+polyNatIter = ($.^) polyfnat
+
+polyNatIterFixed : Nat -> PolyMu
+polyNatIterFixed n = polyNatIter n $. Poly0
+
+PolyNatIter : Nat -> Type
+PolyNatIter = ConstComponent . polyNatIter
+
+pniterT0 : Not $ PolyNatIter 0
+pniterT0 = id
+
+pniterT1 : PolyNatIter 1
+pniterT1 = ()
+
+pniterT2 : PolyNatIter 2
+pniterT2 = Left ()
+
+pniterT3 : PolyNatIter 2
+pniterT3 = Right ()
+
+pniterT4 : PolyNatIter 3
+pniterT4 = Left ()
+
+pniterT5 : PolyNatIter 3
+pniterT5 = Right $ Left ()
+
+pniterT6 : PolyNatIter 3
+pniterT6 = Right $ Right ()
+
+pniterT7 : PolyNatIter 4
+pniterT7 = Left ()
+
+pniterT8 : PolyNatIter 4
+pniterT8 = Right $ Left ()
+
+pniterT9 : PolyNatIter 4
+pniterT9 = Right $ Right $ Left ()
+
+pniterT10 : PolyNatIter 4
+pniterT10 = Right $ Right $ Right ()
+
+polyfeqT0 : Assertion
+polyfeqT0 = Assert $ polyfnat /= polyNatIter 0
+
+polyfeqT1 : Assertion
+polyfeqT1 = Assert $ polyfnat == polyNatIter 1
+
+polyfeqT2 : Assertion
+polyfeqT2 = Assert $ polyfnat /= polyNatIter 2
+
+polyHomBoolF0 : PolyMu
+polyHomBoolF0 = PolyHomObj polybool polyf0
+
+polyCardT0 : Assertion
+polyCardT0 = Assert $
+  polyTCard polyHomBoolF0 == power (polyTCard polyf0) (polyTCard polybool)
+
+polyHomId4Id : PolyMu
+polyHomId4Id = PolyHomObj PolyI (4 $:* PolyI)
+
+twoBits : PolyMu
+twoBits = polybool $* polybool
+
+polyHomId4Id' : PolyMu
+polyHomId4Id' = PolyHomObj PolyI (twoBits $* PolyI)
+
+polyHom4IdId : PolyMu
+polyHom4IdId = PolyHomObj (4 $:* PolyI) PolyI
+
+polyHom4IdId' : PolyMu
+polyHom4IdId' = PolyHomObj (twoBits $* PolyI) PolyI
+
+polyDepth3BinTree : PolyMu
+polyDepth3BinTree = polyf1
+
+polyDepth3BinTreeFixed : PolyMu
+polyDepth3BinTreeFixed = polyDepth3BinTree $. Poly0
+
+------------------------------------------
+------------------------------------------
+---- Metalanguage polynomial functors ----
+------------------------------------------
+------------------------------------------
+
+data BinBoolTreePos : Type where
+  BBLeaf : Bool -> BinBoolTreePos
+  BBNode : BinBoolTreePos
+
+data BinBoolTreeDir : BinBoolTreePos -> Type where
+  BBLeft : BinBoolTreeDir BBNode
+  BBRight : BinBoolTreeDir BBNode
+
+BinBoolTreeLeafVoid : {0 x : Type} -> {0 b : Bool} ->
+  BinBoolTreeDir (BBLeaf b) -> x
+BinBoolTreeLeafVoid BBLeft impossible
+BinBoolTreeLeafVoid BBRight impossible
+
+BinBoolTreePF : PolyFunc
+BinBoolTreePF = (BinBoolTreePos ** BinBoolTreeDir)
+
+BinBoolTreeF : Type -> Type
+BinBoolTreeF = InterpPolyFunc BinBoolTreePF
+
+InBBLeaf : {ty : Type} -> Bool -> BinBoolTreeF ty
+InBBLeaf b = (BBLeaf b ** BinBoolTreeLeafVoid)
+
+InBBDir : {0 ty : BinBoolTreeDir BBNode -> Type} ->
+  ty BBLeft -> ty BBRight -> (d : BinBoolTreeDir BBNode) -> ty d
+InBBDir l r BBLeft = l
+InBBDir l r BBRight = r
+
+BinBoolTree1 : Type
+BinBoolTree1 = BinBoolTreeF Void
+
+binBoolTree1False : BinBoolTree1
+binBoolTree1False = InBBLeaf False
+
+binBoolTree1True : BinBoolTree1
+binBoolTree1True = InBBLeaf True
+
+BinBoolTree2 : Type
+BinBoolTree2 = BinBoolTreeF BinBoolTree1
+
+binBoolTree1Test : BinBoolTree2
+binBoolTree1Test = (BBNode ** InBBDir (InBBLeaf True) (InBBLeaf False))
+
+BBFMFT : Type
+BBFMFT = PolyFuncFreeMFromTranslate BinBoolTreePF Nat
+
+BBFM : PolyFunc
+BBFM = PolyFuncFreeM BinBoolTreePF
+
+BBFMFF : Type
+BBFMFF = InterpPolyFuncFreeM BinBoolTreePF Nat
+
 ----------------------------------
 ----------------------------------
 ----- Exported test function -----
@@ -618,6 +1011,82 @@ polyCatTest = do
   putStrLn "=================="
   putStrLn "Begin polyCatTest:"
   putStrLn "------------------"
+  putStrLn ""
+  putStrLn "---------------------------------"
+  putStrLn "---- Bounded natural numbers ----"
+  putStrLn "---------------------------------"
+  putStrLn ""
+  putStrLn $ "bat1: " ++ show bat1
+  putStrLn $ "but1: " ++ show but1
+  putStrLn $ "bat2: " ++ show bat2
+  putStrLn $ "bat2 (long): " ++ baShowLong bat2
+  putStrLn $ "but2: " ++ show but2
+  putStrLn ""
+  putStrLn "------------------------------"
+  putStrLn "---- Polynomial morphisms ----"
+  putStrLn "------------------------------"
+  putStrLn ""
+  putStrLn $ "bnvlm0 = " ++ show bncvlm0
+  putStrLn $ "bncpm0 = " ++ show bncpm0
+  putStrLn $ "bncpm1 = " ++ show bncpm1
+  putStrLn ""
+  putStrLn "---------------"
+  putStrLn "---- PolyF ----"
+  putStrLn "---------------"
+  putStrLn $ "polyf0 = " ++ show polyf0
+  putStrLn $ "distrib[polyf0] = " ++ show (polyDistrib polyf0)
+  putStrLn $ "position-list[polyf0] = " ++ polyPosShow polyf0
+  putStrLn $ "poly-list[polyf0] = " ++ show (toPolyShape polyf0)
+  putStrLn $ "poly-list[polyf1] = " ++ show (toPolyShape polyf1)
+  putStrLn $ "pnitert10 = " ++ show pniterT10
+  putStrLn $ "card[polyf0] = " ++ show (polyTCard polyf0)
+  putStrLn $ "card[polybool] = " ++ show (polyTCard polybool)
+  putStrLn $ "(polybool -> polyf0) = " ++ show polyHomBoolF0
+  putStrLn $ "card[polybool -> polyf0] = " ++ show (polyTCard polyHomBoolF0)
+  putStrLn $ "(id -> 4 * id) = " ++ show polyHomId4Id
+  putStrLn $ "(id -> (2 * 2) * id) = " ++ show polyHomId4Id'
+  putStrLn $ "(4 * id -> id) = " ++ show polyHom4IdId
+  putStrLn $ "((2 * 2) * id -> id) = " ++ show polyHom4IdId'
+  putStrLn $ "polyDepth3BT = " ++ show (toPolyShape polyDepth3BinTree)
+  putStrLn $ "card[polyDepth3BT,0] = " ++ show (polyTCard polyDepth3BinTree)
+  putStrLn $ "depth4Nat = " ++ show (polyNatIter 4)
+  putStrLn $ "card[depth4Nat] = " ++ show (polyTCard (polyNatIter 4))
+  putStrLn $ "card[depth4Nat -> polyDepth3BT] = " ++
+    show (polyTCard $ PolyHomObj (polyNatIter 4) (polyDepth3BinTree))
+  putStrLn $ "card[polyDepth3BT -> depth4Nat] = " ++
+    show (polyTCard $ PolyHomObj (polyDepth3BinTree) (polyNatIter 4))
+  putStrLn $ "hom[polyDepth3BT -> depth4Nat] = " ++
+    showPolyShape (PolyHomObj (polyDepth3BinTree) (polyNatIter 4))
+  putStrLn $ "polyDepth3BTFixed = " ++ show polyDepth3BinTreeFixed
+  putStrLn $ "card[polyDepth3BTFixed,0] = "
+    ++ show (polyTCard polyDepth3BinTreeFixed)
+  putStrLn $ "depth4NatFixed = " ++ show (polyNatIterFixed 4)
+  putStrLn $ "card[depth4NatFixed] = " ++ show (polyTCard (polyNatIterFixed 4))
+  putStrLn $ "card[depth4NatFixed -> polyDepth3BTFixed] = " ++
+    show (polyTCard $ PolyHomObj (polyNatIterFixed 4) (polyDepth3BinTreeFixed))
+  putStrLn $ "card[polyDepth3BTFixed -> depth4NatFixed] = " ++
+    show (polyTCard $ PolyHomObj (polyDepth3BinTreeFixed) (polyNatIterFixed 4))
+  putStrLn $ "first compose = " ++ show ((4 $:* PolyI) $. (PolyI $+ Poly1))
+  putStrLn $ "second compose = " ++
+    show ((twoBits $* PolyI) $. (PolyI $+ Poly1))
+  putStrLn $ "exercise 5.8.3 first part unformatted = " ++
+    show (((PolyI $* PolyI) $. (PolyI $*^ 3 $+ Poly1)))
+  putStrLn $ "exercise 5.8.3 first part distributed = " ++
+    show (polyDistrib (((PolyI $* PolyI) $. (PolyI $*^ 3 $+ Poly1))))
+  putStrLn $ "exercise 5.8.3 first part = " ++
+    show (toPolyShape (((PolyI $* PolyI) $. (PolyI $*^ 3 $+ Poly1))))
+  putStrLn $ "exercise 5.8.3 second part = " ++
+    show (toPolyShape (((PolyI) $. (PolyI $*^ 3 $+ Poly1))))
+  putStrLn $ "exercise 5.8.3 composite unformatted = " ++
+    show (((PolyI $* PolyI $+ PolyI) $. (PolyI $*^ 3 $+ Poly1)))
+  putStrLn $ "exercise 5.8.3 composite distributed = " ++
+    show (polyDistrib (((PolyI $* PolyI $+ PolyI) $. (PolyI $*^ 3 $+ Poly1))))
+  putStrLn $ "exercise 5.8.3 composite = " ++
+    show (toPolyShape (((PolyI $* PolyI $+ PolyI) $. (PolyI $*^ 3 $+ Poly1))))
+  putStrLn ""
+  putStrLn "----------------"
+  putStrLn "---- PolyOp ----"
+  putStrLn "----------------"
   putStrLn ""
   putStrLn "--------------------"
   putStrLn "---- BoundedNat ----"
@@ -660,7 +1129,7 @@ polyCatTest = do
   putStrLn $ show $ polyShapeExponential idPolyShape idPolyShape
   putStrLn $ show $ polyShapeExponential idPolyShape (prodIdPolyShape 4)
   putStrLn $ show $ parProdClosureShape [(2, 1), (1,2)] [(3, 2), (0, 3)]
-  putStrLn $ psIdxShow testPolyS6
+  putStrLn $ psPosShow testPolyS6
   putStrLn "--------------------"
   putStrLn ""
   putStrLn "------------------------"
@@ -685,6 +1154,7 @@ polyCatTest = do
   putStrLn "MuNatO"
   putStrLn "------"
   putStrLn $ show (natToMu 10)
+  putStrLn $ show $ muToNat $ natHomObj (natToMu 3) (natToMu 4)
   putStrLn $ show testPre0
   putStrLn $ showPreMeta 1 testPre0
   putStrLn $ show testPre1
@@ -717,6 +1187,10 @@ polyCatTest = do
   putStrLn $ show $ testARNM2
   putStrLn $ show $ testARNM3
   putStrLn "-----------------------------------"
+  putStrLn ""
+  putStrLn "------------------------------------------"
+  putStrLn "---- Metalanguage polynomial functors ----"
+  putStrLn "------------------------------------------"
   putStrLn ""
   putStrLn "----------------"
   putStrLn "End polyCatTest."
