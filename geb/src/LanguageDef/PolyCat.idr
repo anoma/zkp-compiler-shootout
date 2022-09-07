@@ -4105,33 +4105,40 @@ soPartialApp : {w, x, y, z : SubstObjMu} ->
   SubstMorph (x !* y) z -> SubstMorph w x -> SubstMorph (w !* y) z
 soPartialApp g f = soUncurry $ soCurry g <! f
 
-mutual
-  public export
-  soSubst : {x, y, z : SubstObjMu} ->
-    SubstMorph y z -> SubstMorph x y -> SubstMorph x z
-  soSubst (SMId y) f = f
-  soSubst g (SMId _) = g
-  soSubst (h <! g) f = h <! soSubst g f
-  soSubst h (g <! f) = soSubst h g <! f
-  soSubst {y=Subst0} {z} (SMFromInit _) (g <! f) = SMFromInit z <! soSubst g f
-  soSubst {z} (SMFromInit _) (SMFromInit _) = SMFromInit z
-  soSubst {z} (SMFromInit _) (SMCase f g) =
-    SMCase (soSubst (SMFromInit z) f) (soSubst (SMFromInit z) g)
-  soSubst (SMFromInit _) (SMProjLeft _ _) = SMFromInit _ <! SMProjLeft _ _
-  soSubst (SMFromInit _) (SMProjRight _ _) = SMFromInit _ <! SMProjRight _ _
-  soSubst (SMToTerminal _) _ = SMToTerminal _
-  soSubst (SMInjLeft x y) f = ?soSubst_hole_1
-  soSubst (SMInjRight x y) f = ?soSubst_hole_2
-  soSubst (SMCase g h) f = ?soSubst_hole_3
-  soSubst (SMPair g h) f = ?soSubst_hole_4
-  soSubst (SMProjLeft x y) f = ?soSubst_hole_5
-  soSubst (SMProjRight x y) f = ?soSubst_hole_6
-  soSubst (SMDistrib x y z) f = ?soSubst_hole_7
+public export
+soSubst : {x, y, z : SubstObjMu} ->
+  SubstMorph y z -> SubstMorph x y -> SubstMorph x z
+soSubst (SMId y) f = f
+soSubst g (SMId _) = g
+soSubst (h <! g) f = h <! soSubst g f
+soSubst {y=Subst0} {z} (SMFromInit _) (g <! f) = SMFromInit z <! soSubst g f
+soSubst {z} (SMFromInit _) (SMCase f g) =
+  SMCase (soSubst (SMFromInit z) f) (soSubst (SMFromInit z) g)
+soSubst (SMFromInit _) (SMProjLeft _ _) = SMFromInit _ <! SMProjLeft _ _
+soSubst (SMFromInit _) (SMProjRight _ _) = SMFromInit _ <! SMProjRight _ _
+soSubst _ (SMFromInit _) = SMFromInit _
+soSubst (SMToTerminal _) _ = SMToTerminal _
+soSubst (SMInjLeft _ _) f = ?soSubst_hole_27
+soSubst (SMInjRight x y) f = ?soSubst_hole_2
+soSubst (SMCase g h) f = ?soSubst_hole_3
+soSubst (SMPair g h) f = SMPair (soSubst g f) (soSubst h f)
+soSubst (SMProjLeft x y) f = ?soSubst_hole_5
+soSubst (SMProjRight x y) f = ?soSubst_hole_6
+soSubst (SMDistrib x y z) f = ?soSubst_hole_7
 
-  public export
-  soSubstPair : {w, x, y, z : SubstObjMu} ->
-    SubstMorph (x !* y) z -> SubstMorph w x -> SubstMorph w y -> SubstMorph w z
-  soSubstPair h g f = ?soSubstPair_hole
+public export
+soReduce : {x, y : SubstObjMu} -> SubstMorph x y -> SubstMorph x y
+soReduce (SMId _) = SMId _
+soReduce (g <! f) = soSubst g f
+soReduce (SMFromInit _) = SMFromInit _
+soReduce (SMToTerminal x) = SMToTerminal _
+soReduce (SMInjLeft _ _) = SMInjLeft _ _
+soReduce (SMInjRight _ _) = SMInjRight _ _
+soReduce (SMCase f g) = SMCase (soReduce f) (soReduce g)
+soReduce (SMPair f g) = SMPair (soReduce f) (soReduce g)
+soReduce (SMProjLeft _ _) = SMProjLeft _ _
+soReduce (SMProjRight _ _) = SMProjRight _ _
+soReduce (SMDistrib _ _ _) = SMDistrib _ _ _
 
 -------------------------------------------
 ---- Morphisms as terms of hom-objects ----
