@@ -4236,7 +4236,17 @@ soHigherPair (InSO (w !!* x)) y z =
 public export
 soHigherCompose : (x, y, z : SubstObjMu) ->
   SubstMorph ((y !-> z) !* (x !-> y)) (x !-> z)
-soHigherCompose x y z = ?soHigherCompose_hole
+soHigherCompose (InSO SO0) y z = SMToTerminal _
+soHigherCompose (InSO SO1) y z = soEval y z
+soHigherCompose (InSO (w !!+ x)) y z =
+  let
+    cwyz = soHigherCompose w y z
+    cxyz = soHigherCompose x y z
+  in
+  SMPair
+    (cwyz <! SMPair (SMProjLeft _ _) (SMProjLeft _ _ <! SMProjRight _ _))
+    (cxyz <! SMPair (SMProjLeft _ _) (SMProjRight _ _ <! SMProjRight _ _))
+soHigherCompose (InSO (w !!* x)) y z = ?soHigherCompose_hole_4
 
 public export
 soHigherPartialApp : (w, x, y, z : SubstObjMu) ->
