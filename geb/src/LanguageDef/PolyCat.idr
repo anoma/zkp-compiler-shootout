@@ -4151,6 +4151,16 @@ soHigherUncurry : (x, y, z : SubstObjMu) ->
 soHigherUncurry x y z = SMId (x !-> (y !-> z))
 
 public export
+soHigherCase : (x, y, z : SubstObjMu) ->
+  SubstMorph ((x !-> z) !* (y !-> z)) ((x !+ y) !-> z)
+soHigherCase x y z = ?soHigherCase_hole
+
+public export
+soHigherPair : (x, y, z : SubstObjMu) ->
+  SubstMorph ((x !-> y) !* (x !-> z)) (x !-> (y !* z))
+soHigherPair x y z = ?soHigherPair_hole
+
+public export
 soHigherCompose : (x, y, z : SubstObjMu) ->
   SubstMorph ((y !-> z) !* (x !-> y)) (x !-> z)
 soHigherCompose x y z = ?soHigherCompose_hole
