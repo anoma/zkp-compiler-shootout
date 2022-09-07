@@ -4159,12 +4159,23 @@ public export
 public export
 soCurry : {x, y, z : SubstObjMu} ->
   SubstMorph (x !* y) z -> SubstMorph x (z !^ y)
-soCurry {x} {y} {z} f = ?soCurry_hole
+soCurry (SMId _) = ?soCurry_hole_5
+soCurry (g <! f) = ?soCurry_hole_0
+soCurry (SMToTerminal _) = ?soCurry_hole_7
+soCurry (SMInjLeft _ y) = ?soCurry_hole_9
+soCurry (SMInjRight x _) = ?soCurry_hole_8
+soCurry (SMPair f g) = ?soCurry_hole_1
+soCurry (SMProjLeft x y) = ?soCurry_hole_2
+soCurry (SMProjRight x y) = ?soCurry_hole_3
+soCurry (SMDistrib x y z) = ?soCurry_hole_4
 
 public export
 soUncurry : {x, y, z : SubstObjMu} ->
   SubstMorph x (z !^ y) -> SubstMorph (x !* y) z
-soUncurry {x} {y} {z} f = ?soUncurry_hole
+soUncurry {x} {y=(InSO SO0)} {z} = ?soUncurry_hole_2
+soUncurry {x} {y=(InSO SO1)} {z} = ?soUncurry_hole_3
+soUncurry {x} {y=(InSO (y !!+ y'))} {z} = ?soUncurry_hole_4
+soUncurry {x} {y=(InSO (y !!* y'))} {z} = ?soUncurry_hole_5
 
 public export
 soEval : (x, y : SubstObjMu) ->
