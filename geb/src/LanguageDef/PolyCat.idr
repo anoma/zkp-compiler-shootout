@@ -4105,6 +4105,17 @@ soPartialApp : {w, x, y, z : SubstObjMu} ->
   SubstMorph (x !* y) z -> SubstMorph w x -> SubstMorph (w !* y) z
 soPartialApp g f = soUncurry $ soCurry g <! f
 
+mutual
+  public export
+  soApply : {x, y, z : SubstObjMu} ->
+    SubstMorph y z -> SubstMorph x y -> SubstMorph x z
+  soApply g f = ?soApply_hole
+
+  public export
+  soApplyPair : {w, x, y, z : SubstObjMu} ->
+    SubstMorph (x !* y) z -> SubstMorph w x -> SubstMorph w y -> SubstMorph w z
+  soApplyPair h g f = ?soApplyPair_hole
+
 ----------------------------------------------------------------------------
 ---- Homoiconicity: SubstMorph reflected into the substitutive category ----
 ----------------------------------------------------------------------------
