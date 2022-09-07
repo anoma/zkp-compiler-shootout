@@ -4246,7 +4246,7 @@ soHigherCompose (InSO (w !!+ x)) y z =
   SMPair
     (cwyz <! SMPair (SMProjLeft _ _) (SMProjLeft _ _ <! SMProjRight _ _))
     (cxyz <! SMPair (SMProjLeft _ _) (SMProjRight _ _ <! SMProjRight _ _))
-soHigherCompose (InSO (w !!* x)) y z = ?soHigherCompose_hole_4
+soHigherCompose (InSO (w !!* x)) y z = ?soHigherCompose_hole
 
 public export
 soHigherPartialApp : (w, x, y, z : SubstObjMu) ->
