@@ -3994,6 +3994,11 @@ soForgetRight : (x, y, z : SubstObjMu) -> SubstMorph (x !* (y !* z)) (x !* y)
 soForgetRight x y z =
   SMPair (SMProjLeft _ _) (SMProjLeft _ _ <! SMProjRight _ _)
 
+public export
+soProd1Left : {x, y : SubstObjMu} ->
+  SubstMorph (Subst1 !* x) y -> SubstMorph x y
+soProd1Left {x} f = f <! SMPair (SMToTerminal x) (SMId x)
+
 -- The inverse of SMDistrib.
 public export
 soGather : (x, y, z : SubstObjMu) ->
@@ -4266,23 +4271,7 @@ HomTerm = SOTerm .* SubstHomObj
 
 public export
 TermAsMorph : {x, y : SubstObjMu} -> HomTerm x y -> SubstMorph x y
-TermAsMorph {x} {y} t = ?TermAsMorph_hole
-{-
-TermAsMorph {x=(InSO SO0)} {y} () = ()
-TermAsMorph {x=(InSO SO1)} {y} f = f
-TermAsMorph {x=(InSO (x !!+ y))} {y=z} f = tam_hole_1 -- (f, g) = (TermAsMorph f, TermAsMorph g)
-TermAsMorph {x=(InSO ((InSO SO0) !!* y))} {y=z} () = tam_hole_again -- ()
-TermAsMorph {x=(InSO ((InSO SO1) !!* (InSO SO0)))} {y=z} () = tam_hole_again_2 -- ()
-TermAsMorph {x=(InSO ((InSO SO1) !!* (InSO SO1)))} {y=z} f = tam_hole_sigh -- f
-TermAsMorph {x=(InSO ((InSO SO1) !!* (InSO (x !!+ y))))} {y=z} (f, g) =
-  tam_hoe_2 -- (TermAsMorph f, TermAsMorph g)
-TermAsMorph {x=(InSO ((InSO SO1) !!* (InSO (x !!* y))))} {y=z} f =
-  tam_hole_mostofit -- TermAsMorph {x=(x !* y)} {y=z} f
-TermAsMorph {x=(InSO ((InSO (x !!+ w)) !!* y))} {y=z} (f, g) =
-  tm_hole_3 -- (soUncurry $ TermAsMorph f, soUncurry $ TermAsMorph g)
-TermAsMorph {x=(InSO ((InSO (x !!* w)) !!* y))} {y=z} f =
-  tam_hole_onemore -- TermAsMorph {x=(x !* (w !* y))} {y=z} f
-  -}
+TermAsMorph {x} {y} t = soProd1Left $ soUncurry {x=Subst1} {y=x} {z=y} t
 
 public export
 MorphAsTerm : {x, y : SubstObjMu} -> SubstMorph x y -> HomTerm x y
