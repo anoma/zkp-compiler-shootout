@@ -4182,15 +4182,15 @@ soEval (InSO (x !!* y)) z =
 public export
 soCurry : {x, y, z : SubstObjMu} ->
   SubstMorph (x !* y) z -> SubstMorph x (z !^ y)
-soCurry (SMId _) = ?soCurry_hole_5
-soCurry (g <! f) = ?soCurry_hole_0
-soCurry (SMToTerminal _) = ?soCurry_hole_7
-soCurry (SMInjLeft _ y) = ?soCurry_hole_9
-soCurry (SMInjRight x _) = ?soCurry_hole_8
-soCurry (SMPair f g) = ?soCurry_hole_1
-soCurry (SMProjLeft x y) = ?soCurry_hole_2
-soCurry (SMProjRight x y) = ?soCurry_hole_3
-soCurry (SMDistrib x y z) = ?soCurry_hole_4
+soCurry {x} {y} {z=(x !* y)} (SMId _) = ?soCurry_hole_5
+soCurry {x} {y} {z} (g <! f) = ?soCurry_hole_0
+soCurry {x} {y} (SMToTerminal _) = ?soCurry_hole
+soCurry {x} {y} {z=((x !* y) !+ z)} (SMInjLeft _ _) = ?soCurry_hole_9
+soCurry {x} {y} {z=(z !+ (x !* y))} (SMInjRight _ _) = ?soCurry_hole_8
+soCurry {x} {y} {z=(y !* z)} (SMPair f g) = ?soCurry_hole_1
+soCurry {x} {y} {z=x} (SMProjLeft _ _) = ?soCurry_hole_2
+soCurry {x} {y} {z=y} (SMProjRight _ _) = ?soCurry_hole_3
+soCurry {x} {y=(x' !+ z')} {z=((x !* x') !+ (x !* z'))} (SMDistrib _ _ _) = ?soCurry_hole_4
 
 public export
 soUncurry : {x, y, z : SubstObjMu} ->
