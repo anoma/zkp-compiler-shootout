@@ -5171,17 +5171,39 @@ substObjToNat = substObjCard
 
 public export
 substMorphToBNC : {x, y : SubstObjMu} -> SubstMorph x y -> BNCPolyM
-substMorphToBNC (SMId x) = ?substMorphToBNC_hole_0
-substMorphToBNC ((<!) {x} {y} {z} g f) = ?substMorphToBNC_hole_1
-substMorphToBNC (SMFromInit y) = ?substMorphToBNC_hole_2
-substMorphToBNC (SMToTerminal x) = ?substMorphToBNC_hole_3
-substMorphToBNC (SMInjLeft x y) = ?substMorphToBNC_hole_4
-substMorphToBNC (SMInjRight x y) = ?substMorphToBNC_hole_5
+substMorphToBNC {y=x} (SMId x) = PI
+substMorphToBNC ((<!) {x} {y} {z} g f) = substMorphToBNC g #. substMorphToBNC f
+substMorphToBNC {x=Subst0} (SMFromInit y) = #| 0
+substMorphToBNC {y=Subst1} (SMToTerminal x) = #| 1
+substMorphToBNC (SMInjLeft x y) = PI
+substMorphToBNC (SMInjRight x y) = PI #+ #| (substObjToNat x)
 substMorphToBNC (SMCase {x} {y} {z} f g) = ?substMorphToBNC_hole_6
 substMorphToBNC (SMPair {x} {y} {z} f g) = ?substMorphToBNC_hole_7
 substMorphToBNC (SMProjLeft x y) = ?substMorphToBNC_hole_8
 substMorphToBNC (SMProjRight x y) = ?substMorphToBNC_hole_9
 substMorphToBNC (SMDistrib x y z) = ?substMorphToBNC_hole_10
+{-
+  -- Constant
+  (#|) : Nat -> BNCPolyM
+  -- Identity
+  PI : BNCPolyM
+  -- Compose
+  (#.) : BNCPolyM -> BNCPolyM -> BNCPolyM
+  -- Add
+  (#+) : BNCPolyM -> BNCPolyM -> BNCPolyM
+  -- Multiply
+  (#*) : BNCPolyM -> BNCPolyM -> BNCPolyM
+  -- Inverse operations --
+  -- Subtract
+  (#-) : BNCPolyM -> BNCPolyM -> BNCPolyM
+  -- Divide (division by zero returns zero)
+  (#/) : BNCPolyM -> BNCPolyM -> BNCPolyM
+  -- Modulus (modulus by zero returns zero)
+  (#%) : BNCPolyM -> BNCPolyM -> BNCPolyM
+  -- Branch operation(s)
+  -- Compare with zero: equal takes first branch; not-equal takes second branch
+  IfZero : BNCPolyM -> BNCPolyM -> BNCPolyM -> BNCPolyM
+  -}
 
 ---------------------------------------------------
 ---------------------------------------------------
