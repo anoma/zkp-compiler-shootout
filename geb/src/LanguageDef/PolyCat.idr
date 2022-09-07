@@ -4048,6 +4048,11 @@ SubstHomObj (InSO (x !!+ y)) z = SubstHomObj x z !* SubstHomObj y z
 -- (x * y) -> z == x -> y -> z
 SubstHomObj (InSO (x !!* y)) z = SubstHomObj x (SubstHomObj y z)
 
+infix 10 !->
+public export
+(!->) : SubstObjMu -> SubstObjMu -> SubstObjMu
+(!->) = SubstHomObj
+
 infix 10 !^
 public export
 (!^) : SubstObjMu -> SubstObjMu -> SubstObjMu
@@ -4055,7 +4060,7 @@ public export
 
 public export
 soEval : (x, y : SubstObjMu) ->
-  SubstMorph ((y !^ x) !* x) y
+  SubstMorph ((x !-> y) !* x) y
 soEval (InSO SO0) y = SMFromInit y <! SMProjRight Subst1 Subst0
 soEval (InSO SO1) y = SMProjLeft y Subst1
 soEval (InSO (x !!+ y)) z =
@@ -4076,7 +4081,7 @@ soEval (InSO (x !!* y)) z =
 
 public export
 soCurry : {x, y, z : SubstObjMu} ->
-  SubstMorph (x !* y) z -> SubstMorph x (z !^ y)
+  SubstMorph (x !* y) z -> SubstMorph x (y !-> z)
 soCurry {x} {y=(InSO SO0)} f = SMToTerminal x
 soCurry {x} {y=(InSO SO1)} {z} f = f <! SMPair (SMId x) (SMToTerminal x)
 soCurry {x} {y=(InSO (y !!+ y'))} {z} f =
@@ -4091,8 +4096,9 @@ soCurry {x} {y=(InSO (y !!* y'))} {z} f =
 
 public export
 soUncurry : {x, y, z : SubstObjMu} ->
-  SubstMorph x (z !^ y) -> SubstMorph (x !* y) z
-soUncurry f = soEval y z <! SMPair (f <! SMProjLeft _ _) (SMProjRight _ _)
+  SubstMorph x (y !-> z) -> SubstMorph (x !* y) z
+soUncurry {x} {y} {z} f =
+  soEval y z <! SMPair (f <! SMProjLeft x y) (SMProjRight x y)
 
 public export
 soPartialApp : {w, x, y, z : SubstObjMu} ->
@@ -4114,6 +4120,19 @@ MorphAsTerm {x} {y} f = soCurry {x=Subst1} {y=x} {z=y} $ soProdLeftIntro f
 public export
 IdTerm : (x : SubstObjMu) -> HomTerm x x
 IdTerm x = MorphAsTerm (SMId x)
+
+public export
+soHigherCurry : (x, y, z : SubstObjMu) ->
+  SubstMorph ((x !* y) !-> z) (x !-> (y !-> z))
+soHigherCurry x (InSO SO0) z = ?soHigherCurry_hole_1
+soHigherCurry x (InSO SO1) z = ?soHigherCurry_hole_2
+soHigherCurry x (InSO (y !!+ y')) z = ?soHigherCurry_hole_3
+soHigherCurry x (InSO (y !!* y')) z = ?soHigherCurry_hole_4
+
+public export
+soHigherUncurry : (x, y, z : SubstObjMu) ->
+  SubstMorph (x !-> (y !-> z)) ((x !* y) !-> z)
+soHigherUncurry x y z = ?soHigherUncurry_hole
 
 -------------------------------------------------------------------
 ---- Explicitly-polynomial-functor version of above definition ----
