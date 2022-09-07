@@ -1,11 +1,13 @@
 //! Sudoku PLONK Example
 
-use ark_bls12_381::{Bls12_381, Fr};
+use plonk::proof_system::pi::PublicInputs;
+use ark_bls12_381::{Bls12_381, Fr, FrParameters};
 use ark_ec::TEModelParameters;
 use ark_ed_on_bls12_381::EdwardsParameters as JubjubParameters;
-use ark_ff::PrimeField;
+use ark_ff::{PrimeField, Fp256};
 use ark_poly::polynomial::univariate::DensePolynomial;
-use ark_poly_commit::{sonic_pc::SonicKZG10, PolynomialCommitment};
+use ark_poly_commit::{ sonic_pc::SonicKZG10, PolynomialCommitment
+                     , kzg10::UniversalParams};
 use plonk::error::to_pc_error;
 use plonk_core::circuit::{verify_proof, Circuit};
 use plonk_core::constraint_system::StandardComposer;
@@ -121,90 +123,100 @@ pub fn permutation_gadget<
     composer.assert_equal(var_lhs, var_rhs);
 }
 
-pub fn main() -> Result<(), Error> {
-    // Implements a circuit that checks if a sudoku works.
-    #[derive(derivative::Derivative)]
-    #[derivative(Debug(bound = ""), Default(bound = ""))]
-    pub struct SudokuCircuit<F, P> {
-        sudoku: [[u8; 9]; 9],
-        _marker1: PhantomData<F>,
-        _marker2: PhantomData<P>,
+////////////////////////////////////////////////////////////////////////////////
+// Example Sudoku runner
+////////////////////////////////////////////////////////////////////////////////
+
+
+// Implements a circuit that checks if a sudoku works.
+#[derive(derivative::Derivative)]
+#[derivative(Debug(bound = ""), Default(bound = ""))]
+pub struct SudokuCircuit<F, P> {
+    sudoku: [[u8; 9]; 9],
+    _marker1: PhantomData<F>,
+    _marker2: PhantomData<P>,
+}
+
+impl<F, P> Circuit<F, P> for SudokuCircuit<F, P>
+where
+    F: PrimeField,
+    P: TEModelParameters<BaseField = F>,
+{
+    const CIRCUIT_ID: [u8; 32] = [0xff; 32];
+
+    fn gadget(
+        &mut self,
+        composer: &mut StandardComposer<F, P>,
+    ) -> Result<(), Error> {
+        // sudoku as a list of bytes
+        let sudoku = self.sudoku.concat();
+        // entries of the sudoku are actually < 16. We can halve the size of
+        // the list representing the sudoku.
+        let s1 = &sudoku[..sudoku.len() / 2];
+        let s2 = &sudoku[sudoku.len() / 2..];
+        let smaller_sudoku: Vec<u8> = s1
+            .iter()
+            .zip(s2.iter())
+            .map(|(b1, b2)| b1 + 16 * b2)
+            .collect();
+        // we generate gamma from this shorter list
+        let var_gamma =
+            fiat_shamir_gadget::<F, P>(composer, &smaller_sudoku);
+        for row in self.sudoku {
+            permutation_gadget::<F, P>(composer, row, var_gamma);
+        }
+        for i in 0..9 {
+            let col: Vec<_> =
+                self.sudoku.iter().map(move |row| row[i]).collect();
+            let col_to_array: [u8; 9] = col.try_into().unwrap();
+            permutation_gadget::<F, P>(composer, col_to_array, var_gamma);
+        }
+        for i in 0..3 {
+            for j in 0..3 {
+                let sub_lines = &self.sudoku[i * 3..(i + 1) * 3];
+                let square: Vec<_> = sub_lines
+                    .iter()
+                    .map(|line| &line[j * 3..(j + 1) * 3])
+                    .collect();
+                let perm: [u8; 9] =
+                    square.concat()[0..9].try_into().unwrap();
+                permutation_gadget::<F, P>(composer, perm, var_gamma);
+            }
+        }
+        Ok(())
     }
 
-    impl<F, P> Circuit<F, P> for SudokuCircuit<F, P>
-    where
-        F: PrimeField,
-        P: TEModelParameters<BaseField = F>,
+    fn padded_circuit_size(&self) -> usize {
+        1 << 11
+    }
+}
+
+type PC = SonicKZG10<Bls12_381, DensePolynomial<Fr>>;
+
+type JubSudoku = SudokuCircuit<Fr, JubjubParameters>;
+
+type ProverKey256 = ProverKey<Fp256<FrParameters>>;
+
+type SonicZKG256 = SonicKZG10<Bls12_381, DensePolynomial<Fp256<FrParameters>>>;
+
+type VerifierKey256 = VerifierKey< Fp256<FrParameters>, SonicZKG256>;
+
+type PublicInput256 = PublicInputs<Fp256<FrParameters>>;
+
+pub fn setup () -> Result<UniversalParams<Bls12_381>, Error> {
+    PC::setup(1 << 11, None, &mut OsRng).map_err(to_pc_error::<Fr, PC>)
+}
+
+pub fn key_generation(pp : &UniversalParams<Bls12_381>, mut circuit : JubSudoku)
+                      -> Result<(ProverKey256, VerifierKey256), Error> {
+    circuit.compile::<PC>(pp)
+}
+
+// Prover POV
+pub fn proof(pp : &UniversalParams<Bls12_381>, pk_p : ProverKey256)
+             -> Result<(Proof<Fp256<FrParameters>, SonicZKG256>, PublicInput256)
+                       , Error> {
     {
-        const CIRCUIT_ID: [u8; 32] = [0xff; 32];
-
-        fn gadget(
-            &mut self,
-            composer: &mut StandardComposer<F, P>,
-        ) -> Result<(), Error> {
-            // sudoku as a list of bytes
-            let sudoku = self.sudoku.concat();
-            // entries of the sudoku are actually < 16. We can halve the size of
-            // the list representing the sudoku.
-            let s1 = &sudoku[..sudoku.len() / 2];
-            let s2 = &sudoku[sudoku.len() / 2..];
-            let smaller_sudoku: Vec<u8> = s1
-                .iter()
-                .zip(s2.iter())
-                .map(|(b1, b2)| b1 + 16 * b2)
-                .collect();
-            // we generate gamma from this shorter list
-            let var_gamma =
-                fiat_shamir_gadget::<F, P>(composer, &smaller_sudoku);
-            for row in self.sudoku {
-                permutation_gadget::<F, P>(composer, row, var_gamma);
-            }
-            for i in 0..9 {
-                let col: Vec<_> =
-                    self.sudoku.iter().map(move |row| row[i]).collect();
-                let col_to_array: [u8; 9] = col.try_into().unwrap();
-                permutation_gadget::<F, P>(composer, col_to_array, var_gamma);
-            }
-            for i in 0..3 {
-                for j in 0..3 {
-                    let sub_lines = &self.sudoku[i * 3..(i + 1) * 3];
-                    let square: Vec<_> = sub_lines
-                        .iter()
-                        .map(|line| &line[j * 3..(j + 1) * 3])
-                        .collect();
-                    let perm: [u8; 9] =
-                        square.concat()[0..9].try_into().unwrap();
-                    permutation_gadget::<F, P>(composer, perm, var_gamma);
-                }
-            }
-            Ok(())
-        }
-
-        fn padded_circuit_size(&self) -> usize {
-            1 << 11
-        }
-    }
-
-    let mut circuit = SudokuCircuit::<Fr, JubjubParameters>::default();
-
-    // Generate CRS
-    type PC = SonicKZG10<Bls12_381, DensePolynomial<Fr>>;
-    let time = Instant::now();
-    let pp =
-        PC::setup(1 << 11, None, &mut OsRng).map_err(to_pc_error::<Fr, PC>)?;
-    println!("setup: \t\t\t{:?}ms", (Instant::now() - time).as_millis());
-
-    // Compile the circuit
-    let time = Instant::now();
-    let (pk_p, vk) = circuit.compile::<PC>(&pp)?;
-    println!(
-        "key generation: \t{:?}ms",
-        (Instant::now() - time).as_millis()
-    );
-
-    // Prover POV
-    let time = Instant::now();
-    let (proof, pi) = {
         let mut circuit: SudokuCircuit<Fr, JubjubParameters> = SudokuCircuit {
             sudoku: [[ 7, 6, 0,   5, 3, 8,   1, 2, 4],
                      [ 2, 4, 3,   7, 1, 0,   6, 5, 8],
@@ -221,20 +233,54 @@ pub fn main() -> Result<(), Error> {
             _marker2: PhantomData::<JubjubParameters>,
         };
         circuit.gen_proof::<PC>(&pp, pk_p, b"Test")
-    }?;
-    println!("proof: \t\t\t{:?}ms", (Instant::now() - time).as_millis());
+    }
+}
 
-    // Verifier POV
-    let time = Instant::now();
+// Verifier POV
+pub fn verify( vk    : VerifierKey256
+             , pi    : PublicInput256
+             , pp    : &UniversalParams<Bls12_381>
+             , proof : Proof<Fp256<FrParameters>, SonicZKG256>)
+               -> Result<(),Error> {
     let verifier_data = VerifierData::new(vk, pi);
-    let res = verify_proof::<Fr, JubjubParameters, PC>(
+    verify_proof::<Fr, JubjubParameters, PC>(
         &pp,
         verifier_data.key,
         &proof,
         &verifier_data.pi,
         b"Test",
-    );
-    println!("verification: \t\t{:?}ms",
-             (Instant::now() - time).as_millis());
+    )
+}
+
+pub fn prove_and_verify() ->  Result<(), Error> {
+    let circuit = SudokuCircuit::<Fr, JubjubParameters>::default();
+
+    // Generate CRS
+    let time = Instant::now();
+
+    let pp = setup()?;
+
+    println!("setup: \t\t\t{:?}ms", (Instant::now() - time).as_millis());
+
+    // Compile the circuit
+    let time = Instant::now();
+
+    let (pk_p, vk) = key_generation(&pp, circuit)?;
+
+    println!("key generation: \t{:?}ms",(Instant::now() - time).as_millis());
+
+    // Prover POV
+    let time = Instant::now();
+
+    let (proof, pi) = proof(&pp, pk_p)?;
+
+    println!("proof: \t\t\t{:?}ms", (Instant::now() - time).as_millis());
+
+    // Verifier POV
+    let time = Instant::now();
+
+    let res = verify(vk, pi, &pp, proof);
+
+    println!("verification: \t\t{:?}ms", (Instant::now() - time).as_millis());
     res
 }
