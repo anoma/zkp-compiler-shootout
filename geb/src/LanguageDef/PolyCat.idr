@@ -4116,9 +4116,9 @@ mutual
     SubstMorph (x !* y) z -> SubstMorph w x -> SubstMorph w y -> SubstMorph w z
   soSubstPair h g f = ?soSubstPair_hole
 
-----------------------------------------------------------------------------
----- Homoiconicity: SubstMorph reflected into the substitutive category ----
-----------------------------------------------------------------------------
+-------------------------------------------
+---- Morphisms as terms of hom-objects ----
+-------------------------------------------
 
 public export
 HomTerm : SubstObjMu -> SubstObjMu -> Type
@@ -4131,6 +4131,16 @@ TermAsMorph {x} {y} t = soProd1LeftElim $ soUncurry {x=Subst1} {y=x} {z=y} t
 public export
 MorphAsTerm : {x, y : SubstObjMu} -> SubstMorph x y -> HomTerm x y
 MorphAsTerm {x} {y} f = soCurry {x=Subst1} {y=x} {z=y} $ soProdLeftIntro f
+
+public export
+soWeaken : (x : SubstObjMu) -> {y, z : SubstObjMu} ->
+  SubstMorph y z -> SubstMorph (x !-> y) (x !-> z)
+soWeaken x {y} {z} f =
+  soCurry (soEval y z <! SMPair (MorphAsTerm f <! SMToTerminal _) (soEval x y))
+
+----------------------------------------------------------------------------
+---- Homoiconicity: SubstMorph reflected into the substitutive category ----
+----------------------------------------------------------------------------
 
 public export
 IdTerm : (x : SubstObjMu) -> HomTerm x x
@@ -4174,7 +4184,12 @@ soHigherPair (InSO (w !!+ x)) y z =
       SMPair
         (SMProjRight _ _ <! SMProjLeft _ _)
         (SMProjRight _ _ <! SMProjRight _ _))
-soHigherPair (InSO (w !!* x)) y z = ?soHigherPair_hole_4
+soHigherPair (InSO (w !!* x)) y z =
+  let
+    xyz = soHigherPair x y z
+    wxyz = soHigherPair w (x !-> y) (x !-> z)
+  in
+  soWeaken w xyz <! wxyz
 
 public export
 soHigherCompose : (x, y, z : SubstObjMu) ->
