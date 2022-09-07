@@ -4095,6 +4095,11 @@ soUncurry : {x, y, z : SubstObjMu} ->
 soUncurry f = soEval y z <! SMPair (f <! SMProjLeft _ _) (SMProjRight _ _)
 
 public export
+soPartialApp : {w, x, y, z : SubstObjMu} ->
+  SubstMorph (x !* y) z -> SubstMorph w x -> SubstMorph (w !* y) z
+soPartialApp g f = soUncurry $ soCurry g <! f
+
+public export
 HomTerm : SubstObjMu -> SubstObjMu -> Type
 HomTerm = SOTerm .* SubstHomObj
 
