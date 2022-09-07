@@ -4105,6 +4105,10 @@ soPartialApp : {w, x, y, z : SubstObjMu} ->
   SubstMorph (x !* y) z -> SubstMorph w x -> SubstMorph (w !* y) z
 soPartialApp g f = soUncurry $ soCurry g <! f
 
+----------------------------------------------------------------------------
+---- Homoiconicity: SubstMorph reflected into the substitutive category ----
+----------------------------------------------------------------------------
+
 public export
 HomTerm : SubstObjMu -> SubstObjMu -> Type
 HomTerm = SOTerm .* SubstHomObj
@@ -4134,6 +4138,17 @@ public export
 soHigherUncurry : (x, y, z : SubstObjMu) ->
   SubstMorph (x !-> (y !-> z)) ((x !* y) !-> z)
 soHigherUncurry x y z = SMId (x !-> (y !-> z))
+
+public export
+soHigherCompose : (x, y, z : SubstObjMu) ->
+  SubstMorph ((y !-> z) !* (x !-> y)) (x !-> z)
+soHigherCompose x y z = ?soHigherCompose_hole
+
+public export
+soHigherPartialApp : (w, x, y, z : SubstObjMu) ->
+  SubstMorph (((x !* y) !-> z) !* (w !-> x)) ((w !* y) !-> z)
+soHigherPartialApp w x y z =
+  soHigherCurry w y z <! (soHigherCompose w x (y !-> z))
 
 -------------------------------------------------------------------
 ---- Explicitly-polynomial-functor version of above definition ----
