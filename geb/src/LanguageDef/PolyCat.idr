@@ -4182,6 +4182,11 @@ soEval (InSO (x !!* y)) z =
 public export
 soCurry : {x, y, z : SubstObjMu} ->
   SubstMorph (x !* y) z -> SubstMorph x (z !^ y)
+soCurry {x} {y=(InSO SO0)} f = SMToTerminal x
+soCurry {x} {y=(InSO SO1)} {z} f = f <! SMPair (SMId x) (SMToTerminal x)
+soCurry {y=(InSO (y !!+ y'))} f = ?soCurry_hole_3
+soCurry {y=(InSO (y !!* z'))} f = ?soCurry_hole_4
+{-
 soCurry {x} {y} {z=(x !* y)} (SMId _) = ?soCurry_hole_5
 soCurry {x} {y} {z} (g <! f) = ?soCurry_hole_0
 soCurry {x} {y} (SMToTerminal _) = ?soCurry_hole
@@ -4191,6 +4196,7 @@ soCurry {x} {y} {z=(y !* z)} (SMPair f g) = ?soCurry_hole_1
 soCurry {x} {y} {z=x} (SMProjLeft _ _) = ?soCurry_hole_2
 soCurry {x} {y} {z=y} (SMProjRight _ _) = ?soCurry_hole_3
 soCurry {x} {y=(x' !+ z')} {z=((x !* x') !+ (x !* z'))} (SMDistrib _ _ _) = ?soCurry_hole_4
+-}
 
 public export
 soUncurry : {x, y, z : SubstObjMu} ->
