@@ -4107,14 +4107,14 @@ soPartialApp g f = soUncurry $ soCurry g <! f
 
 mutual
   public export
-  soApply : {x, y, z : SubstObjMu} ->
+  soSubst : {x, y, z : SubstObjMu} ->
     SubstMorph y z -> SubstMorph x y -> SubstMorph x z
-  soApply g f = ?soApply_hole
+  soSubst g f = ?soSubst_hole
 
   public export
-  soApplyPair : {w, x, y, z : SubstObjMu} ->
+  soSubstPair : {w, x, y, z : SubstObjMu} ->
     SubstMorph (x !* y) z -> SubstMorph w x -> SubstMorph w y -> SubstMorph w z
-  soApplyPair h g f = ?soApplyPair_hole
+  soSubstPair h g f = ?soSubstPair_hole
 
 ----------------------------------------------------------------------------
 ---- Homoiconicity: SubstMorph reflected into the substitutive category ----
@@ -4153,12 +4153,28 @@ soHigherUncurry x y z = SMId (x !-> (y !-> z))
 public export
 soHigherCase : (x, y, z : SubstObjMu) ->
   SubstMorph ((x !-> z) !* (y !-> z)) ((x !+ y) !-> z)
-soHigherCase x y z = ?soHigherCase_hole
+soHigherCase x y z = SMId (SubstHomObj x z !* SubstHomObj y z)
 
 public export
 soHigherPair : (x, y, z : SubstObjMu) ->
   SubstMorph ((x !-> y) !* (x !-> z)) (x !-> (y !* z))
-soHigherPair x y z = ?soHigherPair_hole
+soHigherPair (InSO SO0) _ _ = SMToTerminal _
+soHigherPair (InSO SO1) _ _ = SMId _
+soHigherPair (InSO (w !!+ x)) y z =
+  let
+    wyz = soHigherPair w y z
+    xyz = soHigherPair x y z
+  in
+  SMPair
+    (wyz <!
+      SMPair
+        (SMProjLeft _ _ <! SMProjLeft _ _)
+        (SMProjLeft _ _ <! SMProjRight _ _))
+    (xyz <!
+      SMPair
+        (SMProjRight _ _ <! SMProjLeft _ _)
+        (SMProjRight _ _ <! SMProjRight _ _))
+soHigherPair (InSO (w !!* x)) y z = ?soHigherPair_hole_4
 
 public export
 soHigherCompose : (x, y, z : SubstObjMu) ->
