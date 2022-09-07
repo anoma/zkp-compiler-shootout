@@ -3995,9 +3995,14 @@ soForgetRight x y z =
   SMPair (SMProjLeft _ _) (SMProjLeft _ _ <! SMProjRight _ _)
 
 public export
-soProd1Left : {x, y : SubstObjMu} ->
+soProd1LeftElim : {x, y : SubstObjMu} ->
   SubstMorph (Subst1 !* x) y -> SubstMorph x y
-soProd1Left {x} f = f <! SMPair (SMToTerminal x) (SMId x)
+soProd1LeftElim {x} f = f <! SMPair (SMToTerminal x) (SMId x)
+
+public export
+soProdLeftIntro : {x, y, z : SubstObjMu} ->
+  SubstMorph y z -> SubstMorph (x !* y) z
+soProdLeftIntro f = f <! SMProjRight _ _
 
 -- The inverse of SMDistrib.
 public export
@@ -4242,22 +4247,22 @@ soCurry {x} {y=(InSO (y !!+ y'))} {z} f =
     fg = f <! g
     fgc = fg <! SMCase ?h3 ?h4
   in
-  ?ggghhh -- SMPair (soCurry ?h1) (soCurry ?h2)
+  ?ggghhh -- SMPair (soCurry h1) (soCurry h2)
 soCurry {x} {y=(InSO (y !!* y'))} {z} f =
   let
     cyz = soCurry {x=y} {y=y'} {z}
   in
   ?soCurry_hole_4
 {-
-soCurry {x} {y} {z=(x !* y)} (SMId _) = ?soCurry_hole_5
-soCurry {x} {y} {z} (g <! f) = ?soCurry_hole_0
-soCurry {x} {y} (SMToTerminal _) = ?soCurry_hole
-soCurry {x} {y} {z=((x !* y) !+ z)} (SMInjLeft _ _) = ?soCurry_hole_9
-soCurry {x} {y} {z=(z !+ (x !* y))} (SMInjRight _ _) = ?soCurry_hole_8
-soCurry {x} {y} {z=(y !* z)} (SMPair f g) = ?soCurry_hole_1
-soCurry {x} {y} {z=x} (SMProjLeft _ _) = ?soCurry_hole_2
-soCurry {x} {y} {z=y} (SMProjRight _ _) = ?soCurry_hole_3
-soCurry {x} {y=(x' !+ z')} {z=((x !* x') !+ (x !* z'))} (SMDistrib _ _ _) = ?soCurry_hole_4
+soCurry {x} {y} {z=(x !* y)} (SMId _) = soCurry_hole_5
+soCurry {x} {y} {z} (g <! f) = soCurry_hole_0
+soCurry {x} {y} (SMToTerminal _) = soCurry_hole
+soCurry {x} {y} {z=((x !* y) !+ z)} (SMInjLeft _ _) = soCurry_hole_9
+soCurry {x} {y} {z=(z !+ (x !* y))} (SMInjRight _ _) = soCurry_hole_8
+soCurry {x} {y} {z=(y !* z)} (SMPair f g) = soCurry_hole_1
+soCurry {x} {y} {z=x} (SMProjLeft _ _) = soCurry_hole_2
+soCurry {x} {y} {z=y} (SMProjRight _ _) = soCurry_hole_3
+soCurry {x} {y=(x' !+ z')} {z=((x !* x') !+ (x !* z'))} (SMDistrib _ _ _) = soCurry_hole_4
 -}
 
 public export
@@ -4271,27 +4276,11 @@ HomTerm = SOTerm .* SubstHomObj
 
 public export
 TermAsMorph : {x, y : SubstObjMu} -> HomTerm x y -> SubstMorph x y
-TermAsMorph {x} {y} t = soProd1Left $ soUncurry {x=Subst1} {y=x} {z=y} t
+TermAsMorph {x} {y} t = soProd1LeftElim $ soUncurry {x=Subst1} {y=x} {z=y} t
 
 public export
 MorphAsTerm : {x, y : SubstObjMu} -> SubstMorph x y -> HomTerm x y
-MorphAsTerm {x} {y} f = ?MorphAsTerm_hole
-{-
-MorphAsTerm {x=(InSO SO0)} {y} () = ()
-MorphAsTerm {x=(InSO SO1)} {y} f = f
-MorphAsTerm {x=(InSO (x !!+ y))} {y=z} f = mat_hole_1 -- (f, g) = (MorphAsTerm f, MorphAsTerm g)
-MorphAsTerm {x=(InSO ((InSO SO0) !!* y))} {y=z} f = ()
--- MorphAsTerm {x=(InSO ((InSO SO1) !!* (InSO SO0)))} {y=z} () = ()
-MorphAsTerm {x=(InSO ((InSO SO1) !!* (InSO SO1)))} {y=z} f = mat_holey -- f
-MorphAsTerm {x=(InSO ((InSO SO1) !!* (InSO (x !!+ y))))} {y=z} f = mat_hole_2 -- (f, g) =
-  -- (MorphAsTerm f, MorphAsTerm g)
-MorphAsTerm {x=(InSO ((InSO SO1) !!* (InSO (x !!* y))))} {y=z} f =
-  mat_more_holes -- MorphAsTerm {x=(x !* y)} {y=z} f
-MorphAsTerm {x=(InSO ((InSO (x !!+ w)) !!* y))} {y=z} f = mat_hole_3 -- (f, g) =
-  --(MorphAsTerm f, MorphAsTerm g)
-MorphAsTerm {x=(InSO ((InSO (x !!* w)) !!* y))} {y=z} f =
-  mat_this_too -- MorphAsTerm {x=(x !* (w !* y))} {y=z} f
-  -}
+MorphAsTerm {x} {y} f = soCurry {x=Subst1} {y=x} {z=y} $ soProdLeftIntro f
 
 public export
 IdTerm : (x : SubstObjMu) -> HomTerm x x
