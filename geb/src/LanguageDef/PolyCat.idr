@@ -4015,180 +4015,9 @@ soGather x y z =
       (SMInjLeft _ _ <! SMProjRight _ _)
       (SMInjRight _ _ <! SMProjRight _ _))
 
-  {-
-mutual
-  public export
-  soApply : {x, y, z : SubstObjMu} ->
-    SubstMorph y z -> SubstMorph x y -> SubstMorph x z
-  soApply (SMId _) e = e  --SMId is left identity
-  soApply (g <! f) e = g <! soApply f e  -- composition is associative
-  soApply f@(SMFromInit y) e = soApply_hole
-  soApply {x} (SMToTerminal _) e = SMToTerminal x
-  soApply {x} {y=z} {z=(z !+ z')} (SMInjLeft z z') e = soApply_hole_4
-  soApply (SMInjRight w y) e = soApply_hole_5
-  soApply (SMCase w v) e = soApply_hole_6
-  soApply (SMPair w v) e = soApply_hole_7
-  soApply (SMProjLeft z v) e = soApply_hole_8
-  soApply (SMProjRight w z) e = soApply_hole_9
-  soApply (SMDistrib w v s) e = soApply_hole_10
-  soApply f SMId1 = f
-  soApply (SMCopTo1 _ _) _ = SMId1
-  soApply (SMCase f g) (SMTermLeft t _) = soApply f t
-  soApply (SMCase f g) (SMTermRight _ t) = soApply g t
-  soApply f (SMTermPair t t') = soApplyPair f t t'
-
-  public export
-  soApplyPair : {w, x, y, z : SubstObjMu} ->
-    SubstMorph (x !* y) z -> SubstMorph w x -> SubstMorph w y -> SubstMorph w z
-  soApplyPair h f g = soApplyPair_hole
-  -}
-  {-
-  soApplyPair (SMProdTo1 _ _) _ _ = SMId1
-  soApplyPair (SMDistrib (SMCopTo1 _ _)) _ _ = SMId1
-  soApplyPair (SMDistrib (SMCase f g)) (SMTermLeft t _) t' = soApplyPair f t t'
-  soApplyPair (SMDistrib (SMCase f g)) (SMTermRight _ t) t' = soApplyPair g t t'
-  soApplyPair (SMAssoc f) (SMTermPair t t') t'' =
-    soApplyPair f t (SMTermPair t' t'')
-    -}
-
 public export
 SOTerm : SubstObjMu -> Type
 SOTerm = SubstMorph Subst1
-
-{-
-showSubstMorph (SMFrom0 y) = "0->(" ++ show y ++ ")"
-showSubstMorph SMId1 = "id(1)"
-showSubstMorph (SMTermLeft z w) = "Left(" ++ showSubstMorph z ++ ")"
-showSubstMorph (SMTermRight z w) = "Right(" ++ showSubstMorph w ++ ")"
-showSubstMorph (SMTermPair z w) =
-  "(" ++ showSubstMorph z ++ ", " ++ showSubstMorph w ++ ")"
-showSubstMorph (SMCopTo1 z w) = "(" ++ show z ++ " + " ++ show w ++ ")->1"
-showSubstMorph (SMCase z w) =
-  "[" ++ showSubstMorph z ++ "|" ++ showSubstMorph w ++ "]"
-showSubstMorph (SMProdTo1 z w) = "(" ++ show z ++ ", " ++ show w ++ ")->1"
-showSubstMorph (SMDistrib z) = "distrib[" ++ showSubstMorph z ++ "]"
-showSubstMorph (SMAssoc z) = "assoc[" ++ showSubstMorph z ++ "]"
-
-public export
-soFromInitial : (x : SubstObjMu) -> SubstMorph Subst0 x
-soFromInitial = SMFrom0
-
-public export
-soToTerminal : (x : SubstObjMu) -> SubstMorph x Subst1
-soToTerminal (InSO SO0) = SMFrom0 Subst1
-soToTerminal (InSO SO1) = SMId1
-soToTerminal (InSO (x !!+ y)) = SMCopTo1 x y
-soToTerminal (InSO (x !!* y)) = SMProdTo1 x y
-
-public export
-soCase : {x, y, z : SubstObjMu} ->
-  SubstMorph x z -> SubstMorph y z -> SubstMorph (x !+ y) z
-soCase = SMCase
-
-infixr 1 <!
-public export
-(<!) : {x, y, z : SubstObjMu} ->
-  SubstMorph y z -> SubstMorph x y -> SubstMorph x z
-(<!) g (SMFrom0 _) = SMFrom0 _
-(<!) g SMId1 = g
-(<!) (SMCopTo1 _ _) (SMTermLeft _ _) = SMId1
-(<!) (SMCase f g) (SMTermLeft t _) = f <! t
-(<!) (SMCopTo1 _ _) (SMTermRight _ _) = SMId1
-(<!) (SMCase f g) (SMTermRight _ t) = g <! t
-(<!) (SMProdTo1 _ _) (SMTermPair _ _) = SMId1
-(<!) (SMDistrib (SMCopTo1 _ _)) (SMTermPair t t') = SMId1
-(<!) (SMDistrib (SMCase f g)) (SMTermPair t t'') = case t of
-  SMTermLeft t _ => soApplyPair f t t''
-  SMTermRight _ t' => soApplyPair g t' t''
-(<!) (SMAssoc (SMProdTo1 _ _)) (SMTermPair _ _) = SMId1
-(<!) (SMAssoc {w=(v !+ w)} {x} {y} {z} (SMDistrib f)) (SMTermPair tvwx ty) =
-  case (f, tvwx) of
-    (SMCopTo1 _ _, _) => SMId1
-    (SMCase fv fw, SMTermPair (SMTermLeft tv _) tx) =>
-      soApplyPair fv tv $ SMTermPair tx ty
-    (SMCase fv fw, SMTermPair (SMTermRight _ tw) tx) =>
-      soApplyPair fw tw $ SMTermPair tx ty
-(<!) (SMAssoc {w=(v !* w)} {x} {y} {z} (SMAssoc f)) (SMTermPair tvwx ty) =
-  case tvwx of
-    SMTermPair (SMTermPair tv tw) tx =>
-      soApplyPair f tv $ SMTermPair tw $ SMTermPair tx ty
-(<!) {x=(x !+ y)} {y=Subst1} {z} g (SMCopTo1 _ _) =
-  SMCase (g <! soToTerminal x) (g <! soToTerminal y)
-(<!) {x=(x' !+ y')} {y} {z} g (SMCase f f') = SMCase (g <! f) (g <! f')
-(<!) g (SMProdTo1 x y) = g <! soToTerminal _
-(<!) g (SMDistrib f) = compose_with_distrib_hole
-(<!) g (SMAssoc f) = compose_with_assoc_hole
-
-mutual
-  public export
-  SOI : (x : SubstObjMu) -> SubstMorph x x
-  SOI x = SOI_hole
-  {-
-  SOI (InSO SO0) = ()
-  SOI (InSO SO1) = ()
-  SOI (InSO (x !!+ y)) = (soInjLeft x y, soInjRight x y)
-  SOI (InSO ((InSO SO0) !!* y)) = ()
-  SOI (InSO ((InSO SO1) !!* y)) = soProd (soToTerminal y) (SOI y)
-  SOI (InSO ((InSO (x !!+ x')) !!* y)) = soi_hole_1
-  -}
-  {-
-    (soProd (soInjLeft _ _ <! soProjLeft _ _) (soProjRight x y),
-     soProd (soInjRight _ _ <! soProjLeft _ _) (soProjRight x' y))
-  SOI (InSO ((InSO (x !!* x')) !!* y)) = soi_hole_2
-     -}
-  {-
-    soProd
-      (soProd (soProjLeft _ _) (soProjLeft _ _ <! soProjRight _ _))
-      (soProjRight _ _ <! soProjRight _ _)
-      -}
-
-  public export
-  soInjLeft : (x, y : SubstObjMu) -> SubstMorph x (x !+ y)
-  soInjLeft x y = soInjLeft_hole
-  {-
-  soInjLeft (InSO SO0) y = ()
-  soInjLeft (InSO SO1) y = Left ()
-  soInjLeft (InSO (x !!+ z)) y = (soInjLeft_hole_14, soInjLeft_hole_14a)
-  soInjLeft (InSO ((InSO SO0) !!* z)) y = soInjLeft_hole_17
-  soInjLeft (InSO ((InSO SO1) !!* z)) y = soInjLeft_hole_18
-  soInjLeft (InSO ((InSO (x !!+ w)) !!* z)) y = soInjLeft_hole_19
-  soInjLeft (InSO ((InSO (x !!* w)) !!* z)) y = soInjLeft_hole_20
-  -}
-
-  public export
-  soInjRight : (x, y : SubstObjMu) -> SubstMorph y (x !+ y)
-  soInjRight x y = soInjRight_hole
-  {-
-  soInjRight x (InSO SO0) = ()
-  soInjRight x (InSO SO1) = Right ()
-  soInjRight x (InSO (y !!+ z)) = (soInjRight_hole_3, soInjRight_hole_3a)
-  soInjRight x (InSO (y !!* z)) = soInjRight_hole_4
-  -}
-
-  public export
-  soProd : {x, y, z : SubstObjMu} ->
-    SubstMorph x y -> SubstMorph x z -> SubstMorph x (y !* z)
-  soProd {x} {y} {z} f g = soProd_hole
-  {-
-  soProd {x = (InSO SO0)} {y = y} {z = z} f g = soProd_hole_1
-  soProd {x = (InSO SO1)} {y = y} {z = z} f g = soProd_hole_2
-  soProd {x = (InSO (x !!+ w))} {y = y} {z = z} f g = soProd_hole_3
-  soProd {x = (InSO (x !!* w))} {y = y} {z = z} f g = soProd_hole_4
-  -}
-
-  public export
-  soProjLeft : (x, y : SubstObjMu) -> SubstMorph (x !* y) x
-  soProjLeft x y = soProjLeft_hole
-
-  public export
-  soProjRight : (x, y : SubstObjMu) -> SubstMorph (x !* y) y
-  soProjRight x y = soProjRight_hole
-
-  public export
-  soDistributeRight : (x, y, z : SubstObjMu) ->
-    SubstMorph (x !* (y !+ z)) ((x !* y) !+ (x !* z))
-  soDistributeRight x y z = soDistribute_hole
-  -}
 
 --------------------------------------------------------------
 ---- Exponentiation (hom-objects) of substitutive objects ----
@@ -4238,21 +4067,19 @@ soCurry {x} {y=(InSO SO0)} f = SMToTerminal x
 soCurry {x} {y=(InSO SO1)} {z} f = f <! SMPair (SMId x) (SMToTerminal x)
 soCurry {x} {y=(InSO (y !!+ y'))} {z} f =
   let
-  {-
     c = soCurry {x} {y} {z}
     c' = soCurry {x} {y=y'} {z}
-    -}
     d = SMDistrib x y y'
     g = soGather x y y'
     fg = f <! g
-    fgc = fg <! SMCase ?h3 ?h4
+    fgc = fg <! SMCase ?soCurry_cop_hole_case1 ?soCurry_cop_hole_case2
   in
-  ?ggghhh -- SMPair (soCurry h1) (soCurry h2)
+  ?soCurry_cop_hole -- SMPair (soCurry h1) (soCurry h2)
 soCurry {x} {y=(InSO (y !!* y'))} {z} f =
   let
     cyz = soCurry {x=y} {y=y'} {z}
   in
-  ?soCurry_hole_4
+  ?soCurry_prod_hole
 {-
 soCurry {x} {y} {z=(x !* y)} (SMId _) = soCurry_hole_5
 soCurry {x} {y} {z} (g <! f) = soCurry_hole_0
