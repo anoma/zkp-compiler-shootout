@@ -5159,6 +5159,30 @@ public export
 baPolyM : {m, n : Nat} -> BNCPolyM -> BANat m -> BANat (S n)
 baPolyM {n} p = metaToBNCToBNC (metaBNCPolyM (natToInteger n) p)
 
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+---- Compilation of finite polynomial types to circuit operations ----
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+
+public export
+substObjToNat : SubstObjMu -> Nat
+substObjToNat = substObjCard
+
+public export
+substMorphToBNC : {x, y : SubstObjMu} -> SubstMorph x y -> BNCPolyM
+substMorphToBNC (SMId x) = ?substMorphToBNC_hole_0
+substMorphToBNC ((<!) {x} {y} {z} g f) = ?substMorphToBNC_hole_1
+substMorphToBNC (SMFromInit y) = ?substMorphToBNC_hole_2
+substMorphToBNC (SMToTerminal x) = ?substMorphToBNC_hole_3
+substMorphToBNC (SMInjLeft x y) = ?substMorphToBNC_hole_4
+substMorphToBNC (SMInjRight x y) = ?substMorphToBNC_hole_5
+substMorphToBNC (SMCase {x} {y} {z} f g) = ?substMorphToBNC_hole_6
+substMorphToBNC (SMPair {x} {y} {z} f g) = ?substMorphToBNC_hole_7
+substMorphToBNC (SMProjLeft x y) = ?substMorphToBNC_hole_8
+substMorphToBNC (SMProjRight x y) = ?substMorphToBNC_hole_9
+substMorphToBNC (SMDistrib x y z) = ?substMorphToBNC_hole_10
+
 ---------------------------------------------------
 ---------------------------------------------------
 ---- Older version of polynomial-type category ----
