@@ -24,10 +24,8 @@ use plonk_hashing::poseidon::{
     poseidon::{PlonkSpec, Poseidon},
 };
 
-pub fn fiat_shamir_gadget<
-        F: PrimeField,
-    P: TEModelParameters<BaseField = F>,
-    >(
+pub fn fiat_shamir_gadget<F: PrimeField,
+                          P: TEModelParameters<BaseField = F>,>(
     composer: &mut StandardComposer<F, P>,
     secret: &[u8],
 ) -> Variable {
@@ -214,8 +212,8 @@ pub fn key_generation(pp : &UniversalParams<Bls12_381>, mut circuit : JubSudoku)
 
 // Prover POV
 pub fn proof(pp : &UniversalParams<Bls12_381>, pk_p : ProverKey256)
-             -> Result<(Proof<Fp256<FrParameters>, SonicZKG256>, PublicInput256)
-                       , Error> {
+             -> Result<(Proof<Fp256<FrParameters>, SonicZKG256>, PublicInput256),
+                       Error> {
     {
         let mut circuit: SudokuCircuit<Fr, JubjubParameters> = SudokuCircuit {
             sudoku: [[ 7, 6, 0,   5, 3, 8,   1, 2, 4],
@@ -252,8 +250,17 @@ pub fn verify( vk    : VerifierKey256
     )
 }
 
+pub fn circuit() -> JubSudoku {
+    SudokuCircuit::<Fr, JubjubParameters>::default()
+}
+
 pub fn prove_and_verify() ->  Result<(), Error> {
-    let circuit = SudokuCircuit::<Fr, JubjubParameters>::default();
+    let time = Instant::now();
+
+    let circuit = circuit();
+
+    println!("circuit: t\t{:?}ms", (Instant::now() - time).as_millis());
+
 
     // Generate CRS
     let time = Instant::now();
