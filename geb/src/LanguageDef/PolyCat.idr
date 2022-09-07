@@ -4012,7 +4012,11 @@ soProdLeftApply f = SMPair (SMProjLeft _ _) (soProdLeftIntro f)
 public export
 soProdLeftAssoc : {w, x, y, z : SubstObjMu} ->
   SubstMorph (w !* (x !* y)) z -> SubstMorph ((w !* x) !* y) z
-soProdLeftAssoc {w} {x} {y} {z} f = ?soProdLeftAssoc_hole
+soProdLeftAssoc {w} {x} {y} {z} f =
+  f <!
+    SMPair
+      (SMProjLeft _ _ <! SMProjLeft _ _)
+      (SMPair (SMProjRight _ _ <! SMProjLeft _ _) (SMProjRight _ _))
 
 -- The inverse of SMDistrib.
 public export
