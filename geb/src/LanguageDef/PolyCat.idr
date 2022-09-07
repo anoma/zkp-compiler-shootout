@@ -3961,6 +3961,34 @@ soCopCommutesRight : {x, y, z : SubstObjMu} ->
   SubstMorph x (y !+ z) -> SubstMorph x (z !+ y)
 soCopCommutesRight f = soCopCommutes y z <! f
 
+public export
+soLeft : {x, y, z : SubstObjMu} -> SubstMorph (x !+ y) z -> SubstMorph x z
+soLeft {x} {y} f = f <! SMInjLeft x y
+
+public export
+soRight : {x, y, z : SubstObjMu} -> SubstMorph (x !+ y) z -> SubstMorph y z
+soRight f {x} {y} = f <! SMInjRight x y
+
+public export
+soProdLeft : {x, y, z : SubstObjMu} ->
+  SubstMorph y z -> SubstMorph (x !* y) z
+soProdLeft f = f <! SMProjRight _ _
+
+public export
+soProdRight : {x, y, z : SubstObjMu} ->
+  SubstMorph y z -> SubstMorph (y !* x) z
+soProdRight f = f <! SMProjLeft _ _
+
+public export
+soGather : (x, y, z : SubstObjMu) ->
+  SubstMorph ((x !* y) !+ (x !* z)) (x !* (y !+ z))
+soGather x y z =
+  SMPair
+    (SMCase (SMProjLeft _ _) (SMProjLeft _ _))
+    (SMCase
+      (SMInjLeft _ _ <! SMProjRight _ _)
+      (SMInjRight _ _ <! SMProjRight _ _))
+
   {-
 mutual
   public export
