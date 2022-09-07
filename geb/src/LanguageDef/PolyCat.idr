@@ -5177,15 +5177,15 @@ substMorphToBNC {x=Subst0} (SMFromInit y) = #| 0
 substMorphToBNC {y=Subst1} (SMToTerminal x) = #| 1
 substMorphToBNC (SMInjLeft x y) = PI
 substMorphToBNC (SMInjRight x y) = #| (substObjToNat x) #+ PI
-substMorphToBNC (SMCase {x} {y} {z} f g) with (substObjToNat x, substObjToNat y)
-  substMorphToBNC (SMCase {x} {y} {z} f g) | (cx, cy) =
+substMorphToBNC (SMCase {x} {y} {z} f g) with (substObjToNat x)
+  substMorphToBNC (SMCase {x} {y} {z} f g) | cx =
     if cx == 0 then
       substMorphToBNC g
     else
       IfZero
         (PI #/ #| cx)
         (substMorphToBNC f)
-        (#| (substObjToNat x) #+ substMorphToBNC g)
+        (substMorphToBNC g #. PI #- #| cx)
 substMorphToBNC (SMPair {x} {y} {z} f g) = ?substMorphToBNC_hole_7
 substMorphToBNC (SMProjLeft x y) = ?substMorphToBNC_hole_8
 substMorphToBNC (SMProjRight x y) = ?substMorphToBNC_hole_9
