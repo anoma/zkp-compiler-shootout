@@ -4124,15 +4124,12 @@ IdTerm x = MorphAsTerm (SMId x)
 public export
 soHigherCurry : (x, y, z : SubstObjMu) ->
   SubstMorph ((x !* y) !-> z) (x !-> (y !-> z))
-soHigherCurry x (InSO SO0) z = ?soHigherCurry_hole_1
-soHigherCurry x (InSO SO1) z = ?soHigherCurry_hole_2
-soHigherCurry x (InSO (y !!+ y')) z = ?soHigherCurry_hole_3
-soHigherCurry x (InSO (y !!* y')) z = ?soHigherCurry_hole_4
+soHigherCurry x y z = SMId (x !-> (y !-> z))
 
 public export
 soHigherUncurry : (x, y, z : SubstObjMu) ->
   SubstMorph (x !-> (y !-> z)) ((x !* y) !-> z)
-soHigherUncurry x y z = ?soHigherUncurry_hole
+soHigherUncurry x y z = SMId (x !-> (y !-> z))
 
 -------------------------------------------------------------------
 ---- Explicitly-polynomial-functor version of above definition ----
