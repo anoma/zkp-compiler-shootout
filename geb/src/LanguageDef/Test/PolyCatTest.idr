@@ -998,6 +998,17 @@ BBFM = PolyFuncFreeM BinBoolTreePF
 BBFMFF : Type
 BBFMFF = InterpPolyFuncFreeM BinBoolTreePF Nat
 
+------------------------------------
+---- Unrefined polynomial types ----
+------------------------------------
+
+initObj : SubstObjMu
+initObj = Subst0
+
+termObj : SubstObjMu
+termObj = Subst1
+
+
 ----------------------------------
 ----------------------------------
 ----- Exported test function -----
@@ -1191,6 +1202,18 @@ polyCatTest = do
   putStrLn "------------------------------------------"
   putStrLn "---- Metalanguage polynomial functors ----"
   putStrLn "------------------------------------------"
+  putStrLn ""
+  putStrLn "------------------------------------"
+  putStrLn "---- Unrefined polynomial types ----"
+  putStrLn "------------------------------------"
+  putStrLn ""
+  putStrLn $ "initial object: " ++ show initObj
+  putStrLn $ "initial object as Nat: " ++ show (substObjToNat initObj)
+  putStrLn $ "initial object in metalanguage: " ++ show (metaSOShowType initObj)
+  putStrLn $ "terminal object: " ++ show termObj
+  putStrLn $ "terminal object as Nat: " ++ show (substObjToNat termObj)
+  putStrLn $ "terminal object in metalanguage: " ++
+    show (metaSOShowType termObj)
   putStrLn ""
   putStrLn "----------------"
   putStrLn "End polyCatTest."

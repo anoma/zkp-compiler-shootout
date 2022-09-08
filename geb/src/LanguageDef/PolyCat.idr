@@ -4420,6 +4420,17 @@ public export
 MetaSOType : SubstObjMu -> Type
 MetaSOType = substObjCata MetaSOTypeAlg
 
+public export
+MetaSOShowTypeAlg : MetaSOAlg String
+MetaSOShowTypeAlg SO0 = "Void"
+MetaSOShowTypeAlg SO1 = "Unit"
+MetaSOShowTypeAlg (p !!+ q) = "Either (" ++ p ++ ") (" ++ q ++ ")"
+MetaSOShowTypeAlg (p !!* q) = "Pair (" ++ p ++ ") (" ++ q ++ ")"
+
+public export
+metaSOShowType : SubstObjMu -> String
+metaSOShowType = substObjCata MetaSOShowTypeAlg
+
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ---- Inductive definition of substitutive polynomial endofunctors ----
@@ -5377,6 +5388,15 @@ substMorphToBNC (SMProjRight x y) with (substObjToNat x, substObjToNat y)
     else
       PI #% #| cy
 substMorphToBNC (SMDistrib x y z) = PI
+
+public export
+substMorphToFunc : {a, b : SubstObjMu} -> SubstMorph a b -> Integer -> Integer
+substMorphToFunc {a} {b} f =
+  metaBNCPolyM (natToInteger $ substObjToNat b) (substMorphToBNC f)
+
+public export
+substTermToInt : {a : SubstObjMu} -> SOTerm a -> Integer
+substTermToInt t = substMorphToFunc t 1
 
 ---------------------------------------------------
 ---------------------------------------------------
