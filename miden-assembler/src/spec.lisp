@@ -22,8 +22,8 @@
          :accessor name
          :documentation "Name of the procedure")
    (block :initarg :block
-          :accessor :block
-          :type      block)))
+          :accessor block
+          :type     block)))
 
 (deftype constant ()
   `(or fixnum null))
@@ -39,6 +39,17 @@
              :initform nil
              :documentation "extra constant input argument if any exists")))
 
+(defclass repeat ()
+  ((count :initarg  :count
+          :type     fixnum
+          :accessor count
+          :initform 0
+          :documentation
+          "Executing a sequence of instructions a predefined number of times")
+   (block :initarg :block
+          :accessor block
+          :type     block)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Constructors for the base types
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -53,7 +64,12 @@
   (values
    (make-instance 'block :block block :name name)))
 
-(-> make-opcode  (&key (:name keyword) (:constant constant)) opcode)
+(-> make-opcode (&key (:name keyword) (:constant constant)) opcode)
 (defun make-opcode (&key name (constant nil))
   (values
     (make-instance 'opcode :name name :constant constant)))
+
+(-> make-repeat (&key (:count fixnum) (:block block)) repeat)
+(defun make-repeat (&key count block)
+  (values
+   (make-instance 'repeat  :block block :count count)))
