@@ -12,5 +12,6 @@
   ;; #-(or ecl ccl) "image-op"
   :components
   ((:file package)
-   (:file spec  :depends-on (package))
-   (:file miden :depends-on (package spec))))
+   (:file spec     :depends-on (package))
+   (:file printer  :depends-on (package spec))
+   (:file miden    :depends-on (package spec))))
