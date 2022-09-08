@@ -4184,7 +4184,7 @@ public export
 contravarYonedaEmbed : {a, b : SubstObjMu} ->
   SubstMorph a b -> (x : SubstObjMu) -> SubstMorph (x !-> a) (x !-> b)
 contravarYonedaEmbed {a} {b} f x =
-  soCurry (soEval a b <! SMPair (MorphAsTerm f <! SMToTerminal _) (soEval x a))
+  soCurry (f <! soEval x a)
 
 ----------------------------------------------------------------------------
 ---- Homoiconicity: SubstMorph reflected into the substitutive category ----
