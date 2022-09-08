@@ -4175,6 +4175,12 @@ MorphAsTerm : {x, y : SubstObjMu} -> SubstMorph x y -> HomTerm x y
 MorphAsTerm {x} {y} f = soCurry {x=Subst1} {y=x} {z=y} $ soProdLeftIntro f
 
 public export
+covarYonedaEmbed : {a, b : SubstObjMu} ->
+  SubstMorph b a -> (x : SubstObjMu) -> SubstMorph (a !-> x) (b !-> x)
+covarYonedaEmbed {a} {b} f x =
+  soCurry (soEval a x <! SMPair (SMProjLeft _ _) (f <! SMProjRight _ _))
+
+public export
 contravarYonedaEmbed : {a, b : SubstObjMu} ->
   SubstMorph a b -> (x : SubstObjMu) -> SubstMorph (x !-> a) (x !-> b)
 contravarYonedaEmbed {a} {b} f x =
