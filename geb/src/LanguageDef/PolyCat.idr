@@ -4195,33 +4195,33 @@ IdTerm : (x : SubstObjMu) -> HomTerm x x
 IdTerm x = MorphAsTerm (SMId x)
 
 public export
-soHigherEval : (x, y : SubstObjMu) -> HomTerm ((x !-> y) !* x) y
-soHigherEval x y = MorphAsTerm $ SMId (x !-> y)
+soReflectedEval : (x, y : SubstObjMu) -> HomTerm ((x !-> y) !* x) y
+soReflectedEval x y = MorphAsTerm $ SMId (x !-> y)
 
 public export
-soHigherCurry : (x, y, z : SubstObjMu) ->
+soReflectedCurry : (x, y, z : SubstObjMu) ->
   SubstMorph ((x !* y) !-> z) (x !-> (y !-> z))
-soHigherCurry x y z = SMId (x !-> (y !-> z))
+soReflectedCurry x y z = SMId (x !-> (y !-> z))
 
 public export
-soHigherUncurry : (x, y, z : SubstObjMu) ->
+soReflectedUncurry : (x, y, z : SubstObjMu) ->
   SubstMorph (x !-> (y !-> z)) ((x !* y) !-> z)
-soHigherUncurry x y z = SMId (x !-> (y !-> z))
+soReflectedUncurry x y z = SMId (x !-> (y !-> z))
 
 public export
-soHigherCase : (x, y, z : SubstObjMu) ->
+soReflectedCase : (x, y, z : SubstObjMu) ->
   SubstMorph ((x !-> z) !* (y !-> z)) ((x !+ y) !-> z)
-soHigherCase x y z = SMId (SubstHomObj x z !* SubstHomObj y z)
+soReflectedCase x y z = SMId (SubstHomObj x z !* SubstHomObj y z)
 
 public export
-soHigherPair : (x, y, z : SubstObjMu) ->
+soReflectedPair : (x, y, z : SubstObjMu) ->
   SubstMorph ((x !-> y) !* (x !-> z)) (x !-> (y !* z))
-soHigherPair (InSO SO0) _ _ = SMToTerminal _
-soHigherPair (InSO SO1) _ _ = SMId _
-soHigherPair (InSO (w !!+ x)) y z =
+soReflectedPair (InSO SO0) _ _ = SMToTerminal _
+soReflectedPair (InSO SO1) _ _ = SMId _
+soReflectedPair (InSO (w !!+ x)) y z =
   let
-    wyz = soHigherPair w y z
-    xyz = soHigherPair x y z
+    wyz = soReflectedPair w y z
+    xyz = soReflectedPair x y z
   in
   SMPair
     (wyz <!
@@ -4232,27 +4232,27 @@ soHigherPair (InSO (w !!+ x)) y z =
       SMPair
         (SMProjRight _ _ <! SMProjLeft _ _)
         (SMProjRight _ _ <! SMProjRight _ _))
-soHigherPair (InSO (w !!* x)) y z =
+soReflectedPair (InSO (w !!* x)) y z =
   let
-    xyz = soHigherPair x y z
-    wxyz = soHigherPair w (x !-> y) (x !-> z)
+    xyz = soReflectedPair x y z
+    wxyz = soReflectedPair w (x !-> y) (x !-> z)
   in
   contravarYonedaEmbed xyz w <! wxyz
 
 public export
-soHigherCompose : (x, y, z : SubstObjMu) ->
+soReflectedCompose : (x, y, z : SubstObjMu) ->
   SubstMorph ((y !-> z) !* (x !-> y)) (x !-> z)
-soHigherCompose (InSO SO0) y z = SMToTerminal _
-soHigherCompose (InSO SO1) y z = soEval y z
-soHigherCompose (InSO (w !!+ x)) y z =
+soReflectedCompose (InSO SO0) y z = SMToTerminal _
+soReflectedCompose (InSO SO1) y z = soEval y z
+soReflectedCompose (InSO (w !!+ x)) y z =
   let
-    cwyz = soHigherCompose w y z
-    cxyz = soHigherCompose x y z
+    cwyz = soReflectedCompose w y z
+    cxyz = soReflectedCompose x y z
   in
   SMPair
     (cwyz <! SMPair (SMProjLeft _ _) (SMProjLeft _ _ <! SMProjRight _ _))
     (cxyz <! SMPair (SMProjLeft _ _) (SMProjRight _ _ <! SMProjRight _ _))
-soHigherCompose (InSO (w !!* x)) y z =
+soReflectedCompose (InSO (w !!* x)) y z =
   soCurry $ soCurry $
     soEval y z <! SMPair
       (SMProjLeft _ _ <! SMProjLeft _ _ <! SMProjLeft _ _)
@@ -4263,10 +4263,10 @@ soHigherCompose (InSO (w !!* x)) y z =
         (SMProjRight _ _))
 
 public export
-soHigherPartialApp : (w, x, y, z : SubstObjMu) ->
+soReflectedPartialApp : (w, x, y, z : SubstObjMu) ->
   SubstMorph (((x !* y) !-> z) !* (w !-> x)) ((w !* y) !-> z)
-soHigherPartialApp w x y z =
-  soHigherCurry w y z <! (soHigherCompose w x (y !-> z))
+soReflectedPartialApp w x y z =
+  soReflectedCurry w y z <! (soReflectedCompose w x (y !-> z))
 
 -------------------------------------------------------------------
 ---- Explicitly-polynomial-functor version of above definition ----
