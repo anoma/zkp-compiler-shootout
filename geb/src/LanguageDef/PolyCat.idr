@@ -4175,10 +4175,24 @@ MorphAsTerm : {x, y : SubstObjMu} -> SubstMorph x y -> HomTerm x y
 MorphAsTerm {x} {y} f = soCurry {x=Subst1} {y=x} {z=y} $ soProdLeftIntro f
 
 public export
-soWeaken : (x : SubstObjMu) -> {y, z : SubstObjMu} ->
+contravarYonedaEmbed : (x : SubstObjMu) -> {y, z : SubstObjMu} ->
   SubstMorph y z -> SubstMorph (x !-> y) (x !-> z)
-soWeaken x {y} {z} f =
+contravarYonedaEmbed x {y} {z} f =
   soCurry (soEval y z <! SMPair (MorphAsTerm f <! SMToTerminal _) (soEval x y))
+
+----------------------
+---- Yoneda lemma ----
+----------------------
+
+public export
+covarHomYoneda : {a, b, x : SubstObjMu} ->
+  SubstMorph (a !-> x) (b !-> x) -> SubstMorph b a
+covarHomYoneda f = ?covarHomYoneda_hole
+
+public export
+contravarHomYoneda : {a, b, x : SubstObjMu} ->
+  SubstMorph (x !-> a) (x !-> b) -> SubstMorph a b
+contravarHomYoneda = ?contravarHomYoneda_hole
 
 ----------------------------------------------------------------------------
 ---- Homoiconicity: SubstMorph reflected into the substitutive category ----
@@ -4231,7 +4245,7 @@ soHigherPair (InSO (w !!* x)) y z =
     xyz = soHigherPair x y z
     wxyz = soHigherPair w (x !-> y) (x !-> z)
   in
-  soWeaken w xyz <! wxyz
+  contravarYonedaEmbed w xyz <! wxyz
 
 public export
 soHigherCompose : (x, y, z : SubstObjMu) ->
@@ -4246,7 +4260,8 @@ soHigherCompose (InSO (w !!+ x)) y z =
   SMPair
     (cwyz <! SMPair (SMProjLeft _ _) (SMProjLeft _ _ <! SMProjRight _ _))
     (cxyz <! SMPair (SMProjLeft _ _) (SMProjRight _ _ <! SMProjRight _ _))
-soHigherCompose (InSO (w !!* x)) y z = ?soHigherCompose_hole
+soHigherCompose (InSO (w !!* x)) y z =
+  ?soHigherCompose_hole
 
 public export
 soHigherPartialApp : (w, x, y, z : SubstObjMu) ->
