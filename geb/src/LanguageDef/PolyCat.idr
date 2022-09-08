@@ -5208,6 +5208,11 @@ data BNCPolyM : Type where
   -- Compare with zero: equal takes first branch; not-equal takes second branch
   IfZero : BNCPolyM -> BNCPolyM -> BNCPolyM -> BNCPolyM
 
+  -- If the first argument is strictly less than the second, then
+  -- take the first branch (which is the third argument); otherwise,
+  -- take the second branch (which is the fourth argument)
+  IfLT : BNCPolyM -> BNCPolyM -> BNCPolyM -> BNCPolyM -> BNCPolyM
+
 public export
 record BNCPolyMAlg (0 a : BNCPolyM -> Type) where
   constructor MkBNCPolyAlg
@@ -5220,6 +5225,8 @@ record BNCPolyMAlg (0 a : BNCPolyM -> Type) where
   bncaDiv : (p, q : BNCPolyM) -> a p -> a q -> a (p #/ q)
   bncaMod : (p, q : BNCPolyM) -> a p -> a q -> a (p #% q)
   bncaIfZ : (p, q, r : BNCPolyM) -> a p -> a q -> a r -> a (IfZero p q r)
+  bncaIfLT :
+     (p, q, r, s : BNCPolyM) -> a p -> a q -> a r -> a s -> a (IfLT p q r s)
 
 public export
 bncPolyMInd : {0 a : BNCPolyM -> Type} -> BNCPolyMAlg a -> (p : BNCPolyM) -> a p
@@ -5239,6 +5246,10 @@ bncPolyMInd alg (p #% q) =
   bncaMod alg p q (bncPolyMInd alg p) (bncPolyMInd alg q)
 bncPolyMInd alg (IfZero p q r) =
   bncaIfZ alg p q r (bncPolyMInd alg p) (bncPolyMInd alg q) (bncPolyMInd alg r)
+bncPolyMInd alg (IfLT p q r s) =
+  bncaIfLT alg p q r s
+    (bncPolyMInd alg p) (bncPolyMInd alg q)
+    (bncPolyMInd alg r) (bncPolyMInd alg s)
 
 public export
 showInfix : (is, ls, rs : String) -> String
@@ -5262,6 +5273,8 @@ BNCPMshowAlg = MkBNCPolyAlg
   (const2ShowInfix "%")
   (\_, _, _, ps, qs, rs =>
     "(" ++ ps ++ " == 0 ? " ++ show qs ++ " : " ++ show rs ++ ")")
+  (\_, _, _, _, ps, qs, rs, ss =>
+    "(" ++ ps ++ " < " ++ qs ++ " ? " ++ show rs ++ " : " ++ show ss ++ ")")
 
 public export
 Show BNCPolyM where
@@ -5307,6 +5320,11 @@ MetaBNCPolyMAlg = MkBNCPolyAlg
       qf modpred k
     else
       rf modpred k)
+  (\p, q, r, s, pf, qf, rf, sf, modpred, k =>
+    if pf modpred k < qf modpred k then
+      rf modpred k
+    else
+      sf modpred k)
 
 public export
 metaBNCPolyM : (modpred : Integer) -> BNCPolyM -> Integer -> Integer
@@ -5340,8 +5358,7 @@ substMorphToBNC (SMCase {x} {y} {z} f g) with (substObjToNat x)
     if cx == 0 then
       substMorphToBNC g
     else
-      IfZero
-        (PI #/ #| cx)
+      IfLT PI (#| cx)
         (substMorphToBNC f)
         (substMorphToBNC g #. PI #- #| cx)
 substMorphToBNC (SMPair {x} {y} {z} f g) with (substObjToNat x, substObjToNat y)
