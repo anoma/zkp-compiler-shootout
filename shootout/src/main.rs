@@ -1,9 +1,8 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use starter;
 
 // TODO Put the halo code by itself and make it runable standalone!
 pub fn bench_halo (c : &mut Criterion) {
-    use starter::halo::*;
+    use sudoku_halo::*;
     // Halo code
     c.bench_function("HALO: sudoku-setup"  , |b| b.iter(|| setup()));
     c.bench_function("HALO: sudoku-key-gen",
@@ -41,7 +40,7 @@ pub fn benchmark(c: &mut Criterion) {
     // the receipt is of a minimal amount of time, so it doesn't
     // matter for testing. The code has problems if we don't include
     // it!
-    use starter::*;
+    use sudoku_risc::*;
     bench_halo(c);
     c.bench_function("RISC0: sudoku-setup" , |b| b.iter(|| setup()));
     c.bench_function("RISC0: sudoku-prove" , |b| b.iter(|| prove(setup())));

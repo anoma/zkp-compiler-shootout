@@ -1,5 +1,3 @@
-pub mod halo;
-
 use std::fs;
 use methods::{MULTIPLY_ID, MULTIPLY_PATH};
 use risc0_zkvm_core::Digest;

@@ -16,7 +16,7 @@ Cloning the [RISC0 official repo](github.com/risc0/risc0) and running `bazelisk 
 
 #### Criterion
 For our sudoku example, we use a rust package called [criterion](https://github.com/bheisler/criterion.rs) for benchmarking. 
-1. in the `sudoku` folder, run `cargo bench`
+1. in the `shootout` folder, run `cargo bench`
 2. analysis of the results can be found in `sudoku/target/criterion/report/index.html`.
 
 
