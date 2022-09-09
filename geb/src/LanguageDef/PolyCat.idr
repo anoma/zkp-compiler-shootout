@@ -4268,6 +4268,34 @@ soReflectedPartialApp : (w, x, y, z : SubstObjMu) ->
 soReflectedPartialApp w x y z =
   soReflectedCurry w y z <! (soReflectedCompose w x (y !-> z))
 
+-------------------------------------------------------
+---- Utility functions for SubstObjMu / SubstMorph ----
+-------------------------------------------------------
+
+public export
+SubstBool : SubstObjMu
+SubstBool = Subst1 !+ Subst1
+
+public export
+SFalse : SOTerm SubstBool
+SFalse = SMInjLeft _ _
+
+public export
+STrue : SOTerm SubstBool
+STrue = SMInjRight _ _
+
+-- Unary natural numbers less than or equal to the input.
+public export
+SUNat : Nat -> SubstObjMu
+SUNat Z = Subst1
+SUNat (S n) = Subst1 !+ SUNat n
+
+-- `n+1`-bit natural numbers.
+public export
+SBNat : Nat -> SubstObjMu
+SBNat Z = SubstBool
+SBNat (S n) = SubstBool !* SBNat n
+
 -------------------------------------------------------------------
 ---- Explicitly-polynomial-functor version of above definition ----
 -------------------------------------------------------------------

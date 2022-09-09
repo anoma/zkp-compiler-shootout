@@ -1008,6 +1008,30 @@ initObj = Subst0
 termObj : SubstObjMu
 termObj = Subst1
 
+-- Unary natural numbers less than or equal to 7.
+unat7 : SubstObjMu
+unat7 = SUNat 7
+
+-- Four-bit binary natural numbers.
+bnat3 : SubstObjMu
+bnat3 = SBNat 3
+
+-- 5 as a term of bnat3.
+bnat3_5 : SOTerm PolyCatTest.bnat3
+bnat3_5 =
+  SMPair (SMInjRight Subst1 Subst1) $ SMPair (SMInjRight Subst1 Subst1) $
+    SMPair (SMInjRight Subst1 Subst1) (SMInjRight Subst1 Subst1)
+
+-- 0 as a term of bnat3.
+bnat3_0 : SOTerm PolyCatTest.bnat3
+bnat3_0 =
+  SMPair (SMInjLeft Subst1 Subst1) $ SMPair (SMInjLeft Subst1 Subst1) $
+    SMPair (SMInjLeft Subst1 Subst1) (SMInjLeft Subst1 Subst1)
+
+-- Mappings from bnat3 to bool (which are characteristic functions of
+-- subsets of bnat3).
+bnat3chi : SubstObjMu
+bnat3chi = bnat3 !-> SubstBool
 
 ----------------------------------
 ----------------------------------
@@ -1214,6 +1238,24 @@ polyCatTest = do
   putStrLn $ "terminal object as Nat: " ++ show (substObjToNat termObj)
   putStrLn $ "terminal object in metalanguage: " ++
     show (metaSOShowType termObj)
+  putStrLn $ "Bool: " ++ show SubstBool
+  putStrLn $ "Bool as Nat: " ++ show (substObjToNat SubstBool)
+  putStrLn $ "Bool in metalanguage: " ++ show (metaSOShowType SubstBool)
+  putStrLn $ "unat7: " ++ show unat7
+  putStrLn $ "unat7 as Nat: " ++ show (substObjToNat unat7)
+  putStrLn $ "unat7 in metalanguage: " ++ show (metaSOShowType unat7)
+  putStrLn $ "bnat3: " ++ show bnat3
+  putStrLn $ "bnat3 as Nat: " ++ show (substObjToNat bnat3)
+  putStrLn $ "bnat3 in metalanguage: " ++ show (metaSOShowType bnat3)
+  putStrLn $ "bnat3chi: " ++ show bnat3chi
+  putStrLn $ "bnat3chi as Nat: " ++ show (substObjToNat bnat3chi)
+  putStrLn $ "bnat3chi in metalanguage: " ++ show (metaSOShowType bnat3chi)
+  putStrLn $ "bnat3_5: " ++ showSubstMorph bnat3_5
+  putStrLn $ "bnat3_5 as Nat: " ++ show (substTermToInt bnat3_5)
+  putStrLn $ "bnat3_5 as poly func: " ++ show (substMorphToBNC bnat3_5)
+  putStrLn $ "bnat3_0: " ++ showSubstMorph bnat3_0
+  putStrLn $ "bnat3_0 as Nat: " ++ show (substTermToInt bnat3_0)
+  putStrLn $ "bnat3_0 as poly func: " ++ show (substMorphToBNC bnat3_0)
   putStrLn ""
   putStrLn "----------------"
   putStrLn "End polyCatTest."
