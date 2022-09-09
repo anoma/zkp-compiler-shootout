@@ -5311,9 +5311,9 @@ BNCPMshowAlg = MkBNCPolyAlg
   (const2ShowInfix "/")
   (const2ShowInfix "%")
   (\_, _, _, ps, qs, rs =>
-    "(" ++ ps ++ " == 0 ? " ++ show qs ++ " : " ++ show rs ++ ")")
+    "(" ++ ps ++ " == 0 ? " ++ qs ++ " : " ++ rs ++ ")")
   (\_, _, _, _, ps, qs, rs, ss =>
-    "(" ++ ps ++ " < " ++ qs ++ " ? " ++ show rs ++ " : " ++ show ss ++ ")")
+    "(" ++ ps ++ " < " ++ qs ++ " ? " ++ rs ++ " : " ++ ss ++ ")")
 
 public export
 Show BNCPolyM where
@@ -5339,35 +5339,22 @@ public export
 
 -- Interpret a BNCPolyM into the metalanguage.
 public export
-MetaBNCPolyMAlg : BNCPolyMAlg (\_ => (modpred : Integer) -> Integer -> Integer)
+MetaBNCPolyMAlg : BNCPolyMAlg (\_ => Integer -> Integer)
 MetaBNCPolyMAlg = MkBNCPolyAlg
-  (\n, modpred, _ => modSucc (natToInteger n) modpred)
-  (\modpred, k => modSucc k modpred)
-  (\q, p, qf, pf, modpred, k => qf modpred (pf modpred k))
-  (\p, q, pf, qf, modpred, k =>
-    flip modSucc modpred $ pf modpred k + qf modpred k)
-  (\p, q, pf, qf, modpred, k =>
-    flip modSucc modpred $ pf modpred k * qf modpred k)
-  (\p, q, pf, qf, modpred, k =>
-    minusModulo (modpred + 1) (pf modpred k) (qf modpred k))
-  (\p, q, pf, qf, modpred, k =>
-    divWithZtoZ (pf modpred k) (qf modpred k))
-  (\p, q, pf, qf, modpred, k =>
-    modWithZtoZ (pf modpred k) (qf modpred k))
-  (\p, q, r, pf, qf, rf, modpred, k =>
-    if pf modpred k == 0 then
-      qf modpred k
-    else
-      rf modpred k)
-  (\p, q, r, s, pf, qf, rf, sf, modpred, k =>
-    if pf modpred k < qf modpred k then
-      rf modpred k
-    else
-      sf modpred k)
+  (\n, _ => natToInteger n)
+  id
+  (\q, p, qf, pf, k => qf (pf k))
+  (\p, q, pf, qf, k => pf k + qf k)
+  (\p, q, pf, qf, k => pf k * qf k)
+  (\p, q, pf, qf, k => pf k - qf k)
+  (\p, q, pf, qf, k => divWithZtoZ (pf k) (qf k))
+  (\p, q, pf, qf, k => modWithZtoZ (pf k) (qf k))
+  (\p, q, r, pf, qf, rf, k => if pf k == 0 then qf k else rf k)
+  (\p, q, r, s, pf, qf, rf, sf, k => if pf k < qf k then rf k else sf k)
 
 public export
 metaBNCPolyM : (modpred : Integer) -> BNCPolyM -> Integer -> Integer
-metaBNCPolyM modpred p = bncPolyMInd MetaBNCPolyMAlg p modpred
+metaBNCPolyM modpred p n = modSucc (bncPolyMInd MetaBNCPolyMAlg p n) modpred
 
 -- Interpret a BNCPolyM as a function between BANat objects.
 public export
@@ -5389,7 +5376,7 @@ substMorphToBNC : {x, y : SubstObjMu} -> SubstMorph x y -> BNCPolyM
 substMorphToBNC {y=x} (SMId x) = PI
 substMorphToBNC ((<!) {x} {y} {z} g f) = substMorphToBNC g #. substMorphToBNC f
 substMorphToBNC {x=Subst0} (SMFromInit y) = #| 0
-substMorphToBNC {y=Subst1} (SMToTerminal x) = #| 1
+substMorphToBNC {y=Subst1} (SMToTerminal x) = #| 0
 substMorphToBNC (SMInjLeft x y) = PI
 substMorphToBNC (SMInjRight x y) = #| (substObjToNat x) #+ PI
 substMorphToBNC (SMCase {x} {y} {z} f g) with (substObjToNat x)
@@ -5399,7 +5386,7 @@ substMorphToBNC (SMCase {x} {y} {z} f g) with (substObjToNat x)
     else
       IfLT PI (#| cx)
         (substMorphToBNC f)
-        (substMorphToBNC g #. PI #- #| cx)
+        (substMorphToBNC g #. (PI #- #| cx))
 substMorphToBNC (SMPair {x} {y} {z} f g) with (substObjToNat y, substObjToNat z)
   substMorphToBNC (SMPair {x} {y} {z} f g) | (cy, cz) =
     #| cz #* substMorphToBNC f #+ substMorphToBNC g
@@ -5420,7 +5407,7 @@ substMorphToBNC (SMDistrib x y z) = PI
 public export
 substMorphToFunc : {a, b : SubstObjMu} -> SubstMorph a b -> Integer -> Integer
 substMorphToFunc {a} {b} f =
-  metaBNCPolyM (natToInteger $ substObjToNat b) (substMorphToBNC f)
+  metaBNCPolyM (natToInteger $ pred $ substObjToNat b) (substMorphToBNC f)
 
 public export
 substTermToInt : {a : SubstObjMu} -> SOTerm a -> Integer

@@ -748,7 +748,7 @@ bncpmt11 : Assertion
 bncpmt11 = Assert $ metaBNCPolyM 200 (bncpm0 #- bncpm1) 3 == 75
 
 bncpmt12 : Assertion
-bncpmt12 = Assert $ metaBNCPolyM 200 (bncpm1 #- bncpm0) 3 == 126
+bncpmt12 = Assert $ metaBNCPolyM 200 (bncpm1 #- bncpm0) 3 == -75
 
 bncpmt13 : Assertion
 bncpmt13 = Assert $ metaBNCPolyM 200 (bncpm0 #/ bncpm1) 3 == 2
@@ -772,11 +772,11 @@ bncpmt18 = Assert $
 
 bncpmt19 : Assertion
 bncpmt19 = Assert $
-  metaBNCPolyM 100 (IfZero (bncpm0 #/ bncpm1) bncpm0 bncpm1) 3 == 38
+  metaBNCPolyM 100 (IfZero (bncpm0 #/ bncpm1) bncpm0 bncpm1) 3 == 64
 
 bncpmt20 : Assertion
 bncpmt20 = Assert $
-  metaBNCPolyM 100 (IfZero (bncpm1 #/ bncpm0) bncpm0 bncpm1) 3 == 64
+  metaBNCPolyM 100 (IfZero (bncpm1 #/ bncpm0) bncpm0 bncpm1) 3 == 38
 
 bncpmt21 : Assertion
 bncpmt21 = Assert $ metaBNCPolyM 200 (bncpm1 #. (bncpm0 #/ bncpm1)) 3 == 27
@@ -1042,8 +1042,17 @@ bnat3_15 =
 
 -- Mappings from bnat3 to bool (which are characteristic functions of
 -- subsets of bnat3).
+bnat3_to_bool : Type
+bnat3_to_bool = SubstMorph bnat3 SubstBool
+
+-- The exponential object representing mappings from bnat3 to bool (which
+-- are characteristic functions of subsets of bnat3).
 bnat3chi : SubstObjMu
 bnat3chi = bnat3 !-> SubstBool
+
+-- Extract bit2 from bnat3 (its second-most-significant bit).
+bnat3_bit_2 : PolyCatTest.bnat3_to_bool
+bnat3_bit_2 = SMCase SFalse STrue <! SMProjLeft _ _ <! SMProjRight _ _
 
 ----------------------------------
 ----------------------------------
@@ -1274,6 +1283,14 @@ polyCatTest = do
   putStrLn $ "bnat3_15: " ++ showSubstMorph bnat3_15
   putStrLn $ "bnat3_15 as Nat: " ++ show (substTermToInt bnat3_15)
   putStrLn $ "bnat3_15 as poly func: " ++ show (substMorphToBNC bnat3_15)
+  putStrLn $ "bit 2 of bnat3_15: " ++
+    show (substTermToInt $ bnat3_bit_2 <! bnat3_15)
+  putStrLn $ "bit 2 of bnat3_15 as poly func: " ++
+    show (substMorphToBNC $ bnat3_bit_2 <! bnat3_15)
+  putStrLn $ "bit 2 of bnat3_2: " ++
+    show (substTermToInt $ bnat3_bit_2 <! bnat3_2)
+  putStrLn $ "bit 2 of bnat_2 as poly func: " ++
+    show (substMorphToBNC $ bnat3_bit_2 <! bnat3_2)
   putStrLn ""
   putStrLn "----------------"
   putStrLn "End polyCatTest."
