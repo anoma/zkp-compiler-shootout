@@ -5400,9 +5400,9 @@ substMorphToBNC (SMCase {x} {y} {z} f g) with (substObjToNat x)
       IfLT PI (#| cx)
         (substMorphToBNC f)
         (substMorphToBNC g #. PI #- #| cx)
-substMorphToBNC (SMPair {x} {y} {z} f g) with (substObjToNat x, substObjToNat y)
-  substMorphToBNC (SMPair {x} {y} {z} f g) | (cx, cy) =
-    #| cy #* substMorphToBNC f #+ substMorphToBNC g
+substMorphToBNC (SMPair {x} {y} {z} f g) with (substObjToNat y, substObjToNat z)
+  substMorphToBNC (SMPair {x} {y} {z} f g) | (cy, cz) =
+    #| cz #* substMorphToBNC f #+ substMorphToBNC g
 substMorphToBNC (SMProjLeft x y) with (substObjToNat x, substObjToNat y)
   substMorphToBNC (SMProjLeft x y) | (cx, cy) =
     if cy == 0 then
@@ -5424,7 +5424,7 @@ substMorphToFunc {a} {b} f =
 
 public export
 substTermToInt : {a : SubstObjMu} -> SOTerm a -> Integer
-substTermToInt t = substMorphToFunc t 1
+substTermToInt t = substMorphToFunc t 0
 
 ---------------------------------------------------
 ---------------------------------------------------

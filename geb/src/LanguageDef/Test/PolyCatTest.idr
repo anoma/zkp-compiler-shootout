@@ -1016,17 +1016,29 @@ unat7 = SUNat 7
 bnat3 : SubstObjMu
 bnat3 = SBNat 3
 
--- 5 as a term of bnat3.
-bnat3_5 : SOTerm PolyCatTest.bnat3
-bnat3_5 =
-  SMPair (SMInjRight Subst1 Subst1) $ SMPair (SMInjRight Subst1 Subst1) $
-    SMPair (SMInjRight Subst1 Subst1) (SMInjRight Subst1 Subst1)
-
 -- 0 as a term of bnat3.
 bnat3_0 : SOTerm PolyCatTest.bnat3
 bnat3_0 =
   SMPair (SMInjLeft Subst1 Subst1) $ SMPair (SMInjLeft Subst1 Subst1) $
     SMPair (SMInjLeft Subst1 Subst1) (SMInjLeft Subst1 Subst1)
+
+-- 1 as a term of bnat3.
+bnat3_1 : SOTerm PolyCatTest.bnat3
+bnat3_1 =
+  SMPair (SMInjLeft Subst1 Subst1) $ SMPair (SMInjLeft Subst1 Subst1) $
+    SMPair (SMInjLeft Subst1 Subst1) (SMInjRight Subst1 Subst1)
+
+-- 2 as a term of bnat3.
+bnat3_2 : SOTerm PolyCatTest.bnat3
+bnat3_2 =
+  SMPair (SMInjLeft Subst1 Subst1) $ SMPair (SMInjLeft Subst1 Subst1) $
+    SMPair (SMInjRight Subst1 Subst1) (SMInjLeft Subst1 Subst1)
+
+-- 15 as a term of bnat3.
+bnat3_15 : SOTerm PolyCatTest.bnat3
+bnat3_15 =
+  SMPair (SMInjRight Subst1 Subst1) $ SMPair (SMInjRight Subst1 Subst1) $
+    SMPair (SMInjRight Subst1 Subst1) (SMInjRight Subst1 Subst1)
 
 -- Mappings from bnat3 to bool (which are characteristic functions of
 -- subsets of bnat3).
@@ -1250,12 +1262,18 @@ polyCatTest = do
   putStrLn $ "bnat3chi: " ++ show bnat3chi
   putStrLn $ "bnat3chi as Nat: " ++ show (substObjToNat bnat3chi)
   putStrLn $ "bnat3chi in metalanguage: " ++ show (metaSOShowType bnat3chi)
-  putStrLn $ "bnat3_5: " ++ showSubstMorph bnat3_5
-  putStrLn $ "bnat3_5 as Nat: " ++ show (substTermToInt bnat3_5)
-  putStrLn $ "bnat3_5 as poly func: " ++ show (substMorphToBNC bnat3_5)
   putStrLn $ "bnat3_0: " ++ showSubstMorph bnat3_0
   putStrLn $ "bnat3_0 as Nat: " ++ show (substTermToInt bnat3_0)
   putStrLn $ "bnat3_0 as poly func: " ++ show (substMorphToBNC bnat3_0)
+  putStrLn $ "bnat3_1: " ++ showSubstMorph bnat3_1
+  putStrLn $ "bnat3_1 as Nat: " ++ show (substTermToInt bnat3_1)
+  putStrLn $ "bnat3_1 as poly func: " ++ show (substMorphToBNC bnat3_1)
+  putStrLn $ "bnat3_2: " ++ showSubstMorph bnat3_2
+  putStrLn $ "bnat3_2 as Nat: " ++ show (substTermToInt bnat3_2)
+  putStrLn $ "bnat3_2 as poly func: " ++ show (substMorphToBNC bnat3_2)
+  putStrLn $ "bnat3_15: " ++ showSubstMorph bnat3_15
+  putStrLn $ "bnat3_15 as Nat: " ++ show (substTermToInt bnat3_15)
+  putStrLn $ "bnat3_15 as poly func: " ++ show (substMorphToBNC bnat3_15)
   putStrLn ""
   putStrLn "----------------"
   putStrLn "End polyCatTest."
