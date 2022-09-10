@@ -4284,6 +4284,18 @@ public export
 STrue : SOTerm SubstBool
 STrue = SMInjRight _ _
 
+public export
+SIfElse : {x : SubstObjMu} ->
+  SOTerm SubstBool -> SOTerm x -> SOTerm x -> SOTerm x
+SIfElse {x} b t f =
+  SMCase {x=Subst1} {y=Subst1} {z=x} t f <! b
+
+public export
+SHigherIfElse : {x, y : SubstObjMu} ->
+  SubstMorph x SubstBool -> SubstMorph x y -> SubstMorph x y -> SubstMorph x y
+SHigherIfElse {x} {y} b t f =
+  soEval x y <! SMPair (SMCase (MorphAsTerm t) (MorphAsTerm f) <! b) (SMId x)
+
 -- Unary natural numbers less than or equal to the input.
 public export
 SUNat : Nat -> SubstObjMu
