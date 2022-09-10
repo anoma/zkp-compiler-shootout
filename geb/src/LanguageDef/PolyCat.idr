@@ -4269,8 +4269,14 @@ soReflectedPartialApp w x y z =
   soReflectedCurry w y z <! (soReflectedCompose w x (y !-> z))
 
 -------------------------------------------------------
+-------------------------------------------------------
 ---- Utility functions for SubstObjMu / SubstMorph ----
 -------------------------------------------------------
+-------------------------------------------------------
+
+------------------
+---- Booleans ----
+------------------
 
 public export
 SubstBool : SubstObjMu
@@ -4296,11 +4302,19 @@ SHigherIfElse : {x, y : SubstObjMu} ->
 SHigherIfElse {x} {y} b t f =
   soEval x y <! SMPair (SMCase (MorphAsTerm t) (MorphAsTerm f) <! b) (SMId x)
 
+-------------------------------
+---- Unary natural numbers ----
+-------------------------------
+
 -- Unary natural numbers less than or equal to the input.
 public export
 SUNat : Nat -> SubstObjMu
 SUNat Z = Subst1
 SUNat (S n) = Subst1 !+ SUNat n
+
+--------------------------------
+---- Binary natural numbers ----
+--------------------------------
 
 -- `n+1`-bit natural numbers.
 public export
@@ -4308,8 +4322,38 @@ SBNat : Nat -> SubstObjMu
 SBNat Z = SubstBool
 SBNat (S n) = SubstBool !* SBNat n
 
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+---- Interpretation of substitutive objects as metalanguage types ----
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+
+public export
+MetaSOTypeAlg : MetaSOAlg Type
+MetaSOTypeAlg SO0 = Void
+MetaSOTypeAlg SO1 = Unit
+MetaSOTypeAlg (p !!+ q) = Either p q
+MetaSOTypeAlg (p !!* q) = Pair p q
+
+public export
+MetaSOType : SubstObjMu -> Type
+MetaSOType = substObjCata MetaSOTypeAlg
+
+public export
+MetaSOShowTypeAlg : MetaSOAlg String
+MetaSOShowTypeAlg SO0 = "Void"
+MetaSOShowTypeAlg SO1 = "Unit"
+MetaSOShowTypeAlg (p !!+ q) = "Either (" ++ p ++ ") (" ++ q ++ ")"
+MetaSOShowTypeAlg (p !!* q) = "Pair (" ++ p ++ ") (" ++ q ++ ")"
+
+public export
+metaSOShowType : SubstObjMu -> String
+metaSOShowType = substObjCata MetaSOShowTypeAlg
+
+-------------------------------------------------------------------
 -------------------------------------------------------------------
 ---- Explicitly-polynomial-functor version of above definition ----
+-------------------------------------------------------------------
 -------------------------------------------------------------------
 
 public export
@@ -4444,32 +4488,6 @@ SMADTCheckSigAlg (SMAAssoc x y z (d, c)) =
 public export
 smadtCheckSig : SubstMorphADT -> Maybe (SubstObjMu, SubstObjMu)
 smadtCheckSig = substMorphADTCata SMADTCheckSigAlg
-
-----------------------------------------------------------------------
----- Interpretation of substitutive objects as metalanguage types ----
-----------------------------------------------------------------------
-
-public export
-MetaSOTypeAlg : MetaSOAlg Type
-MetaSOTypeAlg SO0 = Void
-MetaSOTypeAlg SO1 = Unit
-MetaSOTypeAlg (p !!+ q) = Either p q
-MetaSOTypeAlg (p !!* q) = Pair p q
-
-public export
-MetaSOType : SubstObjMu -> Type
-MetaSOType = substObjCata MetaSOTypeAlg
-
-public export
-MetaSOShowTypeAlg : MetaSOAlg String
-MetaSOShowTypeAlg SO0 = "Void"
-MetaSOShowTypeAlg SO1 = "Unit"
-MetaSOShowTypeAlg (p !!+ q) = "Either (" ++ p ++ ") (" ++ q ++ ")"
-MetaSOShowTypeAlg (p !!* q) = "Pair (" ++ p ++ ") (" ++ q ++ ")"
-
-public export
-metaSOShowType : SubstObjMu -> String
-metaSOShowType = substObjCata MetaSOShowTypeAlg
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
