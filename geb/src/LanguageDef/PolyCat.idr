@@ -4330,10 +4330,11 @@ soConstruct {n=(S Z)} {x} {v=[y]} (S m) {ok=Refl} f impossible
 soConstruct {n=(S (S n))} {x} {v=(y :: (y' :: ys))} Z {ok=Refl} f =
   SMInjLeft _ _ <! f
 soConstruct {n=(S (S n))} {x} {v=(y :: v'@(y' :: ys))} (S m) {ok} f =
-  let ifts = indexToFinLTS {ok=(fromLteSuccYes ok)} {okS=ok} {x=y} {v=v'} in
   SMInjRight _ _ <!
     soConstruct {n=(S n)} {x} {v=v'} m {ok=(fromLteSuccYes ok)}
-      (replace {p=(SubstMorph x)} ifts f)
+      (replace {p=(SubstMorph x)}
+        (indexToFinLTS {ok=(fromLteSuccYes ok)} {okS=ok} {x=y} {v=v'})
+        f)
 
 public export
 SOProductN : {n : Nat} -> Vect n SubstObjMu -> SubstObjMu
