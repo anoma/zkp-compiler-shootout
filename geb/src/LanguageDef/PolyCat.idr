@@ -4010,6 +4010,11 @@ soProdLeftApply : {x, y, z : SubstObjMu} ->
 soProdLeftApply f = SMPair (SMProjLeft _ _) (soProdLeftIntro f)
 
 public export
+soFlip : {x, y, z : SubstObjMu} ->
+  SubstMorph (x !* y) z -> SubstMorph (y !* x) z
+soFlip f = f <! SMPair (SMProjRight _ _) (SMProjLeft _ _)
+
+public export
 soProdLeftAssoc : {w, x, y, z : SubstObjMu} ->
   SubstMorph (w !* (x !* y)) z -> SubstMorph ((w !* x) !* y) z
 soProdLeftAssoc {w} {x} {y} {z} f =
@@ -4048,6 +4053,11 @@ SubstHomObj (InSO (x !!+ y)) z = SubstHomObj x z !* SubstHomObj y z
 -- (x * y) -> z == x -> y -> z
 SubstHomObj (InSO (x !!* y)) z = SubstHomObj x (SubstHomObj y z)
 
+infixr 10 !->
+public export
+(!->) : SubstObjMu -> SubstObjMu -> SubstObjMu
+(!->) = SubstHomObj
+
 infix 10 !^
 public export
 (!^) : SubstObjMu -> SubstObjMu -> SubstObjMu
@@ -4055,7 +4065,7 @@ public export
 
 public export
 soEval : (x, y : SubstObjMu) ->
-  SubstMorph ((y !^ x) !* x) y
+  SubstMorph ((x !-> y) !* x) y
 soEval (InSO SO0) y = SMFromInit y <! SMProjRight Subst1 Subst0
 soEval (InSO SO1) y = SMProjLeft y Subst1
 soEval (InSO (x !!+ y)) z =
@@ -4076,7 +4086,7 @@ soEval (InSO (x !!* y)) z =
 
 public export
 soCurry : {x, y, z : SubstObjMu} ->
-  SubstMorph (x !* y) z -> SubstMorph x (z !^ y)
+  SubstMorph (x !* y) z -> SubstMorph x (y !-> z)
 soCurry {x} {y=(InSO SO0)} f = SMToTerminal x
 soCurry {x} {y=(InSO SO1)} {z} f = f <! SMPair (SMId x) (SMToTerminal x)
 soCurry {x} {y=(InSO (y !!+ y'))} {z} f =
@@ -4091,8 +4101,71 @@ soCurry {x} {y=(InSO (y !!* y'))} {z} f =
 
 public export
 soUncurry : {x, y, z : SubstObjMu} ->
-  SubstMorph x (z !^ y) -> SubstMorph (x !* y) z
-soUncurry f = soEval y z <! SMPair (f <! SMProjLeft _ _) (SMProjRight _ _)
+  SubstMorph x (y !-> z) -> SubstMorph (x !* y) z
+soUncurry {x} {y} {z} f =
+  soEval y z <! SMPair (f <! SMProjLeft x y) (SMProjRight x y)
+
+public export
+soPartialApp : {w, x, y, z : SubstObjMu} ->
+  SubstMorph (x !* y) z -> SubstMorph w x -> SubstMorph (w !* y) z
+soPartialApp g f = soUncurry $ soCurry g <! f
+
+public export
+soSubst : {x, y, z : SubstObjMu} ->
+  SubstMorph y z -> SubstMorph x y -> SubstMorph x z
+soSubst (SMId y) f = f
+soSubst g (SMId _) = g
+soSubst (h <! g) f = h <! soSubst g f
+soSubst h (g <! f) = soSubst h g <! f
+soSubst {y=Subst0} {z} (SMFromInit _) (g <! f) = SMFromInit z <! soSubst g f
+soSubst {z} (SMFromInit _) (SMCase f g) =
+  SMCase (soSubst (SMFromInit z) f) (soSubst (SMFromInit z) g)
+soSubst (SMFromInit _) (SMProjLeft _ _) = SMFromInit _ <! SMProjLeft _ _
+soSubst (SMFromInit _) (SMProjRight _ _) = SMFromInit _ <! SMProjRight _ _
+soSubst _ (SMFromInit _) = SMFromInit _
+soSubst (SMToTerminal _) _ = SMToTerminal _
+soSubst (SMInjLeft _ _) f = SMInjLeft _ _ <! f
+soSubst (SMInjRight _ _) f = SMInjRight _ _ <! f
+soSubst (SMCase g h) (SMInjLeft _ _) = g
+soSubst (SMCase g h) (SMInjRight _ _) = h
+soSubst (SMCase g h) (SMProjLeft _ _) = SMCase g h <! SMProjLeft _ _
+soSubst (SMCase g h) (SMProjRight _ _) = SMCase g h <! SMProjRight _ _
+soSubst (SMCase h j) (SMCase f g) =
+  SMCase (soSubst (SMCase h j) f) (soSubst (SMCase h j) g)
+soSubst (SMCase g h) (SMDistrib _ _ _) = SMCase g h <! SMDistrib _ _ _
+soSubst (SMPair g h) f = SMPair (soSubst g f) (soSubst h f)
+soSubst (SMProjLeft _ _) (SMProjLeft _ _) = SMProjLeft _ _ <! SMProjLeft _ _
+soSubst (SMProjLeft _ _) (SMProjRight _ _) = SMProjLeft _ _ <! SMProjRight _ _
+soSubst (SMProjLeft _ _) (SMCase f g) =
+  SMCase (soSubst (SMProjLeft _ _) f) (soSubst (SMProjLeft _ _) g)
+soSubst (SMProjLeft _ _) (SMPair f g) = f
+soSubst (SMProjRight _ _) (SMProjLeft _ _) = SMProjRight _ _ <! SMProjLeft _ _
+soSubst (SMProjRight _ _) (SMProjRight _ _) = SMProjRight _ _ <! SMProjRight _ _
+soSubst (SMProjRight _ _) (SMCase f g) =
+  SMCase (soSubst (SMProjRight _ _) f) (soSubst (SMProjRight _ _) g)
+soSubst (SMProjRight _ _) (SMPair f g) = g
+soSubst (SMDistrib _ _ _) (SMProjLeft _ _) = SMDistrib _ _ _ <! SMProjLeft _ _
+soSubst (SMDistrib _ _ _) (SMProjRight _ _) = SMDistrib _ _ _ <! SMProjRight _ _
+soSubst (SMDistrib _ _ _) (SMCase f g) = SMDistrib _ _ _ <! SMCase f g
+soSubst (SMDistrib _ _ _) (SMPair f g) = SMDistrib _ _ _ <! SMPair f g
+
+public export
+soReduce : {x, y : SubstObjMu} -> SubstMorph x y -> SubstMorph x y
+soReduce (SMId _) = SMId _
+soReduce (g <! f) = soSubst (soReduce g) (soReduce f)
+soReduce (SMFromInit _) = SMFromInit _
+soReduce (SMToTerminal x) = SMToTerminal _
+soReduce (SMInjLeft _ _) = SMInjLeft _ _
+soReduce (SMInjRight _ _) = SMInjRight _ _
+soReduce (SMCase f g) = SMCase (soReduce f) (soReduce g)
+soReduce (SMPair f g) = SMPair (soReduce f) (soReduce g)
+soReduce (SMProjLeft _ _) = SMProjLeft _ _
+soReduce (SMProjRight _ _) = SMProjRight _ _
+soReduce (SMDistrib _ _ _) = SMDistrib _ _ _
+
+-------------------------------------------
+---- Morphisms as terms of hom-objects ----
+-------------------------------------------
 
 public export
 HomTerm : SubstObjMu -> SubstObjMu -> Type
@@ -4107,11 +4180,355 @@ MorphAsTerm : {x, y : SubstObjMu} -> SubstMorph x y -> HomTerm x y
 MorphAsTerm {x} {y} f = soCurry {x=Subst1} {y=x} {z=y} $ soProdLeftIntro f
 
 public export
+covarYonedaEmbed : {a, b : SubstObjMu} ->
+  SubstMorph b a -> (x : SubstObjMu) -> SubstMorph (a !-> x) (b !-> x)
+covarYonedaEmbed {a} {b} f x =
+  soCurry (soEval a x <! SMPair (SMProjLeft _ _) (f <! SMProjRight _ _))
+
+public export
+contravarYonedaEmbed : {a, b : SubstObjMu} ->
+  SubstMorph a b -> (x : SubstObjMu) -> SubstMorph (x !-> a) (x !-> b)
+contravarYonedaEmbed {a} {b} f x =
+  soCurry (f <! soEval x a)
+
+----------------------------------------------------------------------------
+---- Homoiconicity: SubstMorph reflected into the substitutive category ----
+----------------------------------------------------------------------------
+
+public export
+soConst : {x, y : SubstObjMu} -> SOTerm y -> SubstMorph x y
+soConst {x} {y} f = f <! SMToTerminal _
+
+public export
+soReflectedId : {x, y : SubstObjMu} -> SubstMorph x (y !-> y)
+soReflectedId {x} {y} = soCurry (SMProjRight _ _)
+
+public export
 IdTerm : (x : SubstObjMu) -> HomTerm x x
-IdTerm x = MorphAsTerm (SMId x)
+IdTerm x = soReflectedId {x=Subst1} {y=x}
+
+public export
+soReflectedFromInit : (x, y : SubstObjMu) -> SubstMorph x (Subst0 !-> y)
+soReflectedFromInit x y = soConst $ SMToTerminal _
+
+public export
+soReflectedToTerminal : (x, y : SubstObjMu) -> SubstMorph x (y !-> Subst1)
+soReflectedToTerminal x y = soConst (soCurry $ SMToTerminal _)
+
+public export
+soReflectedEval : (x, y : SubstObjMu) -> HomTerm ((x !-> y) !* x) y
+soReflectedEval x y = MorphAsTerm $ SMId (x !-> y)
+
+public export
+soReflectedCurry : (x, y, z : SubstObjMu) ->
+  SubstMorph ((x !* y) !-> z) (x !-> (y !-> z))
+soReflectedCurry x y z = SMId (x !-> (y !-> z))
+
+public export
+soReflectedUncurry : (x, y, z : SubstObjMu) ->
+  SubstMorph (x !-> (y !-> z)) ((x !* y) !-> z)
+soReflectedUncurry x y z = SMId (x !-> (y !-> z))
+
+public export
+soReflectedCase : (x, y, z : SubstObjMu) ->
+  SubstMorph ((x !-> z) !* (y !-> z)) ((x !+ y) !-> z)
+soReflectedCase x y z = SMId (SubstHomObj x z !* SubstHomObj y z)
+
+public export
+soReflectedPair : (x, y, z : SubstObjMu) ->
+  SubstMorph ((x !-> y) !* (x !-> z)) (x !-> (y !* z))
+soReflectedPair (InSO SO0) _ _ = SMToTerminal _
+soReflectedPair (InSO SO1) _ _ = SMId _
+soReflectedPair (InSO (w !!+ x)) y z =
+  let
+    wyz = soReflectedPair w y z
+    xyz = soReflectedPair x y z
+  in
+  SMPair
+    (wyz <!
+      SMPair
+        (SMProjLeft _ _ <! SMProjLeft _ _)
+        (SMProjLeft _ _ <! SMProjRight _ _))
+    (xyz <!
+      SMPair
+        (SMProjRight _ _ <! SMProjLeft _ _)
+        (SMProjRight _ _ <! SMProjRight _ _))
+soReflectedPair (InSO (w !!* x)) y z =
+  let
+    xyz = soReflectedPair x y z
+    wxyz = soReflectedPair w (x !-> y) (x !-> z)
+  in
+  contravarYonedaEmbed xyz w <! wxyz
+
+public export
+soReflectedCompose : (x, y, z : SubstObjMu) ->
+  SubstMorph ((y !-> z) !* (x !-> y)) (x !-> z)
+soReflectedCompose (InSO SO0) y z = SMToTerminal _
+soReflectedCompose (InSO SO1) y z = soEval y z
+soReflectedCompose (InSO (w !!+ x)) y z =
+  let
+    cwyz = soReflectedCompose w y z
+    cxyz = soReflectedCompose x y z
+  in
+  SMPair
+    (cwyz <! SMPair (SMProjLeft _ _) (SMProjLeft _ _ <! SMProjRight _ _))
+    (cxyz <! SMPair (SMProjLeft _ _) (SMProjRight _ _ <! SMProjRight _ _))
+soReflectedCompose (InSO (w !!* x)) y z =
+  soCurry $ soCurry $
+    soEval y z <! SMPair
+      (SMProjLeft _ _ <! SMProjLeft _ _ <! SMProjLeft _ _)
+      (soEval x y <! SMPair
+        (soEval w (x !-> y) <! SMPair
+          (SMProjRight _ _ <! SMProjLeft _ _ <! SMProjLeft _ _)
+          (SMProjRight _ _ <! SMProjLeft _ _))
+        (SMProjRight _ _))
+
+public export
+soReflectedPartialApp : (w, x, y, z : SubstObjMu) ->
+  SubstMorph (((x !* y) !-> z) !* (w !-> x)) ((w !* y) !-> z)
+soReflectedPartialApp w x y z =
+  soReflectedCurry w y z <! (soReflectedCompose w x (y !-> z))
+
+public export
+soReflectedFlip : {x, y, z : SubstObjMu} ->
+  SubstMorph ((x !* y) !-> z) ((y !* x) !-> z)
+soReflectedFlip =
+  soCurry (soCurry (soUncurry (soEval x (y !-> z)) <!
+    SMPair
+      (SMPair
+        (SMProjLeft _ _ <! SMProjLeft _ _)
+        (SMProjRight _ _))
+      (SMProjRight _ _ <! SMProjLeft _ _)))
+
+-------------------------------------------------------
+-------------------------------------------------------
+---- Utility functions for SubstObjMu / SubstMorph ----
+-------------------------------------------------------
+-------------------------------------------------------
+
+---------------------------------
+---- Products and coproducts ----
+---------------------------------
+
+public export
+soSwap : (x, y : SubstObjMu) -> SubstMorph (x !* y) (y !* x)
+soSwap _ _ = SMPair (SMProjRight _ _) (SMProjLeft _ _)
+
+public export
+SOCoproductN : {n : Nat} -> Vect n SubstObjMu -> SubstObjMu
+SOCoproductN [] = Subst0
+SOCoproductN [x] = x
+SOCoproductN (x :: xs@(_ :: _)) = x !+ SOCoproductN xs
+
+public export
+soConstruct : {n : Nat} -> {x : SubstObjMu} -> {v : Vect n SubstObjMu} ->
+  (m : Nat) -> {auto ok : IsYesTrue (isLT m n)} ->
+  SubstMorph x (indexNL m {ok} v) -> SubstMorph x (SOCoproductN v)
+soConstruct {n=Z} {x} {v=[]} m {ok=Refl} f impossible
+soConstruct {n=(S Z)} {x} {v=[y]} Z {ok=Refl} f = f
+soConstruct {n=(S Z)} {x} {v=[y]} (S m) {ok=Refl} f impossible
+soConstruct {n=(S (S n))} {x} {v=(y :: (y' :: ys))} Z {ok=Refl} f =
+  SMInjLeft _ _ <! f
+soConstruct {n=(S (S n))} {x} {v=(y :: v'@(y' :: ys))} (S m) {ok} f =
+  SMInjRight _ _ <!
+    soConstruct {n=(S n)} {x} {v=v'} m {ok=(fromLteSuccYes ok)}
+      (replace {p=(SubstMorph x)}
+        (indexToFinLTS {ok=(fromLteSuccYes ok)} {okS=ok} {x=y} {v=v'})
+        f)
+
+public export
+SOProductN : {n : Nat} -> Vect n SubstObjMu -> SubstObjMu
+SOProductN [] = Subst1
+SOProductN [x] = x
+SOProductN (x :: xs@(_ :: _)) = x !* SOProductN xs
+
+public export
+SOMorphN : {n : Nat} -> SubstObjMu -> Vect n SubstObjMu -> Vect n Type
+SOMorphN x v = map (SubstMorph x) v
+
+public export
+SOMorphHV : {n : Nat} -> SubstObjMu -> Vect n SubstObjMu -> Type
+SOMorphHV {n} x v = HVect (SOMorphN x v)
+
+public export
+soTuple : {n : Nat} -> {x : SubstObjMu} -> {v : Vect n SubstObjMu} ->
+  SOMorphHV {n} x v -> SubstMorph x (SOProductN v)
+soTuple {n=Z} {x} {v=[]} [] = SMToTerminal x
+soTuple {n=(S Z)} {x} {v=[y]} [m] = m
+soTuple {n=(S (S n))} {x} {v=(y :: (y' :: ys))} (m :: (m' :: ms)) =
+  SMPair m $ soTuple {x} {v=(y' :: ys)} (m' :: ms)
+
+------------------
+---- Booleans ----
+------------------
+
+public export
+SubstBool : SubstObjMu
+SubstBool = Subst1 !+ Subst1
+
+public export
+SFalse : SOTerm SubstBool
+SFalse = SMInjLeft _ _
+
+public export
+STrue : SOTerm SubstBool
+STrue = SMInjRight _ _
+
+public export
+SIfElse : {x : SubstObjMu} ->
+  SOTerm SubstBool -> SOTerm x -> SOTerm x -> SOTerm x
+SIfElse {x} b t f =
+  SMCase {x=Subst1} {y=Subst1} {z=x} t f <! b
+
+public export
+SHigherIfElse : {x, y : SubstObjMu} ->
+  SubstMorph x SubstBool -> SubstMorph x y -> SubstMorph x y -> SubstMorph x y
+SHigherIfElse {x} {y} b t f =
+  soEval x y <! SMPair (SMCase (MorphAsTerm t) (MorphAsTerm f) <! b) (SMId x)
+
+---------------
+---- Maybe ----
+---------------
+
+public export
+SMaybe : SubstObjMu -> SubstObjMu
+SMaybe x = Subst1 !+ x
+
+-------------------------------
+---- Unary natural numbers ----
+-------------------------------
+
+-- Unary natural numbers less than the input.
+public export
+SUNat : Nat -> SubstObjMu
+SUNat Z = Subst0
+SUNat (S Z) = Subst1
+SUNat (S (S n)) = Subst1 !+ SUNat (S n)
+
+public export
+MkSUNat : {m : Nat} -> (n : Nat) -> {x : SubstObjMu} ->
+  {auto lt : IsYesTrue (isLT n m)} ->
+  SubstMorph x (SUNat m)
+MkSUNat {m=Z} Z {lt=Refl} impossible
+MkSUNat {m=(S Z)} Z {lt} = SMToTerminal _
+MkSUNat {m=(S (S m))} Z {lt} = SMInjLeft _ _ <! SMToTerminal _
+MkSUNat {m=Z} (S n) {lt=Refl} impossible
+MkSUNat {m=(S Z)} (S n) {lt=Refl} impossible
+MkSUNat {m=(S (S m))} (S n) {lt} =
+  SMInjRight _ _ <! MkSUNat {m=(S m)} n {lt=(fromLteSuccYes lt)}
+
+-- Catamorphism on unary natural numbers.
+public export
+suNatCata : (n : Nat) -> (x : SubstObjMu) ->
+  SubstMorph ((Subst1 !+ x) !-> x) (SUNat (S n) !-> x)
+suNatCata Z x = SMProjLeft _ _
+suNatCata (S n) x = soCurry {y=(SUNat (S (S n)))} {z=x} $
+  SMCase
+    (SMProjLeft _ _ <! SMProjLeft _ _)
+    (soEval x x <!
+      SMPair
+        (SMProjRight _ _ <! SMProjLeft _ _)
+        (soUncurry $ suNatCata n x))
+    <! SMDistrib _ _ _
+
+public export
+suZ : {n : Nat} -> {x : SubstObjMu} -> SubstMorph x (SUNat (S n))
+suZ {n=Z} {x} = SMToTerminal x
+suZ {n=(S n)} {x} = SMInjLeft _ _ <! SMToTerminal x
+
+public export
+suSucc : {n : Nat} -> SubstMorph (SUNat n) (SUNat (S n))
+suSucc {n=Z} = SMFromInit Subst1
+suSucc {n=(S n)} = SMInjRight _ _
+
+-- Successor, which returns `Nothing` (`Left`) if the input is the
+-- maximum value of `SUNat n`.
+public export
+suSuccMax : {n : Nat} -> SubstMorph (SUNat n) (SMaybe (SUNat n))
+suSuccMax {n=Z} = SMFromInit _
+suSuccMax {n=(S Z)} = SMInjLeft _ _ <! SMToTerminal _
+suSuccMax {n=(S (S n))} =
+  SMCase
+    (SMInjRight _ _ <! SMInjLeft _ _ <! SMToTerminal _)
+    (SMInjRight _ _ <! suSuccMax {n=(S n)})
+
+-- Successor modulo `n`.
+public export
+suSuccMod : {n : Nat} -> SubstMorph (SUNat n) (SUNat n)
+suSuccMod {n=Z} = SMFromInit Subst0
+suSuccMod {n=(S n)} =
+  SMCase
+    suZ -- overflow
+    (SMId _) -- no overflow
+  <! suSuccMax {n=(S n)}
+
+public export
+su1 : {n : Nat} -> {x : SubstObjMu} -> SubstMorph x (SUNat (S n))
+su1 {n=Z} {x} = SMToTerminal x
+su1 {n=(S Z)} {x} = SMInjRight _ _ <! SMToTerminal _
+su1 {n=(S (S n))} {x} = SMInjRight _ _ <! SMInjLeft _ _ <! SMToTerminal _
+
+public export
+suAdd : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
+suAdd {n=Z} = SMFromInit _ <! SMProjLeft _ _
+suAdd {n=(S n)} = soUncurry $ suNatCata _ _ <! SMPair (SMId _) soReflectedId
+
+public export
+suMul : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
+suMul {n=Z} = SMFromInit _ <! SMProjLeft _ _
+suMul {n=(S n)} = soUncurry $ suNatCata _ _ <! SMPair suZ (soCurry suAdd)
+
+public export
+suRaiseTo : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
+suRaiseTo {n=Z} = SMFromInit _ <! SMProjLeft _ _
+suRaiseTo {n=(S n)} = soUncurry $ suNatCata _ _ <! SMPair su1 (soCurry suMul)
+
+public export
+suPow : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
+suPow = soFlip suRaiseTo
+
+--------------------------------
+---- Binary natural numbers ----
+--------------------------------
+
+-- `n+1`-bit natural numbers.
+public export
+SBNat : Nat -> SubstObjMu
+SBNat Z = SubstBool
+SBNat (S n) = SubstBool !* SBNat n
+
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+---- Interpretation of substitutive objects as metalanguage types ----
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+
+public export
+MetaSOTypeAlg : MetaSOAlg Type
+MetaSOTypeAlg SO0 = Void
+MetaSOTypeAlg SO1 = Unit
+MetaSOTypeAlg (p !!+ q) = Either p q
+MetaSOTypeAlg (p !!* q) = Pair p q
+
+public export
+MetaSOType : SubstObjMu -> Type
+MetaSOType = substObjCata MetaSOTypeAlg
+
+public export
+MetaSOShowTypeAlg : MetaSOAlg String
+MetaSOShowTypeAlg SO0 = "Void"
+MetaSOShowTypeAlg SO1 = "Unit"
+MetaSOShowTypeAlg (p !!+ q) = "Either (" ++ p ++ ") (" ++ q ++ ")"
+MetaSOShowTypeAlg (p !!* q) = "Pair (" ++ p ++ ") (" ++ q ++ ")"
+
+public export
+metaSOShowType : SubstObjMu -> String
+metaSOShowType = substObjCata MetaSOShowTypeAlg
 
 -------------------------------------------------------------------
+-------------------------------------------------------------------
 ---- Explicitly-polynomial-functor version of above definition ----
+-------------------------------------------------------------------
 -------------------------------------------------------------------
 
 public export
@@ -4246,21 +4663,6 @@ SMADTCheckSigAlg (SMAAssoc x y z (d, c)) =
 public export
 smadtCheckSig : SubstMorphADT -> Maybe (SubstObjMu, SubstObjMu)
 smadtCheckSig = substMorphADTCata SMADTCheckSigAlg
-
-----------------------------------------------------------------------
----- Interpretation of substitutive objects as metalanguage types ----
-----------------------------------------------------------------------
-
-public export
-MetaSOTypeAlg : MetaSOAlg Type
-MetaSOTypeAlg SO0 = Void
-MetaSOTypeAlg SO1 = Unit
-MetaSOTypeAlg (p !!+ q) = Either p q
-MetaSOTypeAlg (p !!* q) = Pair p q
-
-public export
-MetaSOType : SubstObjMu -> Type
-MetaSOType = substObjCata MetaSOTypeAlg
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
@@ -5050,6 +5452,11 @@ data BNCPolyM : Type where
   -- Compare with zero: equal takes first branch; not-equal takes second branch
   IfZero : BNCPolyM -> BNCPolyM -> BNCPolyM -> BNCPolyM
 
+  -- If the first argument is strictly less than the second, then
+  -- take the first branch (which is the third argument); otherwise,
+  -- take the second branch (which is the fourth argument)
+  IfLT : BNCPolyM -> BNCPolyM -> BNCPolyM -> BNCPolyM -> BNCPolyM
+
 public export
 record BNCPolyMAlg (0 a : BNCPolyM -> Type) where
   constructor MkBNCPolyAlg
@@ -5062,6 +5469,8 @@ record BNCPolyMAlg (0 a : BNCPolyM -> Type) where
   bncaDiv : (p, q : BNCPolyM) -> a p -> a q -> a (p #/ q)
   bncaMod : (p, q : BNCPolyM) -> a p -> a q -> a (p #% q)
   bncaIfZ : (p, q, r : BNCPolyM) -> a p -> a q -> a r -> a (IfZero p q r)
+  bncaIfLT :
+     (p, q, r, s : BNCPolyM) -> a p -> a q -> a r -> a s -> a (IfLT p q r s)
 
 public export
 bncPolyMInd : {0 a : BNCPolyM -> Type} -> BNCPolyMAlg a -> (p : BNCPolyM) -> a p
@@ -5081,6 +5490,10 @@ bncPolyMInd alg (p #% q) =
   bncaMod alg p q (bncPolyMInd alg p) (bncPolyMInd alg q)
 bncPolyMInd alg (IfZero p q r) =
   bncaIfZ alg p q r (bncPolyMInd alg p) (bncPolyMInd alg q) (bncPolyMInd alg r)
+bncPolyMInd alg (IfLT p q r s) =
+  bncaIfLT alg p q r s
+    (bncPolyMInd alg p) (bncPolyMInd alg q)
+    (bncPolyMInd alg r) (bncPolyMInd alg s)
 
 public export
 showInfix : (is, ls, rs : String) -> String
@@ -5103,7 +5516,9 @@ BNCPMshowAlg = MkBNCPolyAlg
   (const2ShowInfix "/")
   (const2ShowInfix "%")
   (\_, _, _, ps, qs, rs =>
-    "(" ++ ps ++ " == 0 ? " ++ show qs ++ " : " ++ show rs ++ ")")
+    "(" ++ ps ++ " == 0 ? " ++ qs ++ " : " ++ rs ++ ")")
+  (\_, _, _, _, ps, qs, rs, ss =>
+    "(" ++ ps ++ " < " ++ qs ++ " ? " ++ rs ++ " : " ++ ss ++ ")")
 
 public export
 Show BNCPolyM where
@@ -5129,30 +5544,22 @@ public export
 
 -- Interpret a BNCPolyM into the metalanguage.
 public export
-MetaBNCPolyMAlg : BNCPolyMAlg (\_ => (modpred : Integer) -> Integer -> Integer)
+MetaBNCPolyMAlg : BNCPolyMAlg (\_ => Integer -> Integer)
 MetaBNCPolyMAlg = MkBNCPolyAlg
-  (\n, modpred, _ => modSucc (natToInteger n) modpred)
-  (\modpred, k => modSucc k modpred)
-  (\q, p, qf, pf, modpred, k => qf modpred (pf modpred k))
-  (\p, q, pf, qf, modpred, k =>
-    flip modSucc modpred $ pf modpred k + qf modpred k)
-  (\p, q, pf, qf, modpred, k =>
-    flip modSucc modpred $ pf modpred k * qf modpred k)
-  (\p, q, pf, qf, modpred, k =>
-    minusModulo (modpred + 1) (pf modpred k) (qf modpred k))
-  (\p, q, pf, qf, modpred, k =>
-    divWithZtoZ (pf modpred k) (qf modpred k))
-  (\p, q, pf, qf, modpred, k =>
-    modWithZtoZ (pf modpred k) (qf modpred k))
-  (\p, q, r, pf, qf, rf, modpred, k =>
-    if pf modpred k == 0 then
-      qf modpred k
-    else
-      rf modpred k)
+  (\n, _ => natToInteger n)
+  id
+  (\q, p, qf, pf, k => qf (pf k))
+  (\p, q, pf, qf, k => pf k + qf k)
+  (\p, q, pf, qf, k => pf k * qf k)
+  (\p, q, pf, qf, k => pf k - qf k)
+  (\p, q, pf, qf, k => divWithZtoZ (pf k) (qf k))
+  (\p, q, pf, qf, k => modWithZtoZ (pf k) (qf k))
+  (\p, q, r, pf, qf, rf, k => if pf k == 0 then qf k else rf k)
+  (\p, q, r, s, pf, qf, rf, sf, k => if pf k < qf k then rf k else sf k)
 
 public export
 metaBNCPolyM : (modpred : Integer) -> BNCPolyM -> Integer -> Integer
-metaBNCPolyM modpred p = bncPolyMInd MetaBNCPolyMAlg p modpred
+metaBNCPolyM modpred p n = modSucc (bncPolyMInd MetaBNCPolyMAlg p n) modpred
 
 -- Interpret a BNCPolyM as a function between BANat objects.
 public export
@@ -5174,7 +5581,7 @@ substMorphToBNC : {x, y : SubstObjMu} -> SubstMorph x y -> BNCPolyM
 substMorphToBNC {y=x} (SMId x) = PI
 substMorphToBNC ((<!) {x} {y} {z} g f) = substMorphToBNC g #. substMorphToBNC f
 substMorphToBNC {x=Subst0} (SMFromInit y) = #| 0
-substMorphToBNC {y=Subst1} (SMToTerminal x) = #| 1
+substMorphToBNC {y=Subst1} (SMToTerminal x) = #| 0
 substMorphToBNC (SMInjLeft x y) = PI
 substMorphToBNC (SMInjRight x y) = #| (substObjToNat x) #+ PI
 substMorphToBNC (SMCase {x} {y} {z} f g) with (substObjToNat x)
@@ -5182,13 +5589,12 @@ substMorphToBNC (SMCase {x} {y} {z} f g) with (substObjToNat x)
     if cx == 0 then
       substMorphToBNC g
     else
-      IfZero
-        (PI #/ #| cx)
+      IfLT PI (#| cx)
         (substMorphToBNC f)
-        (substMorphToBNC g #. PI #- #| cx)
-substMorphToBNC (SMPair {x} {y} {z} f g) with (substObjToNat x, substObjToNat y)
-  substMorphToBNC (SMPair {x} {y} {z} f g) | (cx, cy) =
-    #| cy #* substMorphToBNC f #+ substMorphToBNC g
+        (substMorphToBNC g #. (PI #- #| cx))
+substMorphToBNC (SMPair {x} {y} {z} f g) with (substObjToNat y, substObjToNat z)
+  substMorphToBNC (SMPair {x} {y} {z} f g) | (cy, cz) =
+    #| cz #* substMorphToBNC f #+ substMorphToBNC g
 substMorphToBNC (SMProjLeft x y) with (substObjToNat x, substObjToNat y)
   substMorphToBNC (SMProjLeft x y) | (cx, cy) =
     if cy == 0 then
@@ -5202,6 +5608,15 @@ substMorphToBNC (SMProjRight x y) with (substObjToNat x, substObjToNat y)
     else
       PI #% #| cy
 substMorphToBNC (SMDistrib x y z) = PI
+
+public export
+substMorphToFunc : {a, b : SubstObjMu} -> SubstMorph a b -> Integer -> Integer
+substMorphToFunc {a} {b} f =
+  metaBNCPolyM (natToInteger $ pred $ substObjToNat b) (substMorphToBNC f)
+
+public export
+substTermToInt : {a : SubstObjMu} -> SOTerm a -> Integer
+substTermToInt t = substMorphToFunc t 0
 
 ---------------------------------------------------
 ---------------------------------------------------

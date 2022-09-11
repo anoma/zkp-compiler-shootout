@@ -5,6 +5,7 @@ import public Data.List
 import public Data.List.Reverse
 import public Data.Nat
 import public Data.Vect
+import public Data.HVect
 import public Data.Fin
 import public Data.DPair
 import public Data.Bool
@@ -268,9 +269,59 @@ fromIsYes {x=(Yes x)} Refl = x
 fromIsYes {x=(No n)} Refl impossible
 
 public export
+toIsYes : {a : Type} -> (x : a) -> {dx : Dec a} -> IsYesTrue dx
+toIsYes x {dx=(Yes y)} = Refl
+toIsYes x {dx=(No n)} = void $ n x
+
+public export
+fromLteSuccYes : {m, n : Nat} ->
+  IsYesTrue (isLT (S m) (S n)) -> IsYesTrue (isLT m n)
+fromLteSuccYes y = toIsYes (fromLteSucc $ fromIsYes y)
+
+public export
 indexN : {0 a : Type} -> {n : Nat} ->
   (i : Nat) -> {auto ok : IsJustTrue (natToFin i n)} -> Vect n a -> a
 indexN _ {ok} = index (fromIsJust ok)
+
+public export
+indexNL : {0 a : Type} -> {n : Nat} ->
+  (i : Nat) -> {auto ok : IsYesTrue (isLT i n)} -> Vect n a -> a
+indexNL i {ok} v = index (natToFinLT i {prf=(fromIsYes ok)}) v
+
+public export
+natToFinLTS : {m, n : Nat} -> {lt : LT m n} -> {ltS : LT (S m) n'} ->
+  natToFinLT {n=(S n)} (S m) = FS (natToFinLT {n} m)
+natToFinLTS = Refl
+
+public export
+indexToFinS : {a : Type} -> {m, n : Nat} ->
+  {ltS : LT (S m) (S n)} -> {lt : LT m n} ->
+  {x : a} -> {v : Vect n a} ->
+  index (natToFinLT (S m)) (x :: v) = index (natToFinLT m) v
+indexToFinS {a} {m} {n=Z} {ltS} {lt} {x} {v} = void $ succNotLTEzero lt
+indexToFinS {a} {m=Z} {n=(S n)} {ltS} {lt=LTEZero} {x} {v} impossible
+indexToFinS {a} {m=Z} {n=(S n)} {ltS=LTEZero} {lt} {x} {v} impossible
+indexToFinS {a} {m=Z} {n=(S n)} {ltS=(LTESucc ltS)} {lt=(LTESucc lt)} {x} {v} =
+  case ltS of
+    LTEZero impossible
+    LTESucc ltS' => Refl
+indexToFinS {a} {m=(S m)} {n=(S n)} {ltS=LTEZero} {lt} {x} {v} impossible
+indexToFinS {a} {m=(S m)} {n=(S n)} {ltS} {lt=LTEZero} {x} {v} impossible
+indexToFinS {a} {m=(S m)} {n=(S n)}
+  {ltS=(LTESucc ltS)} {lt=(LTESucc lt)} {x} {v} =
+    case v of
+      [] impossible
+      (x' :: v') => indexToFinS {m} {n} {ltS} {lt} {x=x'} {v=v'}
+
+public export
+indexToFinLTS : {a : Type} -> {n : Nat} ->
+  {i : Nat} ->
+  {auto okS : IsYesTrue (isLT (S i) (S n))} ->
+  {auto ok : IsYesTrue (isLT i n)} ->
+  {x : a} -> {v : Vect n a} ->
+  indexNL (S i) {ok=okS} (x :: v) = indexNL i {ok} v
+indexToFinLTS {n} {i} {okS} {ok} {x} {v} =
+  indexToFinS {a} {m=i} {n=n} {ltS=(fromIsYes okS)} {lt=(fromIsYes ok)} {x} {v}
 
 public export
 finFTrunc : {0 a : Type} -> {n : Nat} -> (Fin (S n) -> a) -> Fin n -> a

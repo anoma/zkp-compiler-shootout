@@ -748,7 +748,7 @@ bncpmt11 : Assertion
 bncpmt11 = Assert $ metaBNCPolyM 200 (bncpm0 #- bncpm1) 3 == 75
 
 bncpmt12 : Assertion
-bncpmt12 = Assert $ metaBNCPolyM 200 (bncpm1 #- bncpm0) 3 == 126
+bncpmt12 = Assert $ metaBNCPolyM 200 (bncpm1 #- bncpm0) 3 == -75
 
 bncpmt13 : Assertion
 bncpmt13 = Assert $ metaBNCPolyM 200 (bncpm0 #/ bncpm1) 3 == 2
@@ -772,11 +772,11 @@ bncpmt18 = Assert $
 
 bncpmt19 : Assertion
 bncpmt19 = Assert $
-  metaBNCPolyM 100 (IfZero (bncpm0 #/ bncpm1) bncpm0 bncpm1) 3 == 38
+  metaBNCPolyM 100 (IfZero (bncpm0 #/ bncpm1) bncpm0 bncpm1) 3 == 64
 
 bncpmt20 : Assertion
 bncpmt20 = Assert $
-  metaBNCPolyM 100 (IfZero (bncpm1 #/ bncpm0) bncpm0 bncpm1) 3 == 64
+  metaBNCPolyM 100 (IfZero (bncpm1 #/ bncpm0) bncpm0 bncpm1) 3 == 38
 
 bncpmt21 : Assertion
 bncpmt21 = Assert $ metaBNCPolyM 200 (bncpm1 #. (bncpm0 #/ bncpm1)) 3 == 27
@@ -998,6 +998,62 @@ BBFM = PolyFuncFreeM BinBoolTreePF
 BBFMFF : Type
 BBFMFF = InterpPolyFuncFreeM BinBoolTreePF Nat
 
+------------------------------------
+---- Unrefined polynomial types ----
+------------------------------------
+
+initObj : SubstObjMu
+initObj = Subst0
+
+termObj : SubstObjMu
+termObj = Subst1
+
+-- Unary natural numbers less than 7.
+unat7 : SubstObjMu
+unat7 = SUNat 7
+
+-- Four-bit binary natural numbers.
+bnat3 : SubstObjMu
+bnat3 = SBNat 3
+
+-- 0 as a term of bnat3.
+bnat3_0 : SOTerm PolyCatTest.bnat3
+bnat3_0 =
+  SMPair (SMInjLeft Subst1 Subst1) $ SMPair (SMInjLeft Subst1 Subst1) $
+    SMPair (SMInjLeft Subst1 Subst1) (SMInjLeft Subst1 Subst1)
+
+-- 1 as a term of bnat3.
+bnat3_1 : SOTerm PolyCatTest.bnat3
+bnat3_1 =
+  SMPair (SMInjLeft Subst1 Subst1) $ SMPair (SMInjLeft Subst1 Subst1) $
+    SMPair (SMInjLeft Subst1 Subst1) (SMInjRight Subst1 Subst1)
+
+-- 2 as a term of bnat3.
+bnat3_2 : SOTerm PolyCatTest.bnat3
+bnat3_2 =
+  SMPair (SMInjLeft Subst1 Subst1) $ SMPair (SMInjLeft Subst1 Subst1) $
+    SMPair (SMInjRight Subst1 Subst1) (SMInjLeft Subst1 Subst1)
+
+-- 15 as a term of bnat3.
+bnat3_15 : SOTerm PolyCatTest.bnat3
+bnat3_15 =
+  SMPair (SMInjRight Subst1 Subst1) $ SMPair (SMInjRight Subst1 Subst1) $
+    SMPair (SMInjRight Subst1 Subst1) (SMInjRight Subst1 Subst1)
+
+-- Mappings from bnat3 to bool (which are characteristic functions of
+-- subsets of bnat3).
+bnat3_to_bool : Type
+bnat3_to_bool = SubstMorph bnat3 SubstBool
+
+-- The exponential object representing mappings from bnat3 to bool (which
+-- are characteristic functions of subsets of bnat3).
+bnat3chi : SubstObjMu
+bnat3chi = bnat3 !-> SubstBool
+
+-- Extract bit2 from bnat3 (its second-most-significant bit).
+bnat3_bit_2 : PolyCatTest.bnat3_to_bool
+bnat3_bit_2 = SMCase SFalse STrue <! SMProjLeft _ _ <! SMProjRight _ _
+
 ----------------------------------
 ----------------------------------
 ----- Exported test function -----
@@ -1191,6 +1247,50 @@ polyCatTest = do
   putStrLn "------------------------------------------"
   putStrLn "---- Metalanguage polynomial functors ----"
   putStrLn "------------------------------------------"
+  putStrLn ""
+  putStrLn "------------------------------------"
+  putStrLn "---- Unrefined polynomial types ----"
+  putStrLn "------------------------------------"
+  putStrLn ""
+  putStrLn $ "initial object: " ++ show initObj
+  putStrLn $ "initial object as Nat: " ++ show (substObjToNat initObj)
+  putStrLn $ "initial object in metalanguage: " ++ show (metaSOShowType initObj)
+  putStrLn $ "terminal object: " ++ show termObj
+  putStrLn $ "terminal object as Nat: " ++ show (substObjToNat termObj)
+  putStrLn $ "terminal object in metalanguage: " ++
+    show (metaSOShowType termObj)
+  putStrLn $ "Bool: " ++ show SubstBool
+  putStrLn $ "Bool as Nat: " ++ show (substObjToNat SubstBool)
+  putStrLn $ "Bool in metalanguage: " ++ show (metaSOShowType SubstBool)
+  putStrLn $ "unat7: " ++ show unat7
+  putStrLn $ "unat7 as Nat: " ++ show (substObjToNat unat7)
+  putStrLn $ "unat7 in metalanguage: " ++ show (metaSOShowType unat7)
+  putStrLn $ "bnat3: " ++ show bnat3
+  putStrLn $ "bnat3 as Nat: " ++ show (substObjToNat bnat3)
+  putStrLn $ "bnat3 in metalanguage: " ++ show (metaSOShowType bnat3)
+  putStrLn $ "bnat3chi: " ++ show bnat3chi
+  putStrLn $ "bnat3chi as Nat: " ++ show (substObjToNat bnat3chi)
+  putStrLn $ "bnat3chi in metalanguage: " ++ show (metaSOShowType bnat3chi)
+  putStrLn $ "bnat3_0: " ++ showSubstMorph bnat3_0
+  putStrLn $ "bnat3_0 as Nat: " ++ show (substTermToInt bnat3_0)
+  putStrLn $ "bnat3_0 as poly func: " ++ show (substMorphToBNC bnat3_0)
+  putStrLn $ "bnat3_1: " ++ showSubstMorph bnat3_1
+  putStrLn $ "bnat3_1 as Nat: " ++ show (substTermToInt bnat3_1)
+  putStrLn $ "bnat3_1 as poly func: " ++ show (substMorphToBNC bnat3_1)
+  putStrLn $ "bnat3_2: " ++ showSubstMorph bnat3_2
+  putStrLn $ "bnat3_2 as Nat: " ++ show (substTermToInt bnat3_2)
+  putStrLn $ "bnat3_2 as poly func: " ++ show (substMorphToBNC bnat3_2)
+  putStrLn $ "bnat3_15: " ++ showSubstMorph bnat3_15
+  putStrLn $ "bnat3_15 as Nat: " ++ show (substTermToInt bnat3_15)
+  putStrLn $ "bnat3_15 as poly func: " ++ show (substMorphToBNC bnat3_15)
+  putStrLn $ "bit 2 of bnat3_15: " ++
+    show (substTermToInt $ bnat3_bit_2 <! bnat3_15)
+  putStrLn $ "bit 2 of bnat3_15 as poly func: " ++
+    show (substMorphToBNC $ bnat3_bit_2 <! bnat3_15)
+  putStrLn $ "bit 2 of bnat3_2: " ++
+    show (substTermToInt $ bnat3_bit_2 <! bnat3_2)
+  putStrLn $ "bit 2 of bnat_2 as poly func: " ++
+    show (substMorphToBNC $ bnat3_bit_2 <! bnat3_2)
   putStrLn ""
   putStrLn "----------------"
   putStrLn "End polyCatTest."
