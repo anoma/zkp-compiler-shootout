@@ -1008,7 +1008,7 @@ initObj = Subst0
 termObj : SubstObjMu
 termObj = Subst1
 
--- Unary natural numbers less than or equal to 7.
+-- Unary natural numbers less than 7.
 unat7 : SubstObjMu
 unat7 = SUNat 7
 

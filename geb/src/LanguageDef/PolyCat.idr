@@ -4048,7 +4048,7 @@ SubstHomObj (InSO (x !!+ y)) z = SubstHomObj x z !* SubstHomObj y z
 -- (x * y) -> z == x -> y -> z
 SubstHomObj (InSO (x !!* y)) z = SubstHomObj x (SubstHomObj y z)
 
-infix 10 !->
+infixr 10 !->
 public export
 (!->) : SubstObjMu -> SubstObjMu -> SubstObjMu
 (!->) = SubstHomObj
@@ -4274,6 +4274,14 @@ soReflectedPartialApp w x y z =
 -------------------------------------------------------
 -------------------------------------------------------
 
+---------------------------------
+---- Products and coproducts ----
+---------------------------------
+
+public export
+soSwap : (x, y : SubstObjMu) -> SubstMorph (x !* y) (y !* x)
+soSwap _ _ = SMPair (SMProjRight _ _) (SMProjLeft _ _)
+
 ------------------
 ---- Booleans ----
 ------------------
@@ -4306,11 +4314,31 @@ SHigherIfElse {x} {y} b t f =
 ---- Unary natural numbers ----
 -------------------------------
 
--- Unary natural numbers less than or equal to the input.
+-- Unary natural numbers less than the input.
 public export
 SUNat : Nat -> SubstObjMu
-SUNat Z = Subst1
-SUNat (S n) = Subst1 !+ SUNat n
+SUNat Z = Subst0
+SUNat (S Z) = Subst1
+SUNat (S (S n)) = Subst1 !+ SUNat (S n)
+
+-- Catamorphism on unary natural numbers.
+public export
+SUNatCata : (n : Nat) -> (x : SubstObjMu) ->
+  SubstMorph ((Subst1 !+ x) !-> x) (SUNat (S n) !-> x)
+SUNatCata Z x = SMProjLeft _ _
+SUNatCata (S n) x = soCurry {y=(SUNat (S (S n)))} {z=x} $
+  SMCase
+    (SMProjLeft _ _ <! SMProjLeft _ _)
+    (soEval x x <!
+      SMPair
+        (SMProjRight _ _ <! SMProjLeft _ _)
+        (soEval (SUNat (S n)) x <!
+          SMPair (SUNatCata n x <! SMProjLeft _ _) (SMProjRight _ _)))
+    <! SMDistrib _ _ _
+
+public export
+suSucc : {n : Nat} -> SubstMorph (SUNat n) (SUNat (S n))
+suSucc {n} = ?suSucc_hole
 
 --------------------------------
 ---- Binary natural numbers ----
