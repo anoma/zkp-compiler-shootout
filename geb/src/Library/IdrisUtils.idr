@@ -284,6 +284,46 @@ indexN : {0 a : Type} -> {n : Nat} ->
 indexN _ {ok} = index (fromIsJust ok)
 
 public export
+indexNL : {0 a : Type} -> {n : Nat} ->
+  (i : Nat) -> {auto ok : IsYesTrue (isLT i n)} -> Vect n a -> a
+indexNL i {ok} v = index (natToFinLT i {prf=(fromIsYes ok)}) v
+
+public export
+natToFinLTS : {m, n : Nat} -> {lt : LT m n} -> {ltS : LT (S m) n'} ->
+  natToFinLT {n=(S n)} (S m) = FS (natToFinLT {n} m)
+natToFinLTS = Refl
+
+public export
+indexToFinS : {a : Type} -> {m, n : Nat} ->
+  {ltS : LT (S m) (S n)} -> {lt : LT m n} ->
+  {x : a} -> {v : Vect n a} ->
+  index (natToFinLT (S m)) (x :: v) = index (natToFinLT m) v
+indexToFinS {a} {m} {n=Z} {ltS} {lt} {x} {v} = void $ succNotLTEzero lt
+indexToFinS {a} {m=Z} {n=(S n)} {ltS} {lt=LTEZero} {x} {v} impossible
+indexToFinS {a} {m=Z} {n=(S n)} {ltS=LTEZero} {lt} {x} {v} impossible
+indexToFinS {a} {m=Z} {n=(S n)} {ltS=(LTESucc ltS)} {lt=(LTESucc lt)} {x} {v} =
+  case ltS of
+    LTEZero impossible
+    LTESucc ltS' => Refl
+indexToFinS {a} {m=(S m)} {n=(S n)} {ltS=LTEZero} {lt} {x} {v} impossible
+indexToFinS {a} {m=(S m)} {n=(S n)} {ltS} {lt=LTEZero} {x} {v} impossible
+indexToFinS {a} {m=(S m)} {n=(S n)}
+  {ltS=(LTESucc ltS)} {lt=(LTESucc lt)} {x} {v} =
+    case v of
+      [] impossible
+      (x' :: v') => indexToFinS {m} {n} {ltS} {lt} {x=x'} {v=v'}
+
+public export
+indexToFinLTS : {a : Type} -> {n : Nat} ->
+  {i : Nat} ->
+  {auto okS : IsYesTrue (isLT (S i) (S n))} ->
+  {auto ok : IsYesTrue (isLT i n)} ->
+  {x : a} -> {v : Vect n a} ->
+  indexNL (S i) {ok=okS} (x :: v) = indexNL i {ok} v
+indexToFinLTS {n} {i} {okS} {ok} {x} {v} =
+  indexToFinS {a} {m=i} {n=n} {ltS=(fromIsYes okS)} {lt=(fromIsYes ok)} {x} {v}
+
+public export
 finFTrunc : {0 a : Type} -> {n : Nat} -> (Fin (S n) -> a) -> Fin n -> a
 finFTrunc {a} {n} f = f . weaken
 

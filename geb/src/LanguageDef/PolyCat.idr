@@ -4315,10 +4315,25 @@ soSwap : (x, y : SubstObjMu) -> SubstMorph (x !* y) (y !* x)
 soSwap _ _ = SMPair (SMProjRight _ _) (SMProjLeft _ _)
 
 public export
-soCoproductN : {n : Nat} -> Vect n SubstObjMu -> SubstObjMu
-soCoproductN [] = Subst0
-soCoproductN [x] = x
-soCoproductN (x :: xs@(_ :: _)) = x !+ soCoproductN xs
+SOCoproductN : {n : Nat} -> Vect n SubstObjMu -> SubstObjMu
+SOCoproductN [] = Subst0
+SOCoproductN [x] = x
+SOCoproductN (x :: xs@(_ :: _)) = x !+ SOCoproductN xs
+
+public export
+soConstruct : {n : Nat} -> {x : SubstObjMu} -> {v : Vect n SubstObjMu} ->
+  (m : Nat) -> {auto ok : IsYesTrue (isLT m n)} ->
+  SubstMorph x (indexNL m {ok} v) -> SubstMorph x (SOCoproductN v)
+soConstruct {n=Z} {x} {v=[]} m {ok=Refl} f impossible
+soConstruct {n=(S Z)} {x} {v=[y]} Z {ok=Refl} f = f
+soConstruct {n=(S Z)} {x} {v=[y]} (S m) {ok=Refl} f impossible
+soConstruct {n=(S (S n))} {x} {v=(y :: (y' :: ys))} Z {ok=Refl} f =
+  SMInjLeft _ _ <! f
+soConstruct {n=(S (S n))} {x} {v=(y :: v'@(y' :: ys))} (S m) {ok} f =
+  let ifts = indexToFinLTS {ok=(fromLteSuccYes ok)} {okS=ok} {x=y} {v=v'} in
+  SMInjRight _ _ <!
+    soConstruct {n=(S n)} {x} {v=v'} m {ok=(fromLteSuccYes ok)}
+      (replace {p=(SubstMorph x)} ifts f)
 
 public export
 SOProductN : {n : Nat} -> Vect n SubstObjMu -> SubstObjMu
