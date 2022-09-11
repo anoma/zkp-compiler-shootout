@@ -4010,6 +4010,11 @@ soProdLeftApply : {x, y, z : SubstObjMu} ->
 soProdLeftApply f = SMPair (SMProjLeft _ _) (soProdLeftIntro f)
 
 public export
+soFlip : {x, y, z : SubstObjMu} ->
+  SubstMorph (x !* y) z -> SubstMorph (y !* x) z
+soFlip f = f <! SMPair (SMProjRight _ _) (SMProjLeft _ _)
+
+public export
 soProdLeftAssoc : {w, x, y, z : SubstObjMu} ->
   SubstMorph (w !* (x !* y)) z -> SubstMorph ((w !* x) !* y) z
 soProdLeftAssoc {w} {x} {y} {z} f =
@@ -4203,6 +4208,14 @@ IdTerm : (x : SubstObjMu) -> HomTerm x x
 IdTerm x = soReflectedId {x=Subst1} {y=x}
 
 public export
+soReflectedFromInit : (x, y : SubstObjMu) -> SubstMorph x (Subst0 !-> y)
+soReflectedFromInit x y = soConst $ SMToTerminal _
+
+public export
+soReflectedToTerminal : (x, y : SubstObjMu) -> SubstMorph x (y !-> Subst1)
+soReflectedToTerminal x y = soConst (soCurry $ SMToTerminal _)
+
+public export
 soReflectedEval : (x, y : SubstObjMu) -> HomTerm ((x !-> y) !* x) y
 soReflectedEval x y = MorphAsTerm $ SMId (x !-> y)
 
@@ -4275,6 +4288,17 @@ soReflectedPartialApp : (w, x, y, z : SubstObjMu) ->
   SubstMorph (((x !* y) !-> z) !* (w !-> x)) ((w !* y) !-> z)
 soReflectedPartialApp w x y z =
   soReflectedCurry w y z <! (soReflectedCompose w x (y !-> z))
+
+public export
+soReflectedFlip : {x, y, z : SubstObjMu} ->
+  SubstMorph ((x !* y) !-> z) ((y !* x) !-> z)
+soReflectedFlip =
+  soCurry (soCurry (soUncurry (soEval x (y !-> z)) <!
+    SMPair
+      (SMPair
+        (SMProjLeft _ _ <! SMProjLeft _ _)
+        (SMProjRight _ _))
+      (SMProjRight _ _ <! SMProjLeft _ _)))
 
 -------------------------------------------------------
 -------------------------------------------------------
@@ -4395,6 +4419,12 @@ suSuccMod {n=(S n)} =
   <! suSuccMax {n=(S n)}
 
 public export
+su1 : {n : Nat} -> {x : SubstObjMu} -> SubstMorph x (SUNat (S n))
+su1 {n=Z} {x} = SMToTerminal x
+su1 {n=(S Z)} {x} = SMInjRight _ _ <! SMToTerminal _
+su1 {n=(S (S n))} {x} = SMInjRight _ _ <! SMInjLeft _ _ <! SMToTerminal _
+
+public export
 suAdd : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
 suAdd {n=Z} = SMFromInit _ <! SMProjLeft _ _
 suAdd {n=(S n)} = soUncurry $ suNatCata _ _ <! SMPair (SMId _) soReflectedId
@@ -4403,6 +4433,15 @@ public export
 suMul : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
 suMul {n=Z} = SMFromInit _ <! SMProjLeft _ _
 suMul {n=(S n)} = soUncurry $ suNatCata _ _ <! SMPair suZ (soCurry suAdd)
+
+public export
+suRaiseTo : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
+suRaiseTo {n=Z} = SMFromInit _ <! SMProjLeft _ _
+suRaiseTo {n=(S n)} = soUncurry $ suNatCata _ _ <! SMPair su1 (soCurry suMul)
+
+public export
+suPow : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
+suPow = soFlip suRaiseTo
 
 --------------------------------
 ---- Binary natural numbers ----
