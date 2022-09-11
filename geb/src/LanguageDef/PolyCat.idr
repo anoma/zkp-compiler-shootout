@@ -4191,6 +4191,10 @@ contravarYonedaEmbed {a} {b} f x =
 ----------------------------------------------------------------------------
 
 public export
+soConst : {x, y : SubstObjMu} -> SOTerm y -> SubstMorph x y
+soConst {x} {y} f = f <! SMToTerminal _
+
+public export
 soReflectedId : {x, y : SubstObjMu} -> SubstMorph x (y !-> y)
 soReflectedId {x} {y} = soCurry (SMProjRight _ _)
 
@@ -4394,6 +4398,11 @@ public export
 suAdd : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
 suAdd {n=Z} = SMFromInit _ <! SMProjLeft _ _
 suAdd {n=(S n)} = soUncurry $ suNatCata _ _ <! SMPair (SMId _) soReflectedId
+
+public export
+suMul : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
+suMul {n=Z} = SMFromInit _ <! SMProjLeft _ _
+suMul {n=(S n)} = soUncurry $ suNatCata _ _ <! SMPair suZ (soCurry suAdd)
 
 --------------------------------
 ---- Binary natural numbers ----
