@@ -4191,8 +4191,12 @@ contravarYonedaEmbed {a} {b} f x =
 ----------------------------------------------------------------------------
 
 public export
+soReflectedId : {x, y : SubstObjMu} -> SubstMorph x (y !-> y)
+soReflectedId {x} {y} = soCurry (SMProjRight _ _)
+
+public export
 IdTerm : (x : SubstObjMu) -> HomTerm x x
-IdTerm x = MorphAsTerm (SMId x)
+IdTerm x = soReflectedId {x=Subst1} {y=x}
 
 public export
 soReflectedEval : (x, y : SubstObjMu) -> HomTerm ((x !-> y) !* x) y
@@ -4343,16 +4347,16 @@ MkSUNat {m=(S (S m))} (S n) {lt} =
 
 -- Catamorphism on unary natural numbers.
 public export
-SUNatCata : (n : Nat) -> (x : SubstObjMu) ->
+suNatCata : (n : Nat) -> (x : SubstObjMu) ->
   SubstMorph ((Subst1 !+ x) !-> x) (SUNat (S n) !-> x)
-SUNatCata Z x = SMProjLeft _ _
-SUNatCata (S n) x = soCurry {y=(SUNat (S (S n)))} {z=x} $
+suNatCata Z x = SMProjLeft _ _
+suNatCata (S n) x = soCurry {y=(SUNat (S (S n)))} {z=x} $
   SMCase
     (SMProjLeft _ _ <! SMProjLeft _ _)
     (soEval x x <!
       SMPair
         (SMProjRight _ _ <! SMProjLeft _ _)
-        (soUncurry $ SUNatCata n x))
+        (soUncurry $ suNatCata n x))
     <! SMDistrib _ _ _
 
 public export
@@ -4385,6 +4389,11 @@ suSuccMod {n=(S n)} =
     suZ -- overflow
     (SMId _) -- no overflow
   <! suSuccMax {n=(S n)}
+
+public export
+suAdd : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
+suAdd {n=Z} = SMFromInit _ <! SMProjLeft _ _
+suAdd {n=(S n)} = soUncurry $ suNatCata _ _ <! SMPair (SMId _) soReflectedId
 
 --------------------------------
 ---- Binary natural numbers ----
