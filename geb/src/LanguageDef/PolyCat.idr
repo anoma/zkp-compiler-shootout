@@ -4314,6 +4314,34 @@ public export
 soSwap : (x, y : SubstObjMu) -> SubstMorph (x !* y) (y !* x)
 soSwap _ _ = SMPair (SMProjRight _ _) (SMProjLeft _ _)
 
+public export
+soCoproductN : {n : Nat} -> Vect n SubstObjMu -> SubstObjMu
+soCoproductN [] = Subst0
+soCoproductN [x] = x
+soCoproductN (x :: xs@(_ :: _)) = x !+ soCoproductN xs
+
+public export
+SOProductN : {n : Nat} -> Vect n SubstObjMu -> SubstObjMu
+SOProductN [] = Subst1
+SOProductN [x] = x
+SOProductN (x :: xs@(_ :: _)) = x !* SOProductN xs
+
+public export
+SOMorphN : {n : Nat} -> SubstObjMu -> Vect n SubstObjMu -> Vect n Type
+SOMorphN x v = map (SubstMorph x) v
+
+public export
+SOMorphHV : {n : Nat} -> SubstObjMu -> Vect n SubstObjMu -> Type
+SOMorphHV {n} x v = HVect (SOMorphN x v)
+
+public export
+soTuple : {n : Nat} -> {x : SubstObjMu} -> {v : Vect n SubstObjMu} ->
+  SOMorphHV {n} x v -> SubstMorph x (SOProductN v)
+soTuple {n=Z} {x} {v=[]} [] = SMToTerminal x
+soTuple {n=(S Z)} {x} {v=[y]} [m] = m
+soTuple {n=(S (S n))} {x} {v=(y :: (y' :: ys))} (m :: (m' :: ms)) =
+  SMPair m $ soTuple {x} {v=(y' :: ys)} (m' :: ms)
+
 ------------------
 ---- Booleans ----
 ------------------

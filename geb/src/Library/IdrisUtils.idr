@@ -5,6 +5,7 @@ import public Data.List
 import public Data.List.Reverse
 import public Data.Nat
 import public Data.Vect
+import public Data.HVect
 import public Data.Fin
 import public Data.DPair
 import public Data.Bool
