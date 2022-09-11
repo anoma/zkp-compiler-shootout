@@ -4310,6 +4310,14 @@ SHigherIfElse : {x, y : SubstObjMu} ->
 SHigherIfElse {x} {y} b t f =
   soEval x y <! SMPair (SMCase (MorphAsTerm t) (MorphAsTerm f) <! b) (SMId x)
 
+---------------
+---- Maybe ----
+---------------
+
+public export
+SMaybe : SubstObjMu -> SubstObjMu
+SMaybe x = Subst1 !+ x
+
 -------------------------------
 ---- Unary natural numbers ----
 -------------------------------
@@ -4320,6 +4328,18 @@ SUNat : Nat -> SubstObjMu
 SUNat Z = Subst0
 SUNat (S Z) = Subst1
 SUNat (S (S n)) = Subst1 !+ SUNat (S n)
+
+public export
+MkSUNat : {m : Nat} -> (n : Nat) -> {x : SubstObjMu} ->
+  {auto lt : IsYesTrue (isLT n m)} ->
+  SubstMorph x (SUNat m)
+MkSUNat {m=Z} Z {lt=Refl} impossible
+MkSUNat {m=(S Z)} Z {lt} = SMToTerminal _
+MkSUNat {m=(S (S m))} Z {lt} = SMInjLeft _ _ <! SMToTerminal _
+MkSUNat {m=Z} (S n) {lt=Refl} impossible
+MkSUNat {m=(S Z)} (S n) {lt=Refl} impossible
+MkSUNat {m=(S (S m))} (S n) {lt} =
+  SMInjRight _ _ <! MkSUNat {m=(S m)} n {lt=(fromLteSuccYes lt)}
 
 -- Catamorphism on unary natural numbers.
 public export
@@ -4332,13 +4352,39 @@ SUNatCata (S n) x = soCurry {y=(SUNat (S (S n)))} {z=x} $
     (soEval x x <!
       SMPair
         (SMProjRight _ _ <! SMProjLeft _ _)
-        (soEval (SUNat (S n)) x <!
-          SMPair (SUNatCata n x <! SMProjLeft _ _) (SMProjRight _ _)))
+        (soUncurry $ SUNatCata n x))
     <! SMDistrib _ _ _
 
 public export
+suZ : {n : Nat} -> {x : SubstObjMu} -> SubstMorph x (SUNat (S n))
+suZ {n=Z} {x} = SMToTerminal x
+suZ {n=(S n)} {x} = SMInjLeft _ _ <! SMToTerminal x
+
+public export
 suSucc : {n : Nat} -> SubstMorph (SUNat n) (SUNat (S n))
-suSucc {n} = ?suSucc_hole
+suSucc {n=Z} = SMFromInit Subst1
+suSucc {n=(S n)} = SMInjRight _ _
+
+-- Successor, which returns `Nothing` (`Left`) if the input is the
+-- maximum value of `SUNat n`.
+public export
+suSuccMax : {n : Nat} -> SubstMorph (SUNat n) (SMaybe (SUNat n))
+suSuccMax {n=Z} = SMFromInit _
+suSuccMax {n=(S Z)} = SMInjLeft _ _ <! SMToTerminal _
+suSuccMax {n=(S (S n))} =
+  SMCase
+    (SMInjRight _ _ <! SMInjLeft _ _ <! SMToTerminal _)
+    (SMInjRight _ _ <! suSuccMax {n=(S n)})
+
+-- Successor modulo `n`.
+public export
+suSuccMod : {n : Nat} -> SubstMorph (SUNat n) (SUNat n)
+suSuccMod {n=Z} = SMFromInit Subst0
+suSuccMod {n=(S n)} =
+  SMCase
+    suZ -- overflow
+    (SMId _) -- no overflow
+  <! suSuccMax {n=(S n)}
 
 --------------------------------
 ---- Binary natural numbers ----

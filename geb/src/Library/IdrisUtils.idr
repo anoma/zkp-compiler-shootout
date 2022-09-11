@@ -268,6 +268,16 @@ fromIsYes {x=(Yes x)} Refl = x
 fromIsYes {x=(No n)} Refl impossible
 
 public export
+toIsYes : {a : Type} -> (x : a) -> {dx : Dec a} -> IsYesTrue dx
+toIsYes x {dx=(Yes y)} = Refl
+toIsYes x {dx=(No n)} = void $ n x
+
+public export
+fromLteSuccYes : {m, n : Nat} ->
+  IsYesTrue (isLT (S m) (S n)) -> IsYesTrue (isLT m n)
+fromLteSuccYes y = toIsYes (fromLteSucc $ fromIsYes y)
+
+public export
 indexN : {0 a : Type} -> {n : Nat} ->
   (i : Nat) -> {auto ok : IsJustTrue (natToFin i n)} -> Vect n a -> a
 indexN _ {ok} = index (fromIsJust ok)
