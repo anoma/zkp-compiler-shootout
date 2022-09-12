@@ -14,6 +14,11 @@ of Geb is a topos).
 This could be done through some sequence of categories such as the following,
 in order from back-end to front-end.
 
+## Geb by example
+
+For test sessions illustrating various functions of Geb, see the
+[examples page](./EXAMPLES.md).
+
 ## The back-end category: a representation of Alucard/VampIR
 
 Represented as a category, the subset of Alucard/VampIR that Geb
