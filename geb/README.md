@@ -1,5 +1,7 @@
 # Compiling through categories: Geb as a circuit frontend
 
+## Introduction
+
 Because the core logic of [Geb](https://hackmd.io/wo_tUfBsQR6YsxQobNLRtQ?view)
 has a zeroth-order sub-category which coincides precisely with what can be
 expressed by polynomial operations and constraints -- finite products,
@@ -7,19 +9,18 @@ finite coproducts, and equalizers -- that logic might be used as an IR
 for compilation of user programs to circuits.
 
 Geb uses those polynomial category-theoretic constructions to represent
-datatypes, so it would present a front end that would look like typical
-functional programming (with dependent types -- the zeroth-order category
-of Geb is a topos).
-
-This could be done through some sequence of categories such as the following,
-in order from back-end to front-end.
+datatypes and higher-order functions, so it would present a front end
+that would look like typical functional programming (with dependent
+types -- the zeroth-order category of Geb is a topos).
 
 ## Geb by example
 
 For test sessions illustrating various functions of Geb, see the
 [examples page](./EXAMPLES.md).
 
-## The back-end category: a representation of Alucard/VampIR
+## Design: the categories
+
+### The back-end category: a representation of Alucard/VampIR
 
 Represented as a category, the subset of Alucard/VampIR that Geb
 needs to compile to would have as its objects possibly-empty
@@ -131,7 +132,7 @@ validPoly [t] = validPT t
 validPoly [] = True
 ```
 
-## The zeroth-order topos
+### The zeroth-order topos
 
 The zeroth-order topos of Geb, which is called
 "Programmer's FinSet" in the
@@ -156,7 +157,7 @@ equivalence class to a single term which serves as a
 representative of that class.  (In effect, this gives a type
 a built-in equivalence relation.)
 
-## Polynomial endofunctors of PFS
+### Polynomial endofunctors of PFS
 
 The category in which user-defined data structures appear is
 that of the polynomial endofunctors of the zeroth-order topos.
@@ -187,7 +188,7 @@ The dependency of `onDir` on `onPos` will lead to the natural
 transformation being compiled by using `RNMSwitchF` on the
 output of `onPos` to select from a family of `onDir` functions.
 
-## Front-end recursive categories
+### Front-end recursive categories
 
 Although a pure polynomial circuit can not express recursion,
 using a category-theoretic definition of recursion by functor
@@ -201,7 +202,7 @@ functor.  For example, `List[3] = 1 + x + x^2`;
 `List[5] = 1 + x + x^2 + x^3 + x^4` (where `List[n]` is a list
 of length strictly less than `n`).
 
-## Simply-typed lambda calculus
+### Simply-typed lambda calculus
 
 Although I personally prefer combinator calculi to lambda calculi
 by now, the latter are more familiar to most functional programmers,
