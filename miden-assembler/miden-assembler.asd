@@ -14,4 +14,6 @@
   ((:file package)
    (:file spec     :depends-on (package))
    (:file printer  :depends-on (package spec))
-   (:file miden    :depends-on (package spec))))
+   (:file miden    :depends-on (package spec))
+   (:file table    :depends-on (package spec))
+   (:file programs :depends-on (package spec miden table))))

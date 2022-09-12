@@ -5,28 +5,34 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Sum Type Declarations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(deftype instruction ()
+  `(or opcode repeat block))
 
+(deftype constant ()
+  `(or fixnum null symbol))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Statement Product Types
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Not sure how useful this is
-(defclass block ()
-  ((body :initarg :body
-         :accessor body
-         :type list)))
 
 (defclass procedure ()
   ((name :initarg :name
          :type    keyword
          :accessor name
          :documentation "Name of the procedure")
+   (locals :initarg  :locals
+          :type     fixnum
+          :accessor locals
+          :initform 0
+          :documentation
+          "number of memory locals")
    (block :initarg :block
           :accessor block
           :type     block)))
 
-(deftype constant ()
-  `(or fixnum null))
+(defclass block ()
+  ((body :initarg :body
+         :accessor body
+         :type list)))
 
 (defclass opcode ()
   ((name :initarg :name
@@ -59,10 +65,10 @@
   (values
    (make-instance 'block :body body)))
 
-(-> make-procedure  (&key (:name keyword) (:block block)) block)
-(defun make-procedure (&key name block)
+(-> make-procedure  (&key (:name keyword) (:locals fixnum) (:block block)) procedure)
+(defun make-procedure (&key name block locals)
   (values
-   (make-instance 'block :block block :name name)))
+   (make-instance 'procedure :block block :name name :locals locals)))
 
 (-> make-opcode (&key (:name keyword) (:constant constant)) opcode)
 (defun make-opcode (&key name (constant nil))

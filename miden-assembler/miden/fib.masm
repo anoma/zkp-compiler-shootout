@@ -1,0 +1,14 @@
+proc.fib_100
+  repeat.100
+     swap dup.1 add
+  end
+end
+
+begin
+  push.0
+  push.1
+  exec.fib_100
+  repeat.1000
+     swap dup.1 add
+  end
+end

@@ -36,8 +36,6 @@
 
 (in-package :miden)
 
-(-> extract (list &optional stream) stream)
-
 (defmethod print-object ((op opcode) stream)
   (format stream "~(~a~)" (name op))
   (when (constant op)
@@ -49,33 +47,18 @@
     (block-as-list obj stream)
     (format stream "~0I~:@_end")))
 
+(defmethod print-object ((obj procedure) stream)
+  (pprint-logical-block (stream nil)
+    (format stream "proc.~(~A~)~2I~:@_" (name obj))
+    (block-as-list (block obj) stream)
+    (format stream "~0I~:@_end")))
+
 (defmethod print-object ((obj repeat) stream)
   (pprint-logical-block (stream nil)
-    (pprint-indent :current 2 stream)
     (format stream "repeat.~A~2I~:@_ " (count obj))
     (block-as-list (block obj) stream)
-    (format stream " ~0I~:@_end")))
+    (format stream "~0I~:@_end")))
 
 (defun block-as-list (block stream)
   (pprint-logical-block (stream nil)
     (format stream "~{~A~^ ~_~}" (block-to-list block))))
-
-
-;; REMOVΕ once I get a test case up
-;; (make-block :body
-;;             (list (make-opcode :name :input :constant 3)
-;;                   (make-opcode :name :input :constant 5)
-;;                   (make-opcode :name :add)))
-
-;; (make-repeat :count 5
-;;              :block
-;;              (make-block :body (list (make-opcode :name :input :constant 100)
-;;                                      (make-opcode :name :input :constant 200))))
-
-;; (make-block :body (list (make-opcode :name :input :constant 3)
-;;                         (make-opcode :name :input :constant 5)
-;;                         (make-repeat :count 5
-;;                                      :block
-;;                                      (make-block :body (list (make-opcode :name :input :constant 100)
-;;                                                              (make-opcode :name :input :constant 200))))
-;;                         (make-opcode :name :add)))
