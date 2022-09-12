@@ -1272,23 +1272,23 @@ polyCatTest = do
   putStrLn $ "bnat3chi as Nat: " ++ show (substObjToNat bnat3chi)
   putStrLn $ "bnat3chi in metalanguage: " ++ show (metaSOShowType bnat3chi)
   putStrLn $ "bnat3_0: " ++ showSubstMorph bnat3_0
-  putStrLn $ "bnat3_0 as Nat: " ++ show (substTermToInt bnat3_0)
+  putStrLn $ "bnat3_0 as Nat: " ++ show (substTermToNat bnat3_0)
   putStrLn $ "bnat3_0 as poly func: " ++ show (substMorphToBNC bnat3_0)
   putStrLn $ "bnat3_1: " ++ showSubstMorph bnat3_1
-  putStrLn $ "bnat3_1 as Nat: " ++ show (substTermToInt bnat3_1)
+  putStrLn $ "bnat3_1 as Nat: " ++ show (substTermToNat bnat3_1)
   putStrLn $ "bnat3_1 as poly func: " ++ show (substMorphToBNC bnat3_1)
   putStrLn $ "bnat3_2: " ++ showSubstMorph bnat3_2
-  putStrLn $ "bnat3_2 as Nat: " ++ show (substTermToInt bnat3_2)
+  putStrLn $ "bnat3_2 as Nat: " ++ show (substTermToNat bnat3_2)
   putStrLn $ "bnat3_2 as poly func: " ++ show (substMorphToBNC bnat3_2)
   putStrLn $ "bnat3_15: " ++ showSubstMorph bnat3_15
-  putStrLn $ "bnat3_15 as Nat: " ++ show (substTermToInt bnat3_15)
+  putStrLn $ "bnat3_15 as Nat: " ++ show (substTermToNat bnat3_15)
   putStrLn $ "bnat3_15 as poly func: " ++ show (substMorphToBNC bnat3_15)
   putStrLn $ "bit 2 of bnat3_15: " ++
-    show (substTermToInt $ bnat3_bit_2 <! bnat3_15)
+    show (substTermToNat $ bnat3_bit_2 <! bnat3_15)
   putStrLn $ "bit 2 of bnat3_15 as poly func: " ++
     show (substMorphToBNC $ bnat3_bit_2 <! bnat3_15)
   putStrLn $ "bit 2 of bnat3_2: " ++
-    show (substTermToInt $ bnat3_bit_2 <! bnat3_2)
+    show (substTermToNat $ bnat3_bit_2 <! bnat3_2)
   putStrLn $ "bit 2 of bnat_2 as poly func: " ++
     show (substMorphToBNC $ bnat3_bit_2 <! bnat3_2)
   putStrLn ""

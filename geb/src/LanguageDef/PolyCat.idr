@@ -5595,14 +5595,14 @@ substMorphToBNC (SMCase {x} {y} {z} f g) with (substObjToNat x)
 substMorphToBNC (SMPair {x} {y} {z} f g) with (substObjToNat y, substObjToNat z)
   substMorphToBNC (SMPair {x} {y} {z} f g) | (cy, cz) =
     #| cz #* substMorphToBNC f #+ substMorphToBNC g
-substMorphToBNC (SMProjLeft x y) with (substObjToNat x, substObjToNat y)
-  substMorphToBNC (SMProjLeft x y) | (cx, cy) =
+substMorphToBNC (SMProjLeft x y) with (substObjToNat y)
+  substMorphToBNC (SMProjLeft x y) | cy =
     if cy == 0 then
       #| 0
     else
       PI #/ #| cy
-substMorphToBNC (SMProjRight x y) with (substObjToNat x, substObjToNat y)
-  substMorphToBNC (SMProjRight x y) | (cx, cy) =
+substMorphToBNC (SMProjRight x y) with (substObjToNat y)
+  substMorphToBNC (SMProjRight x y) | cy =
     if cy == 0 then
       #| 0
     else
@@ -5615,8 +5615,37 @@ substMorphToFunc {a} {b} f =
   metaBNCPolyM (natToInteger $ pred $ substObjToNat b) (substMorphToBNC f)
 
 public export
-substTermToInt : {a : SubstObjMu} -> SOTerm a -> Integer
-substTermToInt t = substMorphToFunc t 0
+substTermToNat : {a : SubstObjMu} -> SOTerm a -> Nat
+substTermToNat t = integerToNat (substMorphToFunc t 0)
+
+public export
+natToSubstTerm : (a : SubstObjMu) -> Nat -> Maybe (SOTerm a)
+natToSubstTerm (InSO SO0) n = Nothing
+natToSubstTerm (InSO SO1) n = if n == 0 then Just (SMId Subst1) else Nothing
+natToSubstTerm a@(InSO (x !!+ y)) n =
+  if n < substObjCard x then do
+    t <- natToSubstTerm x n
+    Just $ SMInjLeft x y <! t
+  else if n < substObjCard y then do
+    t <- natToSubstTerm y n
+    Just $ SMInjRight x y <! t
+  else
+    Nothing
+natToSubstTerm (InSO (x !!* y)) n = do
+  xn <- divMaybe n (substObjCard y)
+  yn <- modMaybe n (substObjCard y)
+  xt <- natToSubstTerm x xn
+  yt <- natToSubstTerm y yn
+  Just $ SMPair xt yt
+
+public export
+substMorphToGNum : {a, b : SubstObjMu} -> SubstMorph a b -> Nat
+substMorphToGNum = substTermToNat . MorphAsTerm
+
+public export
+substGNumToMorph : (a, b : SubstObjMu) -> Nat -> Maybe (SubstMorph a b)
+substGNumToMorph a b n =
+  map {f=Maybe} TermAsMorph (natToSubstTerm (SubstHomObj a b) n)
 
 ---------------------------------------------------
 ---------------------------------------------------
