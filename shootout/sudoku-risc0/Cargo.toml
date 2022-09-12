@@ -18,4 +18,4 @@ serde = "1.0"
 num-primes = "0.3.0"
 num-bigint = "0.4.3"
 num-traits = "0.2.15"
-sudoku-core = {path = "core"}
+sudoku-core = { path = "core" }

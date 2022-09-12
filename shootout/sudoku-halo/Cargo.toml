@@ -7,9 +7,9 @@ edition = "2021"
 
 [dependencies]
 # TODO There are likely better ways of handling this
-plonk         = { git="https://github.com/heliaxdev/ark-plonk", rev="70f9f5c47c13e2b" }
-plonk-core    = { git="https://github.com/heliaxdev/ark-plonk", rev="70f9f5c47c13e2b" }
-plonk-hashing = { git="https://github.com/heliaxdev/ark-plonk", rev="70f9f5c47c13e2b" }
+plonk         = { git = "https://github.com/heliaxdev/ark-plonk", rev="70f9f5c47c13e2b" }
+plonk-core    = { git = "https://github.com/heliaxdev/ark-plonk", rev="70f9f5c47c13e2b" }
+plonk-hashing = { git = "https://github.com/heliaxdev/ark-plonk", rev="70f9f5c47c13e2b" }
 ark-ff              = "0.3"
 ark-std             = "0.3"
 ark-ec              = "0.3"
@@ -23,7 +23,7 @@ ark-poly-commit     = "0.3"
 blake2              = "0.9"
 derivative          = "2.2.0"
 paste               = "1.0.6"
-rand_core           = {version = "0.6", default-features=false, features = ["getrandom"] }
+rand_core           = {version = "0.6", default-features = false, features = ["getrandom"] }
 tempdir             = "0.3"
 ark-vesta           = "0.3"
 
@@ -33,7 +33,7 @@ criterion = "0.3"
 # TODO We really need to undo these patches for other sub folders
 # Including from Simon's code
 [patch.crates-io]
-ark-serialize = { git="https://github.com/simonmasson/algebra", rev = "e2ea75c" }
-ark-ff        = { git="https://github.com/simonmasson/algebra", rev = "e2ea75c" }
-ark-ec        = { git="https://github.com/simonmasson/algebra", rev = "e2ea75c" }
-ark-std       = { git ="https://github.com/arkworks-rs/std/"  , rev = "2b3568f" }
+ark-serialize = { git = "https://github.com/simonmasson/algebra", rev = "e2ea75c" }
+ark-ff        = { git = "https://github.com/simonmasson/algebra", rev = "e2ea75c" }
+ark-ec        = { git = "https://github.com/simonmasson/algebra", rev = "e2ea75c" }
+ark-std       = { git = "https://github.com/arkworks-rs/std/"   , rev = "2b3568f" }

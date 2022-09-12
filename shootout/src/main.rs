@@ -30,7 +30,7 @@ pub fn bench_halo (c : &mut Criterion) {
                              let (prof, pi) = proof(&pp, pk_p).unwrap();
                              (vk, pi, pp, prof)
                          },
-                         |(vk, pi, pp, prof)|  verify(vk, pi, &pp, prof),
+                         |(vk, pi, pp, prof)| verify(vk, pi, &pp, prof),
                          criterion::BatchSize::SmallInput));
     c.bench_function("HALO: sudoku", |b| b.iter(|| prove_and_verify()));
 }

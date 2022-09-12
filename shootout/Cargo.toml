@@ -13,7 +13,7 @@ edition = "2021"
 [dependencies]
 sudoku_risc = { path = "sudoku-risc0" }
 sudoku_halo = { path = "sudoku-halo" }
-criterion = "0.3"
+criterion   = "0.3"
 
 [profile.release]
 debug = 1
@@ -25,7 +25,7 @@ path = "src/main.rs"
 
 # TODO This is dumb that we need to include it here or else rust freaks out ☹
 [patch.crates-io]
-ark-serialize = { git="https://github.com/simonmasson/algebra", rev = "e2ea75c" }
-ark-ff        = { git="https://github.com/simonmasson/algebra", rev = "e2ea75c" }
-ark-ec        = { git="https://github.com/simonmasson/algebra", rev = "e2ea75c" }
-ark-std       = { git ="https://github.com/arkworks-rs/std/"  , rev = "2b3568f" }
+ark-serialize = { git = "https://github.com/simonmasson/algebra", rev = "e2ea75c" }
+ark-ff        = { git = "https://github.com/simonmasson/algebra", rev = "e2ea75c" }
+ark-ec        = { git = "https://github.com/simonmasson/algebra", rev = "e2ea75c" }
+ark-std       = { git = "https://github.com/arkworks-rs/std/"   , rev = "2b3568f" }
