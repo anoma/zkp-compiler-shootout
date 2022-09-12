@@ -45,39 +45,37 @@
 
 (defmethod print-object ((obj block) stream)
   (pprint-logical-block (stream nil)
-    (format stream "begin~2I~:@_")
+    (format stream "begin ~2I~:@_")
     (block-as-list obj stream)
     (format stream "~0I~:@_end")))
-
-;; UGH why is my miser
-
 
 (defmethod print-object ((obj repeat) stream)
   (pprint-logical-block (stream nil)
     (pprint-indent :current 2 stream)
-    (format stream "repeat.~A~2I~:_" (count obj))
+    (format stream "repeat.~A~2I~:@_ " (count obj))
     (block-as-list (block obj) stream)
-    (format stream "~0I~:@_end")))
+    (format stream " ~0I~:@_end")))
 
 (defun block-as-list (block stream)
   (pprint-logical-block (stream nil)
-    (format stream "~{~(~A~)~^ ~_~}" (block-to-list block))))
+    (format stream "~{~A~^ ~_~}" (block-to-list block))))
 
 
-(make-block :body
-            (list (make-opcode :name :input :constant 3)
-                  (make-opcode :name :input :constant 5)
-                  (make-opcode :name :add)))
+;; REMOVΕ once I get a test case up
+;; (make-block :body
+;;             (list (make-opcode :name :input :constant 3)
+;;                   (make-opcode :name :input :constant 5)
+;;                   (make-opcode :name :add)))
 
-(make-repeat :count 5
-             :block
-             (make-block :body (list (make-opcode :name :input :constant 100)
-                                     (make-opcode :name :input :constant 200))))
+;; (make-repeat :count 5
+;;              :block
+;;              (make-block :body (list (make-opcode :name :input :constant 100)
+;;                                      (make-opcode :name :input :constant 200))))
 
-(make-block :body (list (make-opcode :name :input :constant 3)
-                        (make-opcode :name :input :constant 5)
-                        (make-repeat :count 5
-                                     :block
-                                     (make-block :body (list (make-opcode :name :input :constant 100)
-                                                             (make-opcode :name :input :constant 200))))
-                        (make-opcode :name :add)))
+;; (make-block :body (list (make-opcode :name :input :constant 3)
+;;                         (make-opcode :name :input :constant 5)
+;;                         (make-repeat :count 5
+;;                                      :block
+;;                                      (make-block :body (list (make-opcode :name :input :constant 100)
+;;                                                              (make-opcode :name :input :constant 200))))
+;;                         (make-opcode :name :add)))
