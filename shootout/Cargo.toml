@@ -3,6 +3,7 @@
 exclude = [
         "sudoku-risc0",
         "sudoku-halo",
+        "fib-halo"
 ]
 
 [package]

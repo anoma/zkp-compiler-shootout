@@ -5,11 +5,6 @@
   :author "Mariari"
   :license "MIT"
   :pathname "src/"
-  :build-pathname "../build/alu.image"
-  :entry-point "alu::main"
-  :build-operation ;; #+(or ecl ccl)
-  "program-op"
-  ;; #-(or ecl ccl) "image-op"
   :components
   ((:file package)
    (:file spec     :depends-on (package))
