@@ -4209,7 +4209,7 @@ IdTerm x = soReflectedId {x=Subst1} {y=x}
 
 public export
 soReflectedFromInit : (x, y : SubstObjMu) -> SubstMorph x (Subst0 !-> y)
-soReflectedFromInit x y = soConst $ SMToTerminal _
+soReflectedFromInit x y = soConst $ SMId Subst1
 
 public export
 soReflectedToTerminal : (x, y : SubstObjMu) -> SubstMorph x (y !-> Subst1)

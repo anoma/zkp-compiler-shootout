@@ -293,6 +293,16 @@ an initial object, a terminal object, all coproducts, all
 products, and distributivity.  More concisely, it is the minimal
 distributive finite bicartesian category.
 
+This, by the way, encapsulates the notion that a morphism
+from the terminal object to a given object may be viewed as
+a term of the type which that object represents:
+
+```haskell
+public export
+SOTerm : SubstObjMu -> Type
+SOTerm = SubstMorph Subst1
+```
+
 There are a number of convenience functions for defining
 morphisms, such as:
 
@@ -540,6 +550,167 @@ contravarYonedaEmbed {a} {b} f x =
 ```
 
 #### Homoiconicity and reflection
+
+As explored in the previous section, the minimal finite
+distributive bicartesian category has all exponential
+objects:  that is, it can represent its own morphisms,
+and evaluate the representations.  This is a foundational
+form of homoiconicity and reflection upon which many
+others can be built.  It corresponds to a notion which
+theorem provers and compilers illustrate:  `Subst`
+is the categorial abstraction of the general notion of (finite)
+ADTs with functions defined by pattern-matching (substitution),
+and theorem provers and compilers implement mathematics and
+programming using ADTs.  A proof assistant's representation
+of a theorem, or a compiler's representation of a function,
+is a data structure.
+
+Some homoiconic and reflective functionality has already
+been written, although much more is to come.  Perhaps most
+fundamentally, a term of a type (categorially, a morphism
+from the terminal object to a given object) which happens
+to be a function type (categorially, an object which happens
+to be the exponential object of some pair of objects) may
+be viewed as a morphism, and vice versa:
+
+```haskell
+public export
+HomTerm : SubstObjMu -> SubstObjMu -> Type
+HomTerm = SOTerm .* SubstHomObj
+
+public export
+TermAsMorph : {x, y : SubstObjMu} -> HomTerm x y -> SubstMorph x y
+TermAsMorph {x} {y} t = soProd1LeftElim $ soUncurry {x=Subst1} {y=x} {z=y} t
+
+public export
+MorphAsTerm : {x, y : SubstObjMu} -> SubstMorph x y -> HomTerm x y
+MorphAsTerm {x} {y} f = soCurry {x=Subst1} {y=x} {z=y} $ soProdLeftIntro f
+```
+
+Note that this follows immediately once we can implement
+currying and uncurrying (the latter in turn is just sugar
+on top of `eval`).  For a given morphism `f`, we could view
+`MorphAsTerm f` as the "quoted" form of `f`, which we can
+evaluate to produce a morphism (which in `Subst` is a function
+on ADTs) by using `TermAsMorph`.
+
+`Subst` can also reflect its own morphisms, meaning that it
+can define morphisms which construct quoted morphisms from
+quoted morphisms, in parallel to the metalanguage definition
+of `Subst` itself.  For example, here again is the metalanguage
+definition of the unique morphism from the initial object to
+any given object:
+
+```haskell
+SMFromInit : (x : SubstObjMu) -> SubstMorph Subst0 x
+```
+
+Here's a version reflected into `Subst` itself:
+
+```haskell
+public export
+soReflectedFromInit : (x, y : SubstObjMu) -> SubstMorph x (Subst0 !-> y)
+soReflectedFromInit x y = soConst $ SMId Subst1
+```
+
+(The additional `x` type parameter just makes it more generic
+-- it means that we are producing a constant-valued function from
+any object `x` _to_ a quoted morphism from the initial object to
+a given object `y`.  If we were to call this function with `x`
+being `Subst1`, we would have an exact analogue of the metalanguage
+definition.)
+
+Note that the implementation is quite trivial, as are many,
+but not all, of the reflected functions -- however, it does
+have the sublety that the reflection of the morphism from
+the _initial_ object is the identity on the _terminal_ object.
+That is because the hom-object for morphisms out of the
+initial object is the terminal object rather than the initial
+object -- that means it has _one_ term, like the unit type,
+with that term being the unique morphism out of the initial
+object.  It would be wrong for it to be the initial object,
+as that would mean that it had _zero_ terms, like the void
+type.
+
+Some of the reflected functions do have more complicated
+implementations.  For example, here again is the metalanguage
+signature of product introduction (pairing):
+
+```haskell
+ SMPair : {x, y, z : SubstObjMu} ->
+    SubstMorph x y -> SubstMorph x z -> SubstMorph x (y !* z)
+```
+
+And here is the version reflected into `Subst` itself:
+
+```haskell
+public export
+soReflectedPair : (x, y, z : SubstObjMu) ->
+  SubstMorph ((x !-> y) !* (x !-> z)) (x !-> (y !* z))
+soReflectedPair (InSO SO0) _ _ = SMToTerminal _
+soReflectedPair (InSO SO1) _ _ = SMId _
+soReflectedPair (InSO (w !!+ x)) y z =
+  let
+    wyz = soReflectedPair w y z
+    xyz = soReflectedPair x y z
+  in
+  SMPair
+    (wyz <!
+      SMPair
+        (SMProjLeft _ _ <! SMProjLeft _ _)
+        (SMProjLeft _ _ <! SMProjRight _ _))
+    (xyz <!
+      SMPair
+        (SMProjRight _ _ <! SMProjLeft _ _)
+        (SMProjRight _ _ <! SMProjRight _ _))
+soReflectedPair (InSO (w !!* x)) y z =
+  let
+    xyz = soReflectedPair x y z
+    wxyz = soReflectedPair w (x !-> y) (x !-> z)
+  in
+  contravarYonedaEmbed xyz w <! wxyz
+```
+
+And here again is the metalanguage signature of composition:
+
+```haskell
+ (<!) : {x, y, z : SubstObjMu} ->
+    SubstMorph y z -> SubstMorph x y -> SubstMorph x z
+```
+
+And here is the reflected version:
+
+```haskell
+public export
+soReflectedCompose : (x, y, z : SubstObjMu) ->
+  SubstMorph ((y !-> z) !* (x !-> y)) (x !-> z)
+soReflectedCompose (InSO SO0) y z = SMToTerminal _
+soReflectedCompose (InSO SO1) y z = soEval y z
+soReflectedCompose (InSO (w !!+ x)) y z =
+  let
+    cwyz = soReflectedCompose w y z
+    cxyz = soReflectedCompose x y z
+  in
+  SMPair
+    (cwyz <! SMPair (SMProjLeft _ _) (SMProjLeft _ _ <! SMProjRight _ _))
+    (cxyz <! SMPair (SMProjLeft _ _) (SMProjRight _ _ <! SMProjRight _ _))
+soReflectedCompose (InSO (w !!* x)) y z =
+  soCurry $ soCurry $
+    soEval y z <! SMPair
+      (SMProjLeft _ _ <! SMProjLeft _ _ <! SMProjLeft _ _)
+      (soEval x y <! SMPair
+        (soEval w (x !-> y) <! SMPair
+          (SMProjRight _ _ <! SMProjLeft _ _ <! SMProjLeft _ _)
+          (SMProjRight _ _ <! SMProjLeft _ _))
+        (SMProjRight _ _))
+```
+
+Some other reflections are implemented as well.  In general,
+what these reflected functions allow `Subst` to do is
+operate on quoted morphisms to produce other quoted morphisms.
+For example, `soReflectedCompose` takes two quoted morphisms
+(with compatible signatures) and produces a quoted morphism
+equal to their composition (which could then be evaluated).
 
 ### The category `Nat`/`BNCPolyM`
 
