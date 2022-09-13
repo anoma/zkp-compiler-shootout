@@ -1,0 +1,4 @@
+* Notes
+** fib-miden
+- This tests unbounded addition, and some basic stack operations
+- This does not test u32 range checks. We should really tests that.
