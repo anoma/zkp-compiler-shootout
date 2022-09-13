@@ -1013,46 +1013,46 @@ unat7 : SubstObjMu
 unat7 = SUNat 7
 
 -- Four-bit binary natural numbers.
-bnat3 : SubstObjMu
-bnat3 = SBNat 3
+bnat4 : SubstObjMu
+bnat4 = SBNat 4
 
--- 0 as a term of bnat3.
-bnat3_0 : SOTerm PolyCatTest.bnat3
-bnat3_0 =
+-- 0 as a term of bnat4.
+bnat4_0 : SOTerm PolyCatTest.bnat4
+bnat4_0 =
   SMPair (SMInjLeft Subst1 Subst1) $ SMPair (SMInjLeft Subst1 Subst1) $
     SMPair (SMInjLeft Subst1 Subst1) (SMInjLeft Subst1 Subst1)
 
--- 1 as a term of bnat3.
-bnat3_1 : SOTerm PolyCatTest.bnat3
-bnat3_1 =
+-- 1 as a term of bnat4.
+bnat4_1 : SOTerm PolyCatTest.bnat4
+bnat4_1 =
   SMPair (SMInjLeft Subst1 Subst1) $ SMPair (SMInjLeft Subst1 Subst1) $
     SMPair (SMInjLeft Subst1 Subst1) (SMInjRight Subst1 Subst1)
 
--- 2 as a term of bnat3.
-bnat3_2 : SOTerm PolyCatTest.bnat3
-bnat3_2 =
+-- 2 as a term of bnat4.
+bnat4_2 : SOTerm PolyCatTest.bnat4
+bnat4_2 =
   SMPair (SMInjLeft Subst1 Subst1) $ SMPair (SMInjLeft Subst1 Subst1) $
     SMPair (SMInjRight Subst1 Subst1) (SMInjLeft Subst1 Subst1)
 
--- 15 as a term of bnat3.
-bnat3_15 : SOTerm PolyCatTest.bnat3
-bnat3_15 =
+-- 15 as a term of bnat4.
+bnat4_15 : SOTerm PolyCatTest.bnat4
+bnat4_15 =
   SMPair (SMInjRight Subst1 Subst1) $ SMPair (SMInjRight Subst1 Subst1) $
     SMPair (SMInjRight Subst1 Subst1) (SMInjRight Subst1 Subst1)
 
--- Mappings from bnat3 to bool (which are characteristic functions of
--- subsets of bnat3).
-bnat3_to_bool : Type
-bnat3_to_bool = SubstMorph bnat3 SubstBool
+-- Mappings from bnat4 to bool (which are characteristic functions of
+-- subsets of bnat4).
+bnat4_to_bool : Type
+bnat4_to_bool = SubstMorph bnat4 SubstBool
 
--- The exponential object representing mappings from bnat3 to bool (which
--- are characteristic functions of subsets of bnat3).
-bnat3chi : SubstObjMu
-bnat3chi = bnat3 !-> SubstBool
+-- The exponential object representing mappings from bnat4 to bool (which
+-- are characteristic functions of subsets of bnat4).
+bnat4chi : SubstObjMu
+bnat4chi = bnat4 !-> SubstBool
 
--- Extract bit2 from bnat3 (its second-most-significant bit).
-bnat3_bit_2 : PolyCatTest.bnat3_to_bool
-bnat3_bit_2 = SMCase SFalse STrue <! SMProjLeft _ _ <! SMProjRight _ _
+-- Extract bit2 from bnat4 (its second-most-significant bit).
+bnat4_bit_2 : PolyCatTest.bnat4_to_bool
+bnat4_bit_2 = SMCase SFalse STrue <! SMProjLeft _ _ <! SMProjRight _ _
 
 ----------------------------------
 ----------------------------------
@@ -1265,32 +1265,32 @@ polyCatTest = do
   putStrLn $ "unat7: " ++ show unat7
   putStrLn $ "unat7 as Nat: " ++ show (substObjToNat unat7)
   putStrLn $ "unat7 in metalanguage: " ++ show (metaSOShowType unat7)
-  putStrLn $ "bnat3: " ++ show bnat3
-  putStrLn $ "bnat3 as Nat: " ++ show (substObjToNat bnat3)
-  putStrLn $ "bnat3 in metalanguage: " ++ show (metaSOShowType bnat3)
-  putStrLn $ "bnat3chi: " ++ show bnat3chi
-  putStrLn $ "bnat3chi as Nat: " ++ show (substObjToNat bnat3chi)
-  putStrLn $ "bnat3chi in metalanguage: " ++ show (metaSOShowType bnat3chi)
-  putStrLn $ "bnat3_0: " ++ showSubstMorph bnat3_0
-  putStrLn $ "bnat3_0 as Nat: " ++ show (substTermToNat bnat3_0)
-  putStrLn $ "bnat3_0 as poly func: " ++ show (substMorphToBNC bnat3_0)
-  putStrLn $ "bnat3_1: " ++ showSubstMorph bnat3_1
-  putStrLn $ "bnat3_1 as Nat: " ++ show (substTermToNat bnat3_1)
-  putStrLn $ "bnat3_1 as poly func: " ++ show (substMorphToBNC bnat3_1)
-  putStrLn $ "bnat3_2: " ++ showSubstMorph bnat3_2
-  putStrLn $ "bnat3_2 as Nat: " ++ show (substTermToNat bnat3_2)
-  putStrLn $ "bnat3_2 as poly func: " ++ show (substMorphToBNC bnat3_2)
-  putStrLn $ "bnat3_15: " ++ showSubstMorph bnat3_15
-  putStrLn $ "bnat3_15 as Nat: " ++ show (substTermToNat bnat3_15)
-  putStrLn $ "bnat3_15 as poly func: " ++ show (substMorphToBNC bnat3_15)
-  putStrLn $ "bit 2 of bnat3_15: " ++
-    show (substTermToNat $ bnat3_bit_2 <! bnat3_15)
-  putStrLn $ "bit 2 of bnat3_15 as poly func: " ++
-    show (substMorphToBNC $ bnat3_bit_2 <! bnat3_15)
-  putStrLn $ "bit 2 of bnat3_2: " ++
-    show (substTermToNat $ bnat3_bit_2 <! bnat3_2)
+  putStrLn $ "bnat4: " ++ show bnat4
+  putStrLn $ "bnat4 as Nat: " ++ show (substObjToNat bnat4)
+  putStrLn $ "bnat4 in metalanguage: " ++ show (metaSOShowType bnat4)
+  putStrLn $ "bnat4chi: " ++ show bnat4chi
+  putStrLn $ "bnat4chi as Nat: " ++ show (substObjToNat bnat4chi)
+  putStrLn $ "bnat4chi in metalanguage: " ++ show (metaSOShowType bnat4chi)
+  putStrLn $ "bnat4_0: " ++ showSubstMorph bnat4_0
+  putStrLn $ "bnat4_0 as Nat: " ++ show (substTermToNat bnat4_0)
+  putStrLn $ "bnat4_0 as poly func: " ++ show (substMorphToBNC bnat4_0)
+  putStrLn $ "bnat4_1: " ++ showSubstMorph bnat4_1
+  putStrLn $ "bnat4_1 as Nat: " ++ show (substTermToNat bnat4_1)
+  putStrLn $ "bnat4_1 as poly func: " ++ show (substMorphToBNC bnat4_1)
+  putStrLn $ "bnat4_2: " ++ showSubstMorph bnat4_2
+  putStrLn $ "bnat4_2 as Nat: " ++ show (substTermToNat bnat4_2)
+  putStrLn $ "bnat4_2 as poly func: " ++ show (substMorphToBNC bnat4_2)
+  putStrLn $ "bnat4_15: " ++ showSubstMorph bnat4_15
+  putStrLn $ "bnat4_15 as Nat: " ++ show (substTermToNat bnat4_15)
+  putStrLn $ "bnat4_15 as poly func: " ++ show (substMorphToBNC bnat4_15)
+  putStrLn $ "bit 2 of bnat4_15: " ++
+    show (substTermToNat $ bnat4_bit_2 <! bnat4_15)
+  putStrLn $ "bit 2 of bnat4_15 as poly func: " ++
+    show (substMorphToBNC $ bnat4_bit_2 <! bnat4_15)
+  putStrLn $ "bit 2 of bnat4_2: " ++
+    show (substTermToNat $ bnat4_bit_2 <! bnat4_2)
   putStrLn $ "bit 2 of bnat_2 as poly func: " ++
-    show (substMorphToBNC $ bnat3_bit_2 <! bnat3_2)
+    show (substMorphToBNC $ bnat4_bit_2 <! bnat4_2)
   putStrLn ""
   putStrLn "----------------"
   putStrLn "End polyCatTest."

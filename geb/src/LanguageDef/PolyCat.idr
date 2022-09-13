@@ -4491,11 +4491,12 @@ suPow = soFlip suRaiseTo
 ---- Binary natural numbers ----
 --------------------------------
 
--- `n+1`-bit natural numbers.
+-- `n`-bit natural numbers.
 public export
 SBNat : Nat -> SubstObjMu
-SBNat Z = SubstBool
-SBNat (S n) = SubstBool !* SBNat n
+SBNat Z = Subst1
+SBNat (S Z) = SubstBool
+SBNat (S (S n)) = SubstBool !* SBNat (S n)
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------

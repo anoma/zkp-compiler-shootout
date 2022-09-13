@@ -14,7 +14,7 @@ If everything works, you should see a prompt and should be able to
 enter a command that uses Geb code, and get a sensible result.  For
 example, you could check the type of `SubstMorph`:
 
-```haskell
+```shell
 Executable.Test.Main> :t SubstMorph
 LanguageDef.PolyCat.SubstMorph : SubstObjMu -> SubstObjMu -> Type
 Executable.Test.Main>
@@ -26,7 +26,7 @@ and the tests are in the corresponding test file
 [PolyCatTest.idr](src/LanguageDef/Test/PolyCatTest.idr),
 so you'll need to import and load those to follow along:
 
-```haskell
+```shell
 Executable.Test.Main> :module LanguageDef.PolyCat
 Imported module LanguageDef.PolyCat
 Executable.Test.Main>
@@ -50,7 +50,108 @@ operations to perform substitution.)
 uses (so far).  This is the category which Geb compiles to.
 Its objects are `Nat` and its morphisms are `BNCPolyM`.
 (That is probably a terrible name which I will eventually
-change.  The "BNC" stands for "bounded nat(-ural numer)
+change.  The "BNC" stands for "bounded nat(-ural number)
 category".)
 
+### The category `SubstObjMu`/`SubstMorph`
+
 We'll explore the `Subst` category first.
+
+#### Objects
+
+The objects are the terms of the type `SubstObjMu`, which
+is the initial algebra of an endofunctor in Idris's `Type`:
+
+```haskell
+public export
+data SubstObjF : Type -> Type where
+  -- Initial
+  SO0 : SubstObjF carrier
+
+  -- Terminal
+  SO1 : SubstObjF carrier
+
+  -- Coproduct
+  (!!+) : carrier -> carrier -> SubstObjF carrier
+
+  -- Product
+  (!!*) : carrier -> carrier -> SubstObjF carrier
+```
+
+```haskell
+data SubstObjMu : Type where
+  InSO : SubstObjF SubstObjMu -> SubstObjM
+```
+
+There are aliases for `InSO` applied to each constructor:
+`Subst0`, `Subst1`, `!+`, `!*`.
+
+These objects are category theory's way of extracting what is general
+among the types commonly available in functional (and other) programming
+languages:
+
+- `Subst0`, the initial object, is analogous to `Void`
+- `Subst1`, the terminal object, is analogous to `Unit`
+- `!+`, which produces the coproduct of two objects, is analogous
+to a sum type or ADT
+- `!*`, which produces the product of two objects, is analogous to
+a record type or tuple
+
+Because this category compiles to polynomial circuits, which have no
+recursion and thus can perform only a number of operations with a
+precomputable bound, all of these types are finite (from a type-system
+perspective, they have finite numbers of terms; the categorial view is
+that all of the hom-sets -- the sets of functions between each pair of
+types -- are finite).
+
+We can examine some predefined types, and make our own.  `Bool`
+is isomorphic to `Either Unit Unit`, so here's how we represent it:
+
+```shell
+LanguageDef.Test.PolyCatTest> SubstBool
+InSO (InSO SO1 !!+ InSO SO1)
+```
+
+Bounded unary natural numbers are
+`Either Unit (Either Unit (Either Unit ... (Either Unit Unit)))`:
+
+```shell
+LanguageDef.Test.PolyCatTest> SUNat 0
+InSO SO0
+LanguageDef.Test.PolyCatTest> SUNat 1
+InSO SO1
+LanguageDef.Test.PolyCatTest> SUNat 2
+InSO (InSO SO1 !!+ InSO SO1)
+LanguageDef.Test.PolyCatTest> SUNat 5
+InSO (InSO SO1 !!+ InSO (InSO SO1 !!+ InSO (InSO SO1 !!+ InSO (InSO SO1 !!+ InSO SO1))))
+LanguageDef.Test.PolyCatTest>
+```
+
+N-bit binary natural numbers are `N` products of `Bool`:
+LanguageDef.Test.PolyCatTest>
+LanguageDef.Test.PolyCatTest>
+LanguageDef.Test.PolyCatTest>
+LanguageDef.Test.PolyCatTest>
+
+#### Morphisms
+
+The morphisms are terms of the type `SubstMorph`:
+
+```haskell
+data SubstMorph : SubstObjMu -> SubstObjMu -> Type where
+  SMId : (x : SubstObjMu) -> SubstMorph x x
+  (<!) : {x, y, z : SubstObjMu} ->
+    SubstMorph y z -> SubstMorph x y -> SubstMorph x z
+  SMFromInit : (x : SubstObjMu) -> SubstMorph Subst0 x
+  SMToTerminal : (x : SubstObjMu) -> SubstMorph x Subst1
+  SMInjLeft : (x, y : SubstObjMu) -> SubstMorph x (x !+ y)
+  SMInjRight : (x, y : SubstObjMu) -> SubstMorph y (x !+ y)
+  SMCase : {x, y, z : SubstObjMu} ->
+    SubstMorph x z -> SubstMorph y z -> SubstMorph (x !+ y) z
+  SMPair : {x, y, z : SubstObjMu} ->
+    SubstMorph x y -> SubstMorph x z -> SubstMorph x (y !* z)
+  SMProjLeft : (x, y : SubstObjMu) -> SubstMorph (x !* y) x
+  SMProjRight : (x, y : SubstObjMu) -> SubstMorph (x !* y) y
+  SMDistrib : (x, y, z : SubstObjMu) ->
+    SubstMorph (x !* (y !+ z)) ((x !* y) !+ (x !* z)
+```
