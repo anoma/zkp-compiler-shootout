@@ -252,5 +252,121 @@ data SubstMorph : SubstObjMu -> SubstObjMu -> Type where
   SMProjLeft : (x, y : SubstObjMu) -> SubstMorph (x !* y) x
   SMProjRight : (x, y : SubstObjMu) -> SubstMorph (x !* y) y
   SMDistrib : (x, y, z : SubstObjMu) ->
-    SubstMorph (x !* (y !+ z)) ((x !* y) !+ (x !* z)
+    SubstMorph (x !* (y !+ z)) ((x !* y) !+ (x !* z))
+```
+
+In this particular category, the morphisms correspond to
+functions between ADTs, and the objects may be viewed as
+having "terms" which are morphisms from the terminal object
+(`Subst1`), which correspond to the functional-language
+notion of terms of a type (neither of those statements is
+true in all categories):
+
+- `SMId` corresponds to the identity function
+- `SMFromInit` corresponds to `absurd`
+- `SMToTerminal` corresponds to `const ()`
+- `SMInjLeft` and `SMInjRight` correspond to constructor applications
+- `SMCase` corresponds to pattern-matching
+- `SMPair` corresponds to tuple or record construction
+- `SMProjLeft` and `SMProjRight` correspond to `fst` and
+`snd` or to accessing fields of records
+
+`SMDistrib` is special; it expresses that products distribute
+over coproducts up to isomorphism, analogously to how
+multiplication distributes over addition:
+
+`x !* (y !+ z) === (x !* y) !+ (x !* z)`
+
+It could be viewed as a compiler transformation which expands
+a datatype of the form on the left into one of the form on the
+right (or as a programmer-defined pattern-match which does the
+same thing). In category theory, this is referred to as the
+category being "distributive".
+
+Because all of the morphisms except `SMDistrib` are universal
+morphisms in category theory, and because the category is
+defined as containing _only_ the morphisms which are generated
+by the requirement that all such morphisms exist, we may
+view `SubstObjMu/SubstMorph` as the _minimal_ category with
+an initial object, a terminal object, all coproducts, all
+products, and distributivity.  More concisely, it is the minimal
+distributive finite bicartesian category.
+
+There are a number of convenience functions for defining
+morphisms, such as:
+
+```haskell
+-- The inverse of SMDistrib.
+public export
+soGather : (x, y, z : SubstObjMu) ->
+  SubstMorph ((x !* y) !+ (x !* z)) (x !* (y !+ z))
+
+public export
+soSwap : (x, y : SubstObjMu) -> SubstMorph (x !* y) (y !* x)
+
+public export
+soConstruct : {n : Nat} -> {x : SubstObjMu} -> {v : Vect n SubstObjMu} ->
+  (m : Nat) -> {auto ok : IsYesTrue (isLT m n)} ->
+  SubstMorph x (indexNL m {ok} v) -> SubstMorph x (SOCoproductN v)
+
+public export
+SOMorphN : {n : Nat} -> SubstObjMu -> Vect n SubstObjMu -> Vect n Type
+SOMorphN x v = map (SubstMorph x) v
+
+public export
+SOMorphHV : {n : Nat} -> SubstObjMu -> Vect n SubstObjMu -> Type
+SOMorphHV {n} x v = HVect (SOMorphN x v)
+
+public export
+soTuple : {n : Nat} -> {x : SubstObjMu} -> {v : Vect n SubstObjMu} ->
+  SOMorphHV {n} x v -> SubstMorph x (SOProductN v)
+
+public export
+SIfElse : {x : SubstObjMu} ->
+  SOTerm SubstBool -> SOTerm x -> SOTerm x -> SOTerm x
+
+public export
+SHigherIfElse : {x, y : SubstObjMu} ->
+  SubstMorph x SubstBool -> SubstMorph x y -> SubstMorph x y -> SubstMorph x y
+
+public export
+MkSUNat : {m : Nat} -> (n : Nat) -> {x : SubstObjMu} ->
+  {auto lt : IsYesTrue (isLT n m)} ->
+  SubstMorph x (SUNat m)
+
+-- Catamorphism on unary natural numbers.
+public export
+suNatCata : (n : Nat) -> (x : SubstObjMu) ->
+  SubstMorph ((Subst1 !+ x) !-> x) (SUNat (S n) !-> x)
+
+public export
+suZ : {n : Nat} -> {x : SubstObjMu} -> SubstMorph x (SUNat (S n))
+
+public export
+suSucc : {n : Nat} -> SubstMorph (SUNat n) (SUNat (S n))
+
+-- Successor, which returns `Nothing` (`Left`) if the input is the
+-- maximum value of `SUNat n`.
+public export
+suSuccMax : {n : Nat} -> SubstMorph (SUNat n) (SMaybe (SUNat n))
+
+-- Successor modulo `n`.
+public export
+suSuccMod : {n : Nat} -> SubstMorph (SUNat n) (SUNat n)
+
+public export
+su1 : {n : Nat} -> {x : SubstObjMu} -> SubstMorph x (SUNat (S n))
+
+public export
+suAdd : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
+
+public export
+suMul : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
+
+public export
+suRaiseTo : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
+
+public export
+suPow : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
+suPow = soFlip suRaiseTo
 ```
