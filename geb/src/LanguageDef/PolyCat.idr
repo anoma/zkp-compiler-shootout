@@ -4111,6 +4111,18 @@ soPartialApp : {w, x, y, z : SubstObjMu} ->
 soPartialApp g f = soUncurry $ soCurry g <! f
 
 public export
+covarYonedaEmbed : {a, b : SubstObjMu} ->
+  SubstMorph b a -> (x : SubstObjMu) -> SubstMorph (a !-> x) (b !-> x)
+covarYonedaEmbed {a} {b} f x =
+  soCurry (soEval a x <! SMPair (SMProjLeft _ _) (f <! SMProjRight _ _))
+
+public export
+contravarYonedaEmbed : {a, b : SubstObjMu} ->
+  SubstMorph a b -> (x : SubstObjMu) -> SubstMorph (x !-> a) (x !-> b)
+contravarYonedaEmbed {a} {b} f x =
+  soCurry (f <! soEval x a)
+
+public export
 soSubst : {x, y, z : SubstObjMu} ->
   SubstMorph y z -> SubstMorph x y -> SubstMorph x z
 soSubst (SMId y) f = f
@@ -4178,18 +4190,6 @@ TermAsMorph {x} {y} t = soProd1LeftElim $ soUncurry {x=Subst1} {y=x} {z=y} t
 public export
 MorphAsTerm : {x, y : SubstObjMu} -> SubstMorph x y -> HomTerm x y
 MorphAsTerm {x} {y} f = soCurry {x=Subst1} {y=x} {z=y} $ soProdLeftIntro f
-
-public export
-covarYonedaEmbed : {a, b : SubstObjMu} ->
-  SubstMorph b a -> (x : SubstObjMu) -> SubstMorph (a !-> x) (b !-> x)
-covarYonedaEmbed {a} {b} f x =
-  soCurry (soEval a x <! SMPair (SMProjLeft _ _) (f <! SMProjRight _ _))
-
-public export
-contravarYonedaEmbed : {a, b : SubstObjMu} ->
-  SubstMorph a b -> (x : SubstObjMu) -> SubstMorph (x !-> a) (x !-> b)
-contravarYonedaEmbed {a} {b} f x =
-  soCurry (f <! soEval x a)
 
 ----------------------------------------------------------------------------
 ---- Homoiconicity: SubstMorph reflected into the substitutive category ----
