@@ -128,10 +128,48 @@ LanguageDef.Test.PolyCatTest>
 ```
 
 N-bit binary natural numbers are `N` products of `Bool`:
-LanguageDef.Test.PolyCatTest>
-LanguageDef.Test.PolyCatTest>
-LanguageDef.Test.PolyCatTest>
-LanguageDef.Test.PolyCatTest>
+
+```shell
+LanguageDef.Test.PolyCatTest> SBNat 0
+InSO SO1
+LanguageDef.Test.PolyCatTest> SBNat 1
+InSO (InSO SO1 !!+ InSO SO1)
+LanguageDef.Test.PolyCatTest> SBNat 2
+InSO (InSO (InSO SO1 !!+ InSO SO1) !!* InSO (InSO SO1 !!+ InSO SO1))
+LanguageDef.Test.PolyCatTest> SBNat 5
+InSO (InSO (InSO SO1 !!+ InSO SO1) !!* InSO (InSO (InSO SO1 !!+ InSO SO1) !!* InSO (InSO (InSO SO1 !!+ InSO SO1) !!* InSO (InSO (InSO SO1 !!+ InSO SO1) !!* InSO (InSO SO1 !!+ InSO SO1)))))
+```
+
+You can define your own in the REPL (as well as in source files for
+compiled tests, of course):
+
+```shell
+LanguageDef.Test.PolyCatTest> :let SmallLeaf : SubstObjMu
+LanguageDef.Test.PolyCatTest> SmallLeaf = SubstBool
+LanguageDef.Test.PolyCatTest> :let SmallTree2 = SmallLeaf !* SmallLeaf
+LanguageDef.Test.PolyCatTest> :let SmallTree4 = SmallTree2 !* SmallTree2
+LanguageDef.Test.PolyCatTest> :let SmallTree16 = SmallTree4 !* SmallTree4
+```
+
+We can compute the cardinality of `SmallTree16`:
+
+```shell
+LanguageDef.Test.PolyCatTest> substObjCard SmallTree16
+substObjFold Nat SOCardAlg (\p' => substObjFold Nat SOCardAlg (\q' => substObjFold Nat SOCardAlg (\p' =>
+substObjFold Nat SOCardAlg (\q' => substObjFold Nat SOCardAlg (\p' => substObjFold Nat SOCardAlg (\q' =>
+substObjFold Nat SOCardAlg (\p' => substObjFold Nat SOCardAlg (\q' =>
+mult (mult (mult p' q') (mult p' q')) (mult (mult p' q') (mult p' q'))) SmallLeaf) SmallLeaf) SmallLeaf) SmallLeaf) SmallLeaf) SmallLeaf) SmallLeaf) SmallLeaf
+```
+
+Unfortunately, the Idris-2 REPL appears to me to have some severe
+limitations:  it won't reduce the above expression, for example, even
+though it's just a `Nat`.  I've tried playing with evaluation options,
+but haven't found any which induces this reduction, or even allows
+me to check that the result is what I expect.  I've only been able
+to do so by editing a file and compiling it (the REPL does at least
+offer interactive editing, but it's not obvious to me that it would
+be any faster than, or even as fast as, editing the file in an IDE or
+editor and then reloading).
 
 #### Morphisms
 
