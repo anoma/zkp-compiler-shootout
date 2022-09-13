@@ -370,3 +370,168 @@ public export
 suPow : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
 suPow = soFlip suRaiseTo
 ```
+
+#### Higher-order functions
+
+The core objects and morphisms of the category defined above
+translate directly to polynomial-circuit operations -- we
+shall see the translation in more detail below, but the
+summary is that an object translates to a natural number
+equal to its cardinality, and morphisms are translated by
+arithmetic modulo those natural numbers, with the initial
+object corresponding to zero, the terminal object corresponding
+to 1, coproducts corresponding to addition, and products
+corresponding to multiplication.  The case statement, which
+eliminates coproducts, becomes a less-than test, and the
+projections, which eliminate products, become div/mod.
+
+The first enhancement that `SubstObjMu`/`SubstMorph` provides
+that polynomial circuits do not offer in such a direct way --
+an enhancement upon which many future enhancements can and
+will be built, such as internal, homoiconic representations of
+functors, natural transformations, equality types, quotient
+types, and dependent types -- is higher-order functions.
+Although we did not build higher-order functions into the
+construction above -- and in a sense we could not, because
+the above category is meant to represent a data-structures
+view of exactly what polynomial circuits provide -- we can
+_implement_ higher-order functions in terms of the objects and
+morphisms that we have defined.
+
+That is to say, we can represent functions as data structures.
+Or, put another way, we can write Lisp in the minimal finite
+bicartesian distributive category (and therefore in polynomial
+circuits).  Not all of Lisp, of course, since Lisp has recursion
+(furthermore, it's Turing-complete) -- but the finite, non-recursive,
+terminating subset of it.
+
+The function _type_, which in category theory is generalized to
+the notion of exponential object (or "hom-object"), is computed
+in what amounts to a lifting to the type level of a recursive
+function which defines exponentiation in terms of multiplication:
+
+```haskell
+public export
+SubstHomObj : SubstObjMu -> SubstObjMu -> SubstObjMu
+-- 0 -> y == 1
+SubstHomObj (InSO SO0) _ = Subst1
+-- 1 -> y == y
+SubstHomObj (InSO SO1) y = y
+-- (x + y) -> z == (x -> z) * (y -> z)
+SubstHomObj (InSO (x !!+ y)) z = SubstHomObj x z !* SubstHomObj y z
+-- (x * y) -> z == x -> y -> z
+SubstHomObj (InSO (x !!* y)) z = SubstHomObj x (SubstHomObj y z)
+```
+
+There are a couple of operators to provide shorthand notations
+for exponential objects:
+
+```haskell
+infixr 10 !->
+public export
+(!->) : SubstObjMu -> SubstObjMu -> SubstObjMu
+(!->) = SubstHomObj
+
+infix 10 !^
+public export
+(!^) : SubstObjMu -> SubstObjMu -> SubstObjMu
+(!^) = flip SubstHomObj
+```
+
+The categorial universal morphism which accompanies the
+exponential object is known as `eval`, and this matches Lisp's
+usage, in that its signature is a higher-order function which
+takes two parameters, a function of a given type and an argument
+of the type of the function's domain, and returns a value of the
+type of the function's codomain.  In other words, the `eval`
+morphism for a particular exponential object may be viewed as an
+interpreter for a particular function type:
+
+```haskell
+public export
+soEval : (x, y : SubstObjMu) ->
+  SubstMorph ((x !-> y) !* x) y
+soEval (InSO SO0) y = SMFromInit y <! SMProjRight Subst1 Subst0
+soEval (InSO SO1) y = SMProjLeft y Subst1
+soEval (InSO (x !!+ y)) z =
+  SMCase (soEval x z) (soEval y z) <!
+    SMCase
+      (SMInjLeft _ _ <! soForgetMiddle _ _ _)
+      (SMInjRight _ _ <! soForgetFirst _ _ _)
+    <! SMDistrib _ _ _
+soEval (InSO (x !!* y)) z =
+  let
+    eyz = soEval y z
+    exhyz = soEval x (SubstHomObj y z)
+  in
+  eyz <!
+    SMPair
+      (exhyz <! soForgetRight _ _ _)
+      (SMProjRight _ _ <! SMProjRight _ _)
+```
+
+This function is nearly all just bookkeeping -- the interesting
+part is just figuring out which recursive calls to make, in
+particular in the product case:  `soEval` is a higher-order
+function, and in the product case, one of the arguments to
+one of the recursive calls is not one of the projections of
+the product, but is rather a hom-object.  Note also that
+distributivity plays a vital role in allowing this function
+to be defined (exactly once, in the coproduct case).
+
+We can also define another characteristic notion of functional
+programming, currying:
+
+```haskell
+public export
+soCurry : {x, y, z : SubstObjMu} ->
+  SubstMorph (x !* y) z -> SubstMorph x (y !-> z)
+soCurry {x} {y=(InSO SO0)} f = SMToTerminal x
+soCurry {x} {y=(InSO SO1)} {z} f = f <! SMPair (SMId x) (SMToTerminal x)
+soCurry {x} {y=(InSO (y !!+ y'))} {z} f =
+  let fg = f <! soGather x y y' in
+  SMPair (soCurry $ soLeft fg) (soCurry $ soRight fg)
+soCurry {x} {y=(InSO (y !!* y'))} {z} f =
+  let
+    cxyz = soCurry {x=(x !* y)} {y=y'} {z}
+    cxhyz = soCurry {x} {y} {z=(SubstHomObj y' z)}
+  in
+  cxhyz $ cxyz $ soProdLeftAssoc f
+```
+
+As in a typical functional programming language, this allows
+us to define higher-order functions in terms of functions with
+multiple parameters.
+
+Uncurrying and partial application emerge directly from these
+definitions:
+
+```haskell
+public export
+soUncurry : {x, y, z : SubstObjMu} ->
+  SubstMorph x (y !-> z) -> SubstMorph (x !* y) z
+soUncurry {x} {y} {z} f =
+  soEval y z <! SMPair (f <! SMProjLeft x y) (SMProjRight x y)
+
+public export
+soPartialApp : {w, x, y, z : SubstObjMu} ->
+  SubstMorph (x !* y) z -> SubstMorph w x -> SubstMorph (w !* y) z
+soPartialApp g f = soUncurry $ soCurry g <! f
+```
+
+Evaluation and currying also allow for straightforward definitions
+of the covariant and contravariant Yoneda embeddings:
+
+```haskell
+public export
+covarYonedaEmbed : {a, b : SubstObjMu} ->
+  SubstMorph b a -> (x : SubstObjMu) -> SubstMorph (a !-> x) (b !-> x)
+covarYonedaEmbed {a} {b} f x =
+  soCurry (soEval a x <! SMPair (SMProjLeft _ _) (f <! SMProjRight _ _))
+
+public export
+contravarYonedaEmbed : {a, b : SubstObjMu} ->
+  SubstMorph a b -> (x : SubstObjMu) -> SubstMorph (x !-> a) (x !-> b)
+contravarYonedaEmbed {a} {b} f x =
+  soCurry (f <! soEval x a)
+```
