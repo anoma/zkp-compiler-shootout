@@ -37,6 +37,22 @@ LanguageDef.Test.PolyCatTest>
 
 You can use `:?` at the REPL prompt to get a list of commands.
 
+To run the non-interactive tests, after building (just `make` in
+the `geb` directory will suffice), you can run:
+
+```shell
+./build/exec/geb
+```
+
+This will spout a bunch of what will probably look like random
+gibberish unless you've read the code.  (The build itself will also
+have checked various compile-time assertions).  You can add your own
+non-interactive tests by adding to the `*Test` functions with
+`IO ()` signatures in the `*Test.idr` files, such as `polyCatTest`
+in `LanguageDef/Test/PolyCatTest.idr`, and you can add compile-time
+assertions in the `*Test` files by using the `Assertion` type and
+`Assert` function from the `Test.TestLibrary` module.
+
 ## Code tour
 
 There are two principal categories explored in this tour:
