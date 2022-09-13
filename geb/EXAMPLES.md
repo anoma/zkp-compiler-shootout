@@ -171,6 +171,67 @@ offer interactive editing, but it's not obvious to me that it would
 be any faster than, or even as fast as, editing the file in an IDE or
 editor and then reloading).
 
+There are several convenience functions for defining types, such as:
+
+```haskell
+infix 10 !:*
+public export
+(!:*) : Nat -> SubstObjMu -> SubstObjMu
+n !:* p = foldrNatNoUnit ((!+) p) Subst0 p n
+
+infix 10 !*^
+public export
+(!*^) : SubstObjMu -> Nat -> SubstObjMu
+p !*^ n = foldrNatNoUnit ((!*) p) Subst1 p
+
+public export
+SOCoproductN : {n : Nat} -> Vect n SubstObjMu -> SubstObjMu
+SOCoproductN [] = Subst0
+SOCoproductN [x] = x
+SOCoproductN (x :: xs@(_ :: _)) = x !+ SOCoproductN x
+
+public export
+SOProductN : {n : Nat} -> Vect n SubstObjMu -> SubstObjMu
+SOProductN [] = Subst1
+SOProductN [x] = x
+SOProductN (x :: xs@(_ :: _)) = x !* SOProductN x
+
+public export
+SubstBool : SubstObjMu
+SubstBool = Subst1 !+ Subst
+
+public export
+SMaybe : SubstObjMu -> SubstObjMu
+SMaybe x = Subst1 !+ x
+
+-- Unary natural numbers less than the input.
+public export
+SUNat : Nat -> SubstObjMu
+SUNat Z = Subst0
+SUNat (S Z) = Subst1
+SUNat (S (S n)) = SMaybe $ SUNat (S n)
+
+-- `n`-bit natural numbers.
+public export
+SBNat : Nat -> SubstObjMu
+SBNat Z = Subst1
+SBNat (S Z) = SubstBool
+SBNat (S (S n)) = SubstBool !* SBNat (S n)
+
+public export
+SList : Nat -> SubstObjMu -> SubstObjMu
+SList Z x = Subst1
+SList (S n) x = SBList n x !+ (x !*^ S n)
+
+public export
+SBinTree : Nat -> SubstObjMu -> SubstObjMu
+SBinTree Z x = Subst0
+SBinTree (S n) x = SMaybe (x !* SBinTree n x !* SBinTree n x)
+```
+
+All of the "recursive" types are depth-indexed, since only finite
+types exist in the polynomial-circuit category.
+
 #### Morphisms
 
 The morphisms are terms of the type `SubstMorph`:

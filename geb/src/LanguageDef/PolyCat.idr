@@ -4498,15 +4498,23 @@ SBNat Z = Subst1
 SBNat (S Z) = SubstBool
 SBNat (S (S n)) = SubstBool !* SBNat (S n)
 
-----------------
----- Tuples ----
-----------------
+---------------
+---- Lists ----
+---------------
 
 public export
-SBTuple : Nat -> SubstObjMu -> SubstObjMu
-SBTuple Z _ = Subst1
-SBTuple (S Z) x = x
-SBTuple (S (S n)) x = x !* SBTuple (S n) x
+SList : Nat -> SubstObjMu -> SubstObjMu
+SList Z x = Subst1
+SList (S n) x = SList n x !+ (x !*^ S n)
+
+----------------------
+---- Binary trees ----
+----------------------
+
+public export
+SBinTree : Nat -> SubstObjMu -> SubstObjMu
+SBinTree Z x = Subst0
+SBinTree (S n) x = SMaybe (x !* SBinTree n x !* SBinTree n x)
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
