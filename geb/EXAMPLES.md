@@ -57,7 +57,7 @@ category".)
 
 We'll explore the `Subst` category first.
 
-#### Objects
+#### Subst Objects
 
 The objects are the terms of the type `SubstObjMu`, which
 is the initial algebra of an endofunctor in Idris's `Type`:
@@ -232,7 +232,7 @@ SBinTree (S n) x = SMaybe (x !* SBinTree n x !* SBinTree n x)
 All of the "recursive" types are depth-indexed, since only finite
 types exist in the polynomial-circuit category.
 
-#### Morphisms
+#### Subst Morphisms
 
 The morphisms are terms of the type `SubstMorph`:
 
@@ -266,8 +266,9 @@ true in all categories):
 - `SMFromInit` corresponds to `absurd`
 - `SMToTerminal` corresponds to `const ()`
 - `SMInjLeft` and `SMInjRight` correspond to constructor applications
+or `Either` introduction (`Left`, `Right`)
 - `SMCase` corresponds to pattern-matching
-- `SMPair` corresponds to tuple or record construction
+- `SMPair` corresponds to `Pair` or record construction (`,`)
 - `SMProjLeft` and `SMProjRight` correspond to `fst` and
 `snd` or to accessing fields of records
 
@@ -403,7 +404,9 @@ Or, put another way, we can write Lisp in the minimal finite
 bicartesian distributive category (and therefore in polynomial
 circuits).  Not all of Lisp, of course, since Lisp has recursion
 (furthermore, it's Turing-complete) -- but the finite, non-recursive,
-terminating subset of it.
+terminating subset of it.  That minimal category therefore has
+all exponentials -- it is, not by definition but by proof
+(implementation), Cartesian _closed_.
 
 The function _type_, which in category theory is generalized to
 the notion of exponential object (or "hom-object"), is computed
@@ -535,3 +538,170 @@ contravarYonedaEmbed : {a, b : SubstObjMu} ->
 contravarYonedaEmbed {a} {b} f x =
   soCurry (f <! soEval x a)
 ```
+
+#### Homoiconicity and reflection
+
+### The category `Nat`/`BNCPolyM`
+
+This category represents a subset of the functionality of
+a polynomial circuit, and in particular of that provided
+by VampIR or Alucard.  (If it ever includes any objects or
+morphisms which can _not_ be translated straightforwardly
+into VampIR/Alucard, that's a bug!)
+
+(The "BNC" stands for "bounded natural-number category",
+a name which I suspect won't stick.)
+
+#### BNC Objects (`Nat`)
+
+The objects of the BNC category are simply natural numbers.
+Morphisms into an object are functions modulo the corresponding
+natural number. Note that Geb will not (unless it has bugs!)
+use the modulus, though -- no code that it generates should
+ever overflow.  The type signature, therefore, is an assertion
+rather than a computation.
+
+#### BNC Morphisms
+
+The morphisms of the BNC category correspond to a subset of
+the operations provided by a polynomial circuit -- just that
+subset required by the core category of Geb described above,
+compiled in the simplest unoptimized way.  It will be extended
+in the future to allow various optimizations.
+
+```haskell
+public export
+data BNCPolyM : Type where
+  -- Polynomial operations --
+
+  -- Constant
+  (#|) : Nat -> BNCPolyM
+
+  -- Identity
+  PI : BNCPolyM
+
+  -- Compose
+  (#.) : BNCPolyM -> BNCPolyM -> BNCPolyM
+
+  -- Add
+  (#+) : BNCPolyM -> BNCPolyM -> BNCPolyM
+
+  -- Multiply
+  (#*) : BNCPolyM -> BNCPolyM -> BNCPolyM
+
+  -- Inverse operations --
+
+  -- Subtract
+  (#-) : BNCPolyM -> BNCPolyM -> BNCPolyM
+
+  -- Divide (division by zero returns zero)
+  (#/) : BNCPolyM -> BNCPolyM -> BNCPolyM
+
+  -- Modulus (modulus by zero returns zero)
+  (#%) : BNCPolyM -> BNCPolyM -> BNCPolyM
+
+  -- Branch operation(s)
+
+  -- Compare with zero: equal takes first branch; not-equal takes second branch
+  IfZero : BNCPolyM -> BNCPolyM -> BNCPolyM -> BNCPolyM
+
+  -- If the first argument is strictly less than the second, then
+  -- take the first branch (which is the third argument); otherwise,
+  -- take the second branch (which is the fourth argument)
+  IfLT : BNCPolyM -> BNCPolyM -> BNCPolyM -> BNCPolyM -> BNCPolyM
+```
+
+(Unoptimized Geb does not even need both branch operations; either
+of `IfZero` or `IfLT` would suffice.  It currently uses `IfLT`
+because that yields more natural code, but I've left `IfZero` in
+for testing.)
+
+### Compiling `SubstObjMu`/`SubstMorph` to `Nat`/`BNCPolyM`
+
+The translation of the core category of Geb to the category
+which represents VampIR/Alucard is straightforward.  The
+object translation is just type cardinality:
+
+```haskell
+public export
+substObjToNat : SubstObjMu -> Nat
+substObjToNat = substObjCard
+```
+
+The morphism translation is just the aforementioned one
+turning `Void`, `Unit`, `Either`, and `Pair` into
+0, 1, add, and multiply (together with their inverse
+operations for elimination) respectively:
+
+```haskell
+public export
+substMorphToBNC : {x, y : SubstObjMu} -> SubstMorph x y -> BNCPolyM
+substMorphToBNC {y=x} (SMId x) = PI
+substMorphToBNC ((<!) {x} {y} {z} g f) = substMorphToBNC g #. substMorphToBNC f
+substMorphToBNC {x=Subst0} (SMFromInit y) = #| 0
+substMorphToBNC {y=Subst1} (SMToTerminal x) = #| 0
+substMorphToBNC (SMInjLeft x y) = PI
+substMorphToBNC (SMInjRight x y) = #| (substObjToNat x) #+ PI
+substMorphToBNC (SMCase {x} {y} {z} f g) with (substObjToNat x)
+  substMorphToBNC (SMCase {x} {y} {z} f g) | cx =
+    if cx == 0 then
+      substMorphToBNC g
+    else
+      IfLT PI (#| cx)
+        (substMorphToBNC f)
+        (substMorphToBNC g #. (PI #- #| cx))
+substMorphToBNC (SMPair {x} {y} {z} f g) with (substObjToNat y, substObjToNat z)
+  substMorphToBNC (SMPair {x} {y} {z} f g) | (cy, cz) =
+    #| cz #* substMorphToBNC f #+ substMorphToBNC g
+substMorphToBNC (SMProjLeft x y) with (substObjToNat y)
+  substMorphToBNC (SMProjLeft x y) | cy =
+    if cy == 0 then
+      #| 0
+    else
+      PI #/ #| cy
+substMorphToBNC (SMProjRight x y) with (substObjToNat y)
+  substMorphToBNC (SMProjRight x y) | cy =
+    if cy == 0 then
+      #| 0
+    else
+      PI #% #| cy
+substMorphToBNC (SMDistrib x y z) = PI
+```
+
+There is a function which interprets a Geb morphism into
+a metalanguage function on integers:
+
+```haskell
+public export
+substMorphToFunc : {a, b : SubstObjMu} -> SubstMorph a b -> Integer -> Integer
+substMorphToFunc {a} {b} f =
+  metaBNCPolyM (natToInteger $ pred $ substObjToNat b) (substMorphToBNC f)
+```
+
+There are also convenience functions for translating between
+natural numbers and the terms which they represent (within the
+context of a given type):
+
+```haskell
+public export
+substTermToNat : {a : SubstObjMu} -> SOTerm a -> Nat
+
+public export
+natToSubstTerm : (a : SubstObjMu) -> Nat -> Maybe (SOTerm a)
+```
+
+And there are convenience functions for Gödel-numbering morphisms:
+
+```haskell
+public export
+substMorphToGNum : {a, b : SubstObjMu} -> SubstMorph a b -> Nat
+substMorphToGNum = substTermToNat . MorphAsTerm
+
+public export
+substGNumToMorph : (a, b : SubstObjMu) -> Nat -> Maybe (SubstMorph a b)
+```
+
+This Gödel-number is per-type, not across all types -- the latter
+would require something more complicated, such as Cantor pairing.
+Note that equality on the Gödel numbers of morphisms decides
+(pointwise) equality of the morphisms themselves.
