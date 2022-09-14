@@ -1045,14 +1045,14 @@ bnat4_15 =
 bnat4_to_bool : Type
 bnat4_to_bool = SubstMorph bnat4 SubstBool
 
+-- Extract bit2 from bnat4 (its second-most-significant bit).
+bnat4_bit_2 : PolyCatTest.bnat4_to_bool
+bnat4_bit_2 = SMCase SFalse STrue <! SMProjLeft _ _ <! SMProjRight _ _
+
 -- The exponential object representing mappings from bnat4 to bool (which
 -- are characteristic functions of subsets of bnat4).
 bnat4chi : SubstObjMu
 bnat4chi = bnat4 !-> SubstBool
-
--- Extract bit2 from bnat4 (its second-most-significant bit).
-bnat4_bit_2 : PolyCatTest.bnat4_to_bool
-bnat4_bit_2 = SMCase SFalse STrue <! SMProjLeft _ _ <! SMProjRight _ _
 
 ----------------------------------
 ----------------------------------

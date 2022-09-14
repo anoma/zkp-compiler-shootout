@@ -5729,6 +5729,11 @@ natToSubstTerm (InSO (x !!* y)) n = do
   Just $ SMPair xt yt
 
 public export
+NatToSubstTerm : (a : SubstObjMu) -> (n : Nat) ->
+  {auto ok : IsJustTrue (natToSubstTerm a n)} -> SOTerm a
+NatToSubstTerm a n {ok} = fromIsJust ok
+
+public export
 substMorphToGNum : {a, b : SubstObjMu} -> SubstMorph a b -> Nat
 substMorphToGNum = substTermToNat . MorphAsTerm
 
@@ -5736,6 +5741,11 @@ public export
 substGNumToMorph : (a, b : SubstObjMu) -> Nat -> Maybe (SubstMorph a b)
 substGNumToMorph a b n =
   map {f=Maybe} TermAsMorph (natToSubstTerm (SubstHomObj a b) n)
+
+public export
+SubstGNumToMorph : (a, b : SubstObjMu) -> (n : Nat) ->
+  {auto ok : IsJustTrue (substGNumToMorph a b n)} -> SubstMorph a b
+SubstGNumToMorph a b n {ok} = fromIsJust ok
 
 ---------------------------------------------------
 ---------------------------------------------------

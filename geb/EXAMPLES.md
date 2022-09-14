@@ -851,6 +851,9 @@ context of a given type):
 substTermToNat : {a : SubstObjMu} -> SOTerm a -> Nat
 
 natToSubstTerm : (a : SubstObjMu) -> Nat -> Maybe (SOTerm a)
+
+NatToSubstTerm : (a : SubstObjMu) -> (n : Nat) ->
+  {auto ok : IsJustTrue (natToSubstTerm a n)} -> SOTerm a
 ```
 
 And there are convenience functions for Gödel-numbering morphisms:
@@ -860,6 +863,9 @@ substMorphToGNum : {a, b : SubstObjMu} -> SubstMorph a b -> Nat
 substMorphToGNum = substTermToNat . MorphAsTerm
 
 substGNumToMorph : (a, b : SubstObjMu) -> Nat -> Maybe (SubstMorph a b)
+
+SubstGNumToMorph : (a, b : SubstObjMu) -> (n : Nat) ->
+  {auto ok : IsJustTrue (substGNumToMorph a b n)} -> SubstMorph a b
 ```
 
 This Gödel-number is per-type, not across all types -- the latter
