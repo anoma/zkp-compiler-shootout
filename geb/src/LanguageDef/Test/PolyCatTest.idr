@@ -1268,9 +1268,6 @@ polyCatTest = do
   putStrLn $ "bnat4: " ++ show bnat4
   putStrLn $ "bnat4 as Nat: " ++ show (substObjToNat bnat4)
   putStrLn $ "bnat4 in metalanguage: " ++ show (metaSOShowType bnat4)
-  putStrLn $ "bnat4chi: " ++ show bnat4chi
-  putStrLn $ "bnat4chi as Nat: " ++ show (substObjToNat bnat4chi)
-  putStrLn $ "bnat4chi in metalanguage: " ++ show (metaSOShowType bnat4chi)
   putStrLn $ "bnat4_0: " ++ showSubstMorph bnat4_0
   putStrLn $ "bnat4_0 as Nat: " ++ show (substTermToNat bnat4_0)
   putStrLn $ "bnat4_0 as poly func: " ++ show (substMorphToBNC bnat4_0)
@@ -1291,6 +1288,9 @@ polyCatTest = do
     show (substTermToNat $ bnat4_bit_2 <! bnat4_2)
   putStrLn $ "bit 2 of bnat_2 as poly func: " ++
     show (substMorphToBNC $ bnat4_bit_2 <! bnat4_2)
+  putStrLn $ "bnat4chi: " ++ show bnat4chi
+  putStrLn $ "bnat4chi as Nat: " ++ show (substObjToNat bnat4chi)
+  putStrLn $ "bnat4chi in metalanguage: " ++ show (metaSOShowType bnat4chi)
   putStrLn ""
   putStrLn "----------------"
   putStrLn "End polyCatTest."
