@@ -4425,7 +4425,15 @@ SEqual (InSO (x !!+ y)) =
     (SMCase (SEqual x) (soConst $ SMInjRight _ _) <! soProdDistribRight _ _ _)
     (SMCase (soConst $ SMInjRight _ _) (SEqual y) <! soProdDistribRight _ _ _)
   <! SMDistrib _ _ _
-SEqual (InSO (x !!* y)) = ?SEqual_hole_4
+SEqual (InSO (x !!* y)) =
+  SAnd <!
+    SMPair
+      (SEqual x <! SMPair
+        (SMProjLeft _ _ <! SMProjLeft _ _)
+        (SMProjLeft _ _ <! SMProjRight _ _))
+      (SEqual y <! SMPair
+        (SMProjRight _ _ <! SMProjLeft _ _)
+        (SMProjRight _ _ <! SMProjRight _ _))
 
 public export
 SEqualF : {x, y : SubstObjMu} -> (f, g : SubstMorph x y) ->
