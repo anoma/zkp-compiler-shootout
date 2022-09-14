@@ -23,29 +23,34 @@
                 instructions))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; User Facing Abstractions
+;;; User Facing Abstractions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmacro defproc (name local body)
+(defmacro defproc (name local &rest body)
   "defines a miden procedure"
   (let ((keyword (intern (symbol-name name) 'keyword)))
     `(progn
        (add-function ,keyword
-                     (make-procedure :name ,keyword :block ,body :locals ,local))
+                     (make-procedure :name ,keyword :block (begin ,@body) :locals ,local))
        (defun ,name ()
          (exec ,keyword)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Control Flow
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmacro defbegin (name arguments &body body)
   "Defines a miden block that takes common lisp arguments."
   `(defun ,name ,arguments
      (begin ,@body)))
 
-(defun add ()
-  (make-opcode :name :add))
-
 (-> repeat (fixnum &rest instruction) repeat)
 (defun repeat (count &rest insturctions)
-  (make-repeat :count count :block (make-block :body insturctions)))
+  (make-repeat :count count :block (apply #'begin insturctions)))
+
+(-> while (&rest instruction) while)
+(defun while (&rest instructions)
+  (make-while :block (apply #'begin instructions)))
 
 (-> begin (&rest instruction) block)
 (defun begin (&rest instructions)
@@ -56,16 +61,56 @@
                        (list x)))
                  instructions)))
 
-(defun push (item)
-  (make-opcode :name :push :constant item))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Stack Operations
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun swap ()
-  (make-opcode :name :swap))
-
-(defun exec (name)
-  (make-opcode :name :exec :constant name))
-
+(-> dup (&optional fixnum) opcode)
 (defun dup (&optional position)
   "Dupes the value at the position on the stack, defaulting to 0 if no
 value is given"
   (make-opcode :name :dup :constant position))
+
+(-> push (constant) opcode)
+(defun push (item)
+  (make-opcode :name :push :constant item))
+
+(-> swap (&optional fixnum) opcode)
+(defun swap (&optional num)
+  (make-opcode :name :swap :constant num))
+
+(-> movup (fixnum) opcode)
+(defun movup (num)
+  (if (= num 1)
+      (swap)
+      (make-opcode :name :movup :constant num)))
+
+(-> movdn (fixnum) opcode)
+(defun movdn (num)
+  (if (= num 1)
+      (swap)
+      (make-opcode :name :movdn :constant num)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Operations
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(-> add (&optional fixnum) opcode)
+(defun add (&optional num)
+  (make-opcode :name :add :constant num))
+
+(-> sub (&optional fixnum) opcode)
+(defun sub (&optional num)
+  (make-opcode :name :sub :constant num))
+
+(-> meq (&optional constant) opcode)
+(defun meq (&optional value)
+  (make-opcode :name :eq :constant value))
+
+(-> neq (&optional constant) opcode)
+(defun neq (&optional value)
+  (make-opcode :name :neq :constant value))
+
+(-> exec (keyword) opcode)
+(defun exec (name)
+  (make-opcode :name :exec :constant name))

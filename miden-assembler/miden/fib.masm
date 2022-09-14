@@ -1,14 +1,13 @@
-proc.fib_100
-  repeat.100
-     swap dup.1 add
+proc.fib_iter
+  push.0
+  push.1
+  dup.2
+  neq.0
+  while.true
+    swap dup.1 add movup.2 sub.1 dup movdn.3 neq.0
   end
 end
 
 begin
-  push.0
-  push.1
-  exec.fib_100
-  repeat.1000
-     swap dup.1 add
-  end
+  exec.fib_iter
 end

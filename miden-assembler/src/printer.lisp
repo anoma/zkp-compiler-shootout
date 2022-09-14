@@ -55,7 +55,13 @@
 
 (defmethod print-object ((obj repeat) stream)
   (pprint-logical-block (stream nil)
-    (format stream "repeat.~A~2I~:@_ " (count obj))
+    (format stream "repeat.~A~2I~:@_" (count obj))
+    (block-as-list (block obj) stream)
+    (format stream "~0I~:@_end")))
+
+(defmethod print-object ((obj while) stream)
+  (pprint-logical-block (stream nil)
+    (format stream "while.true~2I~:@_")
     (block-as-list (block obj) stream)
     (format stream "~0I~:@_end")))
 

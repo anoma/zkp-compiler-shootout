@@ -6,7 +6,7 @@
 ;; Sum Type Declarations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (deftype instruction ()
-  `(or opcode repeat block))
+  `(or opcode repeat block while))
 
 (deftype constant ()
   `(or fixnum null symbol))
@@ -56,6 +56,12 @@
           :accessor block
           :type     block)))
 
+(defclass while ()
+  ((block :initarg :block
+          :accessor block
+          :type     block))
+  (:documentation "A conditional controlled loop in Miden"))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Constructors for the base types
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -79,3 +85,8 @@
 (defun make-repeat (&key count block)
   (values
    (make-instance 'repeat  :block block :count count)))
+
+(-> make-while (&key (:block block)) while)
+(defun make-while (&key block)
+  (values
+   (make-instance 'while :block block)))

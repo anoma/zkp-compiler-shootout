@@ -1,6 +1,6 @@
 proc.fib_100
   repeat.100
-     swap dup.1 add
+    swap dup.1 add
   end
 end
 
