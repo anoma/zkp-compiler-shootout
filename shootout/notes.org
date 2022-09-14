@@ -1,4 +1,69 @@
 * Notes
-** fib-miden
+** Language
+*** Miden
+Miden is a stack based ZK virtual machine.
+- It is fully turing complete, and offers a wide range of turing
+  operations.
+- It is an IR optimized for ZK execution.
+- It uses the =Blake256= Hash function
+- The first 16 stack operations are special in that they are directly
+  accessible via instructions.
+- Field elements are 64 bit values
+*** Risc0
+Risc0 is a ZK machine ontop of the =RiscV= architecture
+- Languages which compile to LLVM can be used for this. Meaning that
+  support is much more mature in many ways compared to other options.
+*** Halo
+** Projects
+*** Fibonacci
+This project serves as a good introduction to many of the languages on
+display in this repository. There are however some big caveats with
+this program as a benchmark measure
+
+1. No hash functions are explicitly used.
+2. The value is returned directly, rather than just containing a proof
+   of knowledge of the answer.
+3. The example with it's various variants are very simple small programs.
+4. Unless otherwise stated, operations will overflow if they get
+   bigger than the field size.
+
+What this means is that for =miden= and =risc0= the results after
+=fibonacci 93= will overflow, as the return amount to a =65= bit number
+#+begin_src lisp
+  MIDEN> (fibonacci 94)
+  19740274219868223167 (65 bits)
+#+end_src
+
+There may be some benchmarks which attempt to solve this in order to
+see how much of a performance impact big num compilation can be. For
+=risc0= this should be trivial, as we just need to include a rust
+=bignum= library.
+**** Miden
+This example serves as a good introduction to the =Miden= virtual
+machine, and illustrates some basic performance characteristics of the
+system.
+***** Fixed Loop Variant
 - This tests unbounded addition, and some basic stack operations
-- This does not test u32 range checks. We should really tests that.
+- Basically just a rehash of their benchmark. An important note is
+  that addition is on =u64=, thus any loop greater than =fib92= will
+  overflow, which is fine, but it's important to note!
+***** Iterative
+- This version takes the loop number off the stack, and tries multiple
+  times.
+- This version is also bound by a =u64=, so no tests of range checks
+  yet.
+***** Recursive
+- This version tests how slow if and function calling works.
+- A real compiler would just use TCO to the =Iterative= version
+  mentioned above.
+**** Risc0
+This example is quite simple, and many variants are given to match the
+Miden example.
+***** Fixed Loop Variant
+- These just have a fixed loop amount to match the miden example.
+- the difference between low amounts are negligible.
+***** Iterative
+- This version takes the amount of times to loop off user input.
+- Interesting enough the data shows this is only negligibly slower
+  than the fixed variant.
+**** Analysis
