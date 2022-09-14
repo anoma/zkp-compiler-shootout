@@ -232,6 +232,11 @@ SList (S n) x = SBList n x !+ (x !*^ S n)
 SBinTree : Nat -> SubstObjMu -> SubstObjMu
 SBinTree Z x = Subst0
 SBinTree (S n) x = SMaybe (x !* SBinTree n x !* SBinTree n x)
+
+SSExp : Nat -> SubstObjMu -> SubstObjMu
+SSExp Z x = Subst0
+SSExp (S Z) x = x -- atom
+SSExp (S (S n)) x = SSExp (S n) x !+ (SSExp (S n) x !* (SSExp (S n) x))
 ```
 
 All of the "recursive" types are depth-indexed, since only finite

@@ -4577,6 +4577,16 @@ SBinTree : Nat -> SubstObjMu -> SubstObjMu
 SBinTree Z x = Subst0
 SBinTree (S n) x = SMaybe (x !* SBinTree n x !* SBinTree n x)
 
+-----------------------
+---- S-expressions ----
+-----------------------
+
+public export
+SSExp : Nat -> SubstObjMu -> SubstObjMu
+SSExp Z x = Subst0
+SSExp (S Z) x = x -- atom
+SSExp (S (S n)) x = SSExp (S n) x !+ (SSExp (S n) x !* (SSExp (S n) x))
+
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ---- Interpretation of substitutive objects as metalanguage types ----
