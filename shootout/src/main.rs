@@ -111,9 +111,8 @@ pub fn benchmark(c: &mut Criterion) {
     bench_fib_risc(c);
     miden_fib(c, "92", &[12200160415121876738]);
     miden_fib(c, "50", &[20365011074]);
-    // bench_halo(c);
-    // bench_sudoku_risc(c);
-
+    bench_halo(c);
+    bench_sudoku_risc(c);
 }
 
 criterion_group!(benches, benchmark);
