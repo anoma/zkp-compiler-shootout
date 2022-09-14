@@ -3943,6 +3943,16 @@ soProdCommutesLeft : {x, y, z : SubstObjMu} ->
 soProdCommutesLeft f = f <! soProdCommutes y x
 
 public export
+soProdDistribRight :
+  (x, y, z : SubstObjMu) -> SubstMorph ((y !+ z) !* x) ((y !* x) !+ (z !* x))
+soProdDistribRight x y z =
+  soProdCommutesLeft
+    (SMCase
+      (soProdCommutesLeft (SMInjLeft _ _))
+      (soProdCommutesLeft (SMInjRight _ _))
+     <! SMDistrib _ _ _)
+
+public export
 soProdCommutesRight : {x, y, z : SubstObjMu} ->
   SubstMorph x (y !* z) -> SubstMorph x (z !* y)
 soProdCommutesRight f = soProdCommutes y z <! f
@@ -4375,6 +4385,26 @@ STrue : SOTerm SubstBool
 STrue = SMInjRight _ _
 
 public export
+SNot : SubstMorph SubstBool SubstBool
+SNot = SMCase (SMInjRight _ _) (SMInjLeft _ _)
+
+public export
+SHigherAnd : SubstMorph SubstBool (SubstBool !-> SubstBool)
+SHigherAnd = SMPair (SMId SubstBool) (soConst $ SMInjRight _ _)
+
+public export
+SHigherOr : SubstMorph SubstBool (SubstBool !-> SubstBool)
+SHigherOr = SMPair (soConst $ SMInjLeft _ _) (SMId SubstBool)
+
+public export
+SAnd : SubstMorph (SubstBool !* SubstBool) SubstBool
+SAnd = soUncurry SHigherAnd
+
+public export
+SOr : SubstMorph (SubstBool !* SubstBool) SubstBool
+SOr = soUncurry SHigherOr
+
+public export
 SIfElse : {x : SubstObjMu} ->
   SOTerm SubstBool -> SOTerm x -> SOTerm x -> SOTerm x
 SIfElse {x} b t f =
@@ -4388,7 +4418,14 @@ SHigherIfElse {x} {y} b t f =
 
 public export
 SEqual : (x : SubstObjMu) -> SubstMorph (x !* x) SubstBool
-SEqual x = ?SEqual_hole
+SEqual (InSO SO0) = SMFromInit _ <! SMProjLeft _ _
+SEqual (InSO SO1) = soConst $ SMInjLeft _ _
+SEqual (InSO (x !!+ y)) =
+  SMCase
+    (?SEqual_hole_3a)
+    (?SEqual_hole_3b)
+  <! SMDistrib _ _ _
+SEqual (InSO (x !!* y)) = ?SEqual_hole_4
 
 public export
 SEqualF : {x, y : SubstObjMu} -> (f, g : SubstMorph x y) ->

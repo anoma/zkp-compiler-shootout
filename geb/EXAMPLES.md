@@ -79,7 +79,6 @@ The objects are the terms of the type `SubstObjMu`, which
 is the initial algebra of an endofunctor in Idris's `Type`:
 
 ```haskell
-public export
 data SubstObjF : Type -> Type where
   -- Initial
   SO0 : SubstObjF carrier
@@ -191,55 +190,45 @@ There are several convenience functions for defining types, such as:
 
 ```haskell
 infix 10 !:*
-public export
 (!:*) : Nat -> SubstObjMu -> SubstObjMu
 n !:* p = foldrNatNoUnit ((!+) p) Subst0 p n
 
 infix 10 !*^
-public export
 (!*^) : SubstObjMu -> Nat -> SubstObjMu
 p !*^ n = foldrNatNoUnit ((!*) p) Subst1 p
 
-public export
 SOCoproductN : {n : Nat} -> Vect n SubstObjMu -> SubstObjMu
 SOCoproductN [] = Subst0
 SOCoproductN [x] = x
 SOCoproductN (x :: xs@(_ :: _)) = x !+ SOCoproductN x
 
-public export
 SOProductN : {n : Nat} -> Vect n SubstObjMu -> SubstObjMu
 SOProductN [] = Subst1
 SOProductN [x] = x
 SOProductN (x :: xs@(_ :: _)) = x !* SOProductN x
 
-public export
 SubstBool : SubstObjMu
 SubstBool = Subst1 !+ Subst
 
-public export
 SMaybe : SubstObjMu -> SubstObjMu
 SMaybe x = Subst1 !+ x
 
 -- Unary natural numbers less than the input.
-public export
 SUNat : Nat -> SubstObjMu
 SUNat Z = Subst0
 SUNat (S Z) = Subst1
 SUNat (S (S n)) = SMaybe $ SUNat (S n)
 
 -- `n`-bit natural numbers.
-public export
 SBNat : Nat -> SubstObjMu
 SBNat Z = Subst1
 SBNat (S Z) = SubstBool
 SBNat (S (S n)) = SubstBool !* SBNat (S n)
 
-public export
 SList : Nat -> SubstObjMu -> SubstObjMu
 SList Z x = Subst1
 SList (S n) x = SBList n x !+ (x !*^ S n)
 
-public export
 SBinTree : Nat -> SubstObjMu -> SubstObjMu
 SBinTree Z x = Subst0
 SBinTree (S n) x = SMaybe (x !* SBinTree n x !* SBinTree n x)
@@ -314,7 +303,6 @@ from the terminal object to a given object may be viewed as
 a term of the type which that object represents:
 
 ```haskell
-public export
 SOTerm : SubstObjMu -> Type
 SOTerm = SubstMorph Subst1
 ```
@@ -324,88 +312,80 @@ morphisms, such as:
 
 ```haskell
 -- The inverse of SMDistrib.
-public export
 soGather : (x, y, z : SubstObjMu) ->
   SubstMorph ((x !* y) !+ (x !* z)) (x !* (y !+ z))
 
-public export
 soSwap : (x, y : SubstObjMu) -> SubstMorph (x !* y) (y !* x)
 
-public export
 soConstruct : {n : Nat} -> {x : SubstObjMu} -> {v : Vect n SubstObjMu} ->
   (m : Nat) -> {auto ok : IsYesTrue (isLT m n)} ->
   SubstMorph x (indexNL m {ok} v) -> SubstMorph x (SOCoproductN v)
 
-public export
 SOMorphN : {n : Nat} -> SubstObjMu -> Vect n SubstObjMu -> Vect n Type
 SOMorphN x v = map (SubstMorph x) v
 
-public export
 SOMorphHV : {n : Nat} -> SubstObjMu -> Vect n SubstObjMu -> Type
 SOMorphHV {n} x v = HVect (SOMorphN x v)
 
-public export
 soTuple : {n : Nat} -> {x : SubstObjMu} -> {v : Vect n SubstObjMu} ->
   SOMorphHV {n} x v -> SubstMorph x (SOProductN v)
 
-public export
+SFalse : SOTerm SubstBool
+
+STrue : SOTerm SubstBool
+
+SNot : SubstMorph SubstBool SubstBool
+
+SHigherAnd : SubstMorph SubstBool (SubstBool !-> SubstBool)
+
+SHigherOr : SubstMorph SubstBool (SubstBool !-> SubstBool)
+
+SAnd : SubstMorph (SubstBool !* SubstBool) SubstBool
+
+SOr : SubstMorph (SubstBool !* SubstBool) SubstBool
+
 SIfElse : {x : SubstObjMu} ->
   SOTerm SubstBool -> SOTerm x -> SOTerm x -> SOTerm x
 
-public export
 SHigherIfElse : {x, y : SubstObjMu} ->
   SubstMorph x SubstBool -> SubstMorph x y -> SubstMorph x y -> SubstMorph x y
 
-public export
 SEqual : (x : SubstObjMu) -> SubstMorph (x !* x) SubstBool
 
-public export
 SEqualF : {x, y : SubstObjMu} -> (f, g : SubstMorph x y) ->
   SubstMorph x SubstBool
 
-public export
 SIfEqual : {x, y, z : SubstObjMu} ->
   (test, test' : SubstMorph x y) -> (ftrue, ffalse : SubstMorph x z) ->
   SubstMorph x z
 
-public export
 MkSUNat : {m : Nat} -> (n : Nat) -> {x : SubstObjMu} ->
   {auto lt : IsYesTrue (isLT n m)} ->
   SubstMorph x (SUNat m)
 
 -- Catamorphism on unary natural numbers.
-public export
 suNatCata : (n : Nat) -> (x : SubstObjMu) ->
   SubstMorph ((Subst1 !+ x) !-> x) (SUNat (S n) !-> x)
 
-public export
 suZ : {n : Nat} -> {x : SubstObjMu} -> SubstMorph x (SUNat (S n))
 
-public export
 suSucc : {n : Nat} -> SubstMorph (SUNat n) (SUNat (S n))
 
 -- Successor, which returns `Nothing` (`Left`) if the input is the
 -- maximum value of `SUNat n`.
-public export
 suSuccMax : {n : Nat} -> SubstMorph (SUNat n) (SMaybe (SUNat n))
 
 -- Successor modulo `n`.
-public export
 suSuccMod : {n : Nat} -> SubstMorph (SUNat n) (SUNat n)
 
-public export
 su1 : {n : Nat} -> {x : SubstObjMu} -> SubstMorph x (SUNat (S n))
 
-public export
 suAdd : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
 
-public export
 suMul : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
 
-public export
 suRaiseTo : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
 
-public export
 suPow : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
 suPow = soFlip suRaiseTo
 ```
@@ -452,7 +432,6 @@ in what amounts to a lifting to the type level of a recursive
 function which defines exponentiation in terms of multiplication:
 
 ```haskell
-public export
 SubstHomObj : SubstObjMu -> SubstObjMu -> SubstObjMu
 -- 0 -> y == 1
 SubstHomObj (InSO SO0) _ = Subst1
@@ -469,12 +448,10 @@ for exponential objects:
 
 ```haskell
 infixr 10 !->
-public export
 (!->) : SubstObjMu -> SubstObjMu -> SubstObjMu
 (!->) = SubstHomObj
 
 infix 10 !^
-public export
 (!^) : SubstObjMu -> SubstObjMu -> SubstObjMu
 (!^) = flip SubstHomObj
 ```
@@ -489,7 +466,6 @@ morphism for a particular exponential object may be viewed as an
 interpreter for a particular function type:
 
 ```haskell
-public export
 soEval : (x, y : SubstObjMu) ->
   SubstMorph ((x !-> y) !* x) y
 soEval (InSO SO0) y = SMFromInit y <! SMProjRight Subst1 Subst0
@@ -524,7 +500,6 @@ We can also define another characteristic notion of functional
 programming, currying:
 
 ```haskell
-public export
 soCurry : {x, y, z : SubstObjMu} ->
   SubstMorph (x !* y) z -> SubstMorph x (y !-> z)
 soCurry {x} {y=(InSO SO0)} f = SMToTerminal x
@@ -548,13 +523,11 @@ Uncurrying and partial application emerge directly from these
 definitions:
 
 ```haskell
-public export
 soUncurry : {x, y, z : SubstObjMu} ->
   SubstMorph x (y !-> z) -> SubstMorph (x !* y) z
 soUncurry {x} {y} {z} f =
   soEval y z <! SMPair (f <! SMProjLeft x y) (SMProjRight x y)
 
-public export
 soPartialApp : {w, x, y, z : SubstObjMu} ->
   SubstMorph (x !* y) z -> SubstMorph w x -> SubstMorph (w !* y) z
 soPartialApp g f = soUncurry $ soCurry g <! f
@@ -564,13 +537,11 @@ Evaluation and currying also allow for straightforward definitions
 of the covariant and contravariant Yoneda embeddings:
 
 ```haskell
-public export
 covarYonedaEmbed : {a, b : SubstObjMu} ->
   SubstMorph b a -> (x : SubstObjMu) -> SubstMorph (a !-> x) (b !-> x)
 covarYonedaEmbed {a} {b} f x =
   soCurry (soEval a x <! SMPair (SMProjLeft _ _) (f <! SMProjRight _ _))
 
-public export
 contravarYonedaEmbed : {a, b : SubstObjMu} ->
   SubstMorph a b -> (x : SubstObjMu) -> SubstMorph (x !-> a) (x !-> b)
 contravarYonedaEmbed {a} {b} f x =
@@ -602,15 +573,12 @@ to be the exponential object of some pair of objects) may
 be viewed as a morphism, and vice versa:
 
 ```haskell
-public export
 HomTerm : SubstObjMu -> SubstObjMu -> Type
 HomTerm = SOTerm .* SubstHomObj
 
-public export
 TermAsMorph : {x, y : SubstObjMu} -> HomTerm x y -> SubstMorph x y
 TermAsMorph {x} {y} t = soProd1LeftElim $ soUncurry {x=Subst1} {y=x} {z=y} t
 
-public export
 MorphAsTerm : {x, y : SubstObjMu} -> SubstMorph x y -> HomTerm x y
 MorphAsTerm {x} {y} f = soCurry {x=Subst1} {y=x} {z=y} $ soProdLeftIntro f
 ```
@@ -636,7 +604,6 @@ SMFromInit : (x : SubstObjMu) -> SubstMorph Subst0 x
 Here's a version reflected into `Subst` itself:
 
 ```haskell
-public export
 soReflectedFromInit : (x, y : SubstObjMu) -> SubstMorph x (Subst0 !-> y)
 soReflectedFromInit x y = soConst $ SMId Subst1
 ```
@@ -672,7 +639,6 @@ signature of product introduction (pairing):
 And here is the version reflected into `Subst` itself:
 
 ```haskell
-public export
 soReflectedPair : (x, y, z : SubstObjMu) ->
   SubstMorph ((x !-> y) !* (x !-> z)) (x !-> (y !* z))
 soReflectedPair (InSO SO0) _ _ = SMToTerminal _
@@ -709,7 +675,6 @@ And here again is the metalanguage signature of composition:
 And here is the reflected version:
 
 ```haskell
-public export
 soReflectedCompose : (x, y, z : SubstObjMu) ->
   SubstMorph ((y !-> z) !* (x !-> y)) (x !-> z)
 soReflectedCompose (InSO SO0) y z = SMToTerminal _
@@ -769,7 +734,6 @@ compiled in the simplest unoptimized way.  It will be extended
 in the future to allow various optimizations.
 
 ```haskell
-public export
 data BNCPolyM : Type where
   -- Polynomial operations --
 
@@ -822,7 +786,6 @@ which represents VampIR/Alucard is straightforward.  The
 object translation is just type cardinality:
 
 ```haskell
-public export
 substObjToNat : SubstObjMu -> Nat
 substObjToNat = substObjCard
 ```
@@ -833,7 +796,6 @@ turning `Void`, `Unit`, `Either`, and `Pair` into
 operations for elimination) respectively:
 
 ```haskell
-public export
 substMorphToBNC : {x, y : SubstObjMu} -> SubstMorph x y -> BNCPolyM
 substMorphToBNC {y=x} (SMId x) = PI
 substMorphToBNC ((<!) {x} {y} {z} g f) = substMorphToBNC g #. substMorphToBNC f
@@ -871,7 +833,6 @@ There is a function which interprets a Geb morphism into
 a metalanguage function on integers:
 
 ```haskell
-public export
 substMorphToFunc : {a, b : SubstObjMu} -> SubstMorph a b -> Integer -> Integer
 substMorphToFunc {a} {b} f =
   metaBNCPolyM (natToInteger $ pred $ substObjToNat b) (substMorphToBNC f)
@@ -882,21 +843,17 @@ natural numbers and the terms which they represent (within the
 context of a given type):
 
 ```haskell
-public export
 substTermToNat : {a : SubstObjMu} -> SOTerm a -> Nat
 
-public export
 natToSubstTerm : (a : SubstObjMu) -> Nat -> Maybe (SOTerm a)
 ```
 
 And there are convenience functions for Gödel-numbering morphisms:
 
 ```haskell
-public export
 substMorphToGNum : {a, b : SubstObjMu} -> SubstMorph a b -> Nat
 substMorphToGNum = substTermToNat . MorphAsTerm
 
-public export
 substGNumToMorph : (a, b : SubstObjMu) -> Nat -> Maybe (SubstMorph a b)
 ```
 
