@@ -357,6 +357,18 @@ SHigherIfElse : {x, y : SubstObjMu} ->
   SubstMorph x SubstBool -> SubstMorph x y -> SubstMorph x y -> SubstMorph x y
 
 public export
+SEqual : (x : SubstObjMu) -> SubstMorph (x !* x) SubstBool
+
+public export
+SEqualF : {x, y : SubstObjMu} -> (f, g : SubstMorph x y) ->
+  SubstMorph x SubstBool
+
+public export
+SIfEqual : {x, y, z : SubstObjMu} ->
+  (test, test' : SubstMorph x y) -> (ftrue, ffalse : SubstMorph x z) ->
+  SubstMorph x z
+
+public export
 MkSUNat : {m : Nat} -> (n : Nat) -> {x : SubstObjMu} ->
   {auto lt : IsYesTrue (isLT n m)} ->
   SubstMorph x (SUNat m)

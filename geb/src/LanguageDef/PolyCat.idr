@@ -4386,6 +4386,22 @@ SHigherIfElse : {x, y : SubstObjMu} ->
 SHigherIfElse {x} {y} b t f =
   soEval x y <! SMPair (SMCase (MorphAsTerm t) (MorphAsTerm f) <! b) (SMId x)
 
+public export
+SEqual : (x : SubstObjMu) -> SubstMorph (x !* x) SubstBool
+SEqual x = ?SEqual_hole
+
+public export
+SEqualF : {x, y : SubstObjMu} -> (f, g : SubstMorph x y) ->
+  SubstMorph x SubstBool
+SEqualF {x} {y} f g = SEqual y <! SMPair f g
+
+public export
+SIfEqual : {x, y, z : SubstObjMu} ->
+  (test, test' : SubstMorph x y) -> (ftrue, ffalse : SubstMorph x z) ->
+  SubstMorph x z
+SIfEqual {x} {y} {z} test test' ftrue ffalse =
+  SHigherIfElse {x} {y=z} (SEqualF {x} {y} test test') ftrue ffalse
+
 ---------------
 ---- Maybe ----
 ---------------
