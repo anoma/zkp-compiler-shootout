@@ -3,7 +3,8 @@
 exclude = [
         "sudoku-risc0",
         "sudoku-halo",
-        "fib-miden"
+        "fib-miden",
+        "fib-risc"
 ]
 
 [package]
@@ -15,6 +16,7 @@ edition = "2021"
 sudoku_risc = { path = "sudoku-risc0" }
 sudoku_halo = { path = "sudoku-halo" }
 fib-miden   = { path = "fib-miden"}
+fib-risc    = { path = "fib-risc"}
 criterion   = "0.3"
 
 [profile.release]
