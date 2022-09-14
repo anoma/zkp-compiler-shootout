@@ -4422,8 +4422,8 @@ SEqual (InSO SO0) = SMFromInit _ <! SMProjLeft _ _
 SEqual (InSO SO1) = soConst $ SMInjLeft _ _
 SEqual (InSO (x !!+ y)) =
   SMCase
-    (?SEqual_hole_3a)
-    (?SEqual_hole_3b)
+    (SMCase (SEqual x) (soConst $ SMInjRight _ _) <! soProdDistribRight _ _ _)
+    (SMCase (soConst $ SMInjRight _ _) (SEqual y) <! soProdDistribRight _ _ _)
   <! SMDistrib _ _ _
 SEqual (InSO (x !!* y)) = ?SEqual_hole_4
 
