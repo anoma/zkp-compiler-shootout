@@ -1,15 +1,15 @@
 [workspace]
 
 [package]
-name = "sudoku_halo"
+name = "sudoku_plonk"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 # TODO There are likely better ways of handling this
-plonk         = { git = "https://github.com/heliaxdev/ark-plonk", rev="70f9f5c47c13e2b" }
-plonk-core    = { git = "https://github.com/heliaxdev/ark-plonk", rev="70f9f5c47c13e2b" }
-plonk-hashing = { git = "https://github.com/heliaxdev/ark-plonk", rev="70f9f5c47c13e2b" }
+plonk         = { git = "https://github.com/heliaxdev/ark-plonk", branch="taiga/randomized-circuits-rebase" }
+plonk-core    = { git = "https://github.com/heliaxdev/ark-plonk", branch="taiga/randomized-circuits-rebase" }
+plonk-hashing = { git = "https://github.com/heliaxdev/ark-plonk", branch="taiga/randomized-circuits-rebase" }
 ark-ff              = "0.3"
 ark-std             = "0.3"
 ark-ec              = "0.3"
