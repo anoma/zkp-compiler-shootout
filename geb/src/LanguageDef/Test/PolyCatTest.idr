@@ -1528,6 +1528,27 @@ polyCatTest = do
     show (substTermToNat $ MorphToTermAndBack bnat4_bit_2 <! bnat4_15)
   putStrLn $ "bit 2 of bnat4_2 via term: " ++
     show (substTermToNat $ MorphToTermAndBack bnat4_bit_2 <! bnat4_2)
+  putStrLn $ "7 as byte: " ++ show (substTermToNat (MkSUNat {m=8} 7))
+  putStrLn $ "19 as u20: " ++ show (substTermToNat (MkSUNat {m=20} 19))
+  putStrLn $ "7 as byte promoted to u20: " ++
+    show (substTermToNat (suPromoteN {m=8} {n=20} <! (MkSUNat {m=8} 7)))
+  putStrLn $ "succ(1 as 2) as 3: " ++
+    show (substTermToNat (suSucc {n=2} <! (MkSUNat {m=2} 1)))
+  putStrLn $ "succ(0 < 3): " ++
+    show (substTermToNat (suSuccMax {n=3} <! (MkSUNat {m=3} 0)))
+  putStrLn $ "succ(1 < 3): " ++
+    show (substTermToNat (suSuccMax {n=3} <! (MkSUNat {m=3} 1)))
+  putStrLn $ "succ(2 < 3): " ++
+    show (substTermToNat (suSuccMax {n=3} <! (MkSUNat {m=3} 2)))
+  putStrLn $ "succ(0 mod 3): " ++
+    show (substTermToNat (suSuccMod {n=3} <! (MkSUNat {m=3} 0)))
+  putStrLn $ "succ(1 mod 3): " ++
+    show (substTermToNat (suSuccMod {n=3} <! (MkSUNat {m=3} 1)))
+  putStrLn $ "succ(2 mod 3): " ++
+    show (substTermToNat (suSuccMod {n=3} <! (MkSUNat {m=3} 2)))
+  putStrLn $ "1+1 as b3: " ++
+    show (substTermToNat
+      (suAdd {n=3} <! SMPair (MkSUNat {m=3} 1) (MkSUNat {m=3} 1)))
   putStrLn ""
   putStrLn "----------------"
   putStrLn "End polyCatTest."

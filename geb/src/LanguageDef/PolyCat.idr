@@ -4524,6 +4524,12 @@ suSucc : {n : Nat} -> SubstMorph (SUNat n) (SUNat (S n))
 suSucc {n=Z} = SMFromInit Subst1
 suSucc {n=(S n)} = SMInjRight _ _
 
+public export
+su1 : {n : Nat} -> {x : SubstObjMu} -> SubstMorph x (SUNat (S n))
+su1 {n=Z} {x} = SMToTerminal x
+su1 {n=(S Z)} {x} = SMInjRight _ _ <! SMToTerminal _
+su1 {n=(S (S n))} {x} = SMInjRight _ _ <! SMInjLeft _ _ <! SMToTerminal _
+
 -- Successor, which returns `Nothing` (`Left`) if the input is the
 -- maximum value of `SUNat n`.
 public export
@@ -4531,9 +4537,13 @@ suSuccMax : {n : Nat} -> SubstMorph (SUNat n) (SMaybe (SUNat n))
 suSuccMax {n=Z} = SMFromInit _
 suSuccMax {n=(S Z)} = SMInjLeft _ _ <! SMToTerminal _
 suSuccMax {n=(S (S n))} =
+  let r = suSuccMax {n=(S n)} in
   SMCase
-    (SMInjRight _ _ <! SMInjLeft _ _ <! SMToTerminal _)
-    (SMInjRight _ _ <! suSuccMax {n=(S n)})
+    (SMInjRight _ _ <! su1 {n=(S n)})
+    (SMCase
+      (SMInjLeft _ _)
+      (SMInjRight _ _ <! SMInjRight _ _)
+     <! r)
 
 -- Successor modulo `n`.
 public export
@@ -4546,15 +4556,10 @@ suSuccMod {n=(S n)} =
   <! suSuccMax {n=(S n)}
 
 public export
-su1 : {n : Nat} -> {x : SubstObjMu} -> SubstMorph x (SUNat (S n))
-su1 {n=Z} {x} = SMToTerminal x
-su1 {n=(S Z)} {x} = SMInjRight _ _ <! SMToTerminal _
-su1 {n=(S (S n))} {x} = SMInjRight _ _ <! SMInjLeft _ _ <! SMToTerminal _
-
-public export
 suAdd : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
 suAdd {n=Z} = SMFromInit _ <! SMProjLeft _ _
-suAdd {n=(S n)} = soUncurry $ suNatCata _ _ <! SMPair (SMId _) soReflectedId
+suAdd {n=(S n)} = soUncurry $ suNatCata _ _ <!
+  SMPair (SMId _) (soConst $ MorphAsTerm $ suSuccMod {n=(S n)})
 
 public export
 suMul : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
