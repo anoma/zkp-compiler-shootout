@@ -1138,6 +1138,36 @@ l1_1 = sListEvalCons {n=0} (MkSUNat {m=8} 1) l0_empty
 l5_1 : SOTerm PolyCatTest.list_depth_5
 l5_1 = sListPromoteN {m=1} {n=5} <! l1_1
 
+l2_2 : SOTerm (SList 2 PolyCatTest.u_byte)
+l2_2 = sListEvalCons {n=1} (MkSUNat {m=8} 2) l1_1
+
+l3_3 : SOTerm (SList 3 PolyCatTest.u_byte)
+l3_3 = sListEvalCons {n=2} (MkSUNat {m=8} 3) l2_2
+
+l4_4 : SOTerm (SList 4 PolyCatTest.u_byte)
+l4_4 = sListEvalCons {n=3} (MkSUNat {m=8} 4) l3_3
+
+l5_5 : SOTerm PolyCatTest.list_depth_5
+l5_5 = sListEvalCons {n=4} (MkSUNat {m=8} 5) l4_4
+
+addb_20 : SubstMorph (PolyCatTest.u_byte !* SUNat 20) (SUNat 20)
+addb_20 = suAdd {n=20} <!
+  SMPair
+    (suPromoteN {m=8} {n=20} <! SMProjLeft _ _)
+    (SMProjRight _ _)
+
+l1_1_fold_add : SOTerm (SUNat 20)
+l1_1_fold_add =
+  sListEvalCata {n=1} {a=u_byte} {x=(SUNat 20)} (MkSUNat {m=20} 0) addb_20 l1_1
+
+l3_3_fold_add : SOTerm (SUNat 20)
+l3_3_fold_add =
+  sListEvalCata {n=3} {a=u_byte} {x=(SUNat 20)} (MkSUNat {m=20} 0) addb_20 l3_3
+
+l5_5_fold_add : SOTerm (SUNat 20)
+l5_5_fold_add =
+  sListEvalCata {n=5} {a=u_byte} {x=(SUNat 20)} (MkSUNat {m=20} 0) addb_20 l5_5
+
 ----------------------------------
 ----------------------------------
 ----- Exported test function -----

@@ -4209,6 +4209,10 @@ soConst : {x, y : SubstObjMu} -> SOTerm y -> SubstMorph x y
 soConst {x} {y} f = f <! SMToTerminal _
 
 public export
+soReflectedConst : (x, y : SubstObjMu) -> SubstMorph y (x !-> y)
+soReflectedConst x y = soCurry $ SMProjLeft _ _
+
+public export
 soReflectedId : {x, y : SubstObjMu} -> SubstMorph x (y !-> y)
 soReflectedId {x} {y} = soCurry (SMProjRight _ _)
 
@@ -4497,6 +4501,25 @@ suZ {n=Z} {x} = SMToTerminal x
 suZ {n=(S n)} {x} = SMInjLeft _ _ <! SMToTerminal x
 
 public export
+suPromote : {n : Nat} -> SubstMorph (SUNat n) (SUNat (S n))
+suPromote {n=Z} = SMFromInit Subst1
+suPromote {n=(S Z)} = SMInjLeft _ _
+suPromote {n=(S (S n))} =
+  SMCase (SMInjLeft _ _) (SMInjRight _ _ <! suPromote {n=(S n)})
+
+public export
+suPromoteN : {m, n : Nat} -> {auto ok : LTE m n} ->
+  SubstMorph (SUNat m) (SUNat n)
+suPromoteN {m=Z} {n} {ok=LTEZero} = SMFromInit _
+suPromoteN {m=(S Z)} {n=(S Z)} {ok=(LTESucc ok)} = SMId Subst1
+suPromoteN {m=(S Z)} {n=(S (S n))} {ok=(LTESucc ok)} = SMInjLeft _ _
+suPromoteN {m=(S (S m))} {n=(S Z)} {ok=(LTESucc ok)} = void $ succNotLTEzero ok
+suPromoteN {m=(S (S m))} {n=(S (S n))} {ok=(LTESucc ok)} =
+  SMCase
+    (SMInjLeft _ _)
+    (SMInjRight _ _ <! suPromoteN {m=(S m)} {n=(S n)} {ok})
+
+public export
 suSucc : {n : Nat} -> SubstMorph (SUNat n) (SUNat (S n))
 suSucc {n=Z} = SMFromInit Subst1
 suSucc {n=(S n)} = SMInjRight _ _
@@ -4615,6 +4638,14 @@ sListCata (S n) a x =
         SMPair
           (cataN <! SMProjLeft _ _ <! SMProjLeft _ _)
           (SMProjRight _ _)))
+
+public export
+sListEvalCata : {n : Nat} -> {a, x : SubstObjMu} ->
+  SOTerm x -> SubstMorph (a !* x) x -> SOTerm (SList n a) -> SOTerm x
+sListEvalCata {n} {a} {x} z s t =
+  soUncurry (sListCata n a x)
+  <! SMPair (SMPair (soConst z) (soConst $ MorphAsTerm $ soCurry s)) (SMId _)
+  <! t
 
 ----------------------
 ---- Binary trees ----

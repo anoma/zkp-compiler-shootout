@@ -368,6 +368,11 @@ MkSUNat : {m : Nat} -> (n : Nat) -> {x : SubstObjMu} ->
   {auto lt : IsYesTrue (isLT n m)} ->
   SubstMorph x (SUNat m)
 
+suPromote : {n : Nat} -> SubstMorph (SUNat n) (SUNat (S n))
+
+suPromoteN : {m, n : Nat} -> {auto ok : LTE m n} ->
+  SubstMorph (SUNat m) (SUNat n)
+
 -- Catamorphism on unary natural numbers.
 suNatCata : (n : Nat) -> (x : SubstObjMu) ->
   SubstMorph ((Subst1 !+ x) !-> x) (SUNat (S n) !-> x)
@@ -410,6 +415,10 @@ sListEvalCons : {n : Nat} -> {x : SubstObjMu} ->
 
 sListCata : (n : Nat) -> (a, x : SubstObjMu) ->
   SubstMorph ((Subst1 !+ (a !* x)) !-> x) (SList n a !-> x)
+
+public export
+sListEvalCata : {n : Nat} -> {a, x : SubstObjMu} ->
+  SOTerm x -> SubstMorph (a !* x) x -> SOTerm (SList n a) -> SOTerm x
 ```
 
 #### Higher-order functions
