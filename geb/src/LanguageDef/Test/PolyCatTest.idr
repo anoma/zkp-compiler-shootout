@@ -1157,9 +1157,12 @@ l4_4 = sListEvalCons {n=3} (MkSUNat {m=8} 4) l3_3
 l5_5 : SOTerm PolyCatTest.list_depth_5
 l5_5 = sListEvalCons {n=4} (MkSUNat {m=8} 5) l4_4
 
-sumlist_20 : SubstMorph (SList 5 (PolyCatTest.u_byte)) (SUNat 20)
-sumlist_20 = sListFoldUnrolled {k=5} {a=u_byte} {x=(SUNat 20)} (suZ {n=19}) $
-  ?sumlist_20_hole
+sumlist_20 : {k : Nat} -> SubstMorph (SList k (PolyCatTest.u_byte)) (SUNat 20)
+sumlist_20 = sListFoldUnrolled {k} {a=u_byte} {x=(SUNat 20)} (suZ {n=19}) $
+  suAddUnrolled {k=20} <!
+    SMPair
+      (suPromoteN {m=8} {n=20} <! SMProjLeft _ _)
+      (SMProjRight _ _)
 
 addb_20 : SubstMorph (PolyCatTest.u_byte !* SUNat 20) (SUNat 20)
 addb_20 = suAdd {n=20} <!
@@ -1172,16 +1175,13 @@ addb_20_eval :
 addb_20_eval m n = addb_20 <! SMPair m n
 
 l1_1_fold_add : SOTerm (SUNat 20)
-l1_1_fold_add =
-  sListEvalCata {n=1} {a=u_byte} {x=(SUNat 20)} (MkSUNat {m=20} 0) addb_20 l1_1
+l1_1_fold_add = sumlist_20 {k=1} <! l1_1
 
 l3_3_fold_add : SOTerm (SUNat 20)
-l3_3_fold_add =
-  sListEvalCata {n=3} {a=u_byte} {x=(SUNat 20)} (MkSUNat {m=20} 0) addb_20 l3_3
+l3_3_fold_add = sumlist_20 {k=3} <! l3_3
 
 l5_5_fold_add : SOTerm (SUNat 20)
-l5_5_fold_add =
-  sListEvalCata {n=5} {a=u_byte} {x=(SUNat 20)} (MkSUNat {m=20} 0) addb_20 l5_5
+l5_5_fold_add = sumlist_20 {k=5} <! l5_5
 
 ----------------------------------
 ----------------------------------
@@ -1562,6 +1562,9 @@ polyCatTest = do
   putStrLn $ "3+4 as b10: " ++
     show (substTermToNat
       (suAddUnrolled {k=10} <! SMPair (MkSUNat {m=10} 3) (MkSUNat {m=10} 4)))
+  putStrLn $ "sum [1] = " ++ show (substTermToNat l1_1_fold_add)
+  putStrLn $ "sum [1, 2, 3] = " ++ show (substTermToNat l3_3_fold_add)
+  putStrLn $ "sum [1, 2, 3, 4, 5] = " ++ show (substTermToNat l5_5_fold_add)
   putStrLn ""
   putStrLn "----------------"
   putStrLn "End polyCatTest."
