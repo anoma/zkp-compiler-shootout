@@ -1447,8 +1447,6 @@ polyCatTest = do
   putStrLn $ "bnat4chi: " ++ show bnat4chi
   putStrLn $ "bnat4chi as Nat: " ++ show (substObjToNat bnat4chi)
   putStrLn $ "bnat4chi in metalanguage: " ++ show (metaSOShowType bnat4chi)
-  putStrLn $ "bnat4_bit_2 as morphism: " ++ showSubstMorph bnat4_bit_2
-  putStrLn $ "bnat4_bit_2's Gödel number: " ++ show bnat4_bit_2_gn
   putStrLn $ "lowest-numbered morphism in bnat4chi: " ++
     showMaybeSubstMorph bnat4chi_gn_0
   putStrLn $ "highest-numbered morphism in bnat4chi: " ++
@@ -1463,6 +1461,12 @@ polyCatTest = do
     show (substTermToNat $ bnat4_bit_2 <! bnat4_2)
   putStrLn $ "bit 2 of bnat_2 as poly func: " ++
     show (substMorphToBNC $ bnat4_bit_2 <! bnat4_2)
+  putStrLn $ "bnat4_bit_2 as morphism: " ++ showSubstMorph bnat4_bit_2
+  putStrLn $ "bnat4_bit_2's Gödel number: " ++ show bnat4_bit_2_gn
+  putStrLn $ "bit 2 of bnat4_15 via term: " ++
+    show (substTermToNat $ MorphToTermAndBack bnat4_bit_2 <! bnat4_15)
+  putStrLn $ "bit 2 of bnat4_2 via term: " ++
+    show (substTermToNat $ MorphToTermAndBack bnat4_bit_2 <! bnat4_2)
   putStrLn ""
   putStrLn "----------------"
   putStrLn "End polyCatTest."
