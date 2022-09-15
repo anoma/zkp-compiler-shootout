@@ -1122,6 +1122,13 @@ bnat4chi_gn_65536 = substGNumToMorph bnat4 SubstBool 65536
 u_byte : SubstObjMu
 u_byte = SUNat 8
 
+unat_b : (n : Nat) -> {auto lt : IsYesTrue (isLT n 8)} ->
+  SOTerm PolyCatTest.u_byte
+unat_b n {lt} = MkSUNat {m=8} {lt} n
+
+unat_20 : (n : Nat) -> {auto lt : IsYesTrue (isLT n 20)} -> SOTerm (SUNat 20)
+unat_20 n {lt} = MkSUNat {m=20} {lt} n
+
 -- An up-to-length-5 list of (unary) bytes.
 list_depth_5 : SubstObjMu
 list_depth_5 = SList 5 u_byte
@@ -1155,6 +1162,10 @@ addb_20 = suAdd {n=20} <!
   SMPair
     (suPromoteN {m=8} {n=20} <! SMProjLeft _ _)
     (SMProjRight _ _)
+
+addb_20_eval :
+  SOTerm (PolyCatTest.u_byte) -> (SOTerm (SUNat 20)) -> (SOTerm (SUNat 20))
+addb_20_eval m n = addb_20 <! SMPair m n
 
 l1_1_fold_add : SOTerm (SUNat 20)
 l1_1_fold_add =
