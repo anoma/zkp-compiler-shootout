@@ -1013,46 +1013,110 @@ unat7 : SubstObjMu
 unat7 = SUNat 7
 
 -- Four-bit binary natural numbers.
-bnat3 : SubstObjMu
-bnat3 = SBNat 3
+bnat4 : SubstObjMu
+bnat4 = SBNat 4
 
--- 0 as a term of bnat3.
-bnat3_0 : SOTerm PolyCatTest.bnat3
-bnat3_0 =
+-- 0 as a term of bnat4.
+bnat4_0 : SOTerm PolyCatTest.bnat4
+bnat4_0 =
   SMPair (SMInjLeft Subst1 Subst1) $ SMPair (SMInjLeft Subst1 Subst1) $
     SMPair (SMInjLeft Subst1 Subst1) (SMInjLeft Subst1 Subst1)
 
--- 1 as a term of bnat3.
-bnat3_1 : SOTerm PolyCatTest.bnat3
-bnat3_1 =
+-- 1 as a term of bnat4.
+bnat4_1 : SOTerm PolyCatTest.bnat4
+bnat4_1 =
   SMPair (SMInjLeft Subst1 Subst1) $ SMPair (SMInjLeft Subst1 Subst1) $
     SMPair (SMInjLeft Subst1 Subst1) (SMInjRight Subst1 Subst1)
 
--- 2 as a term of bnat3.
-bnat3_2 : SOTerm PolyCatTest.bnat3
-bnat3_2 =
+-- 2 as a term of bnat4.
+bnat4_2 : SOTerm PolyCatTest.bnat4
+bnat4_2 =
   SMPair (SMInjLeft Subst1 Subst1) $ SMPair (SMInjLeft Subst1 Subst1) $
     SMPair (SMInjRight Subst1 Subst1) (SMInjLeft Subst1 Subst1)
 
--- 15 as a term of bnat3.
-bnat3_15 : SOTerm PolyCatTest.bnat3
-bnat3_15 =
+-- 15 as a term of bnat4.
+bnat4_15 : SOTerm PolyCatTest.bnat4
+bnat4_15 =
   SMPair (SMInjRight Subst1 Subst1) $ SMPair (SMInjRight Subst1 Subst1) $
     SMPair (SMInjRight Subst1 Subst1) (SMInjRight Subst1 Subst1)
 
--- Mappings from bnat3 to bool (which are characteristic functions of
--- subsets of bnat3).
-bnat3_to_bool : Type
-bnat3_to_bool = SubstMorph bnat3 SubstBool
+-- Mappings from bnat4 to bool (which are characteristic functions of
+-- subsets of bnat4).
+bnat4_to_bool : Type
+bnat4_to_bool = SubstMorph bnat4 SubstBool
 
--- The exponential object representing mappings from bnat3 to bool (which
--- are characteristic functions of subsets of bnat3).
-bnat3chi : SubstObjMu
-bnat3chi = bnat3 !-> SubstBool
+-- Extract bit2 from bnat4 (its second-most-significant bit).
+bnat4_bit_2 : PolyCatTest.bnat4_to_bool
+bnat4_bit_2 = SMCase SFalse STrue <! SMProjLeft _ _ <! SMProjRight _ _
 
--- Extract bit2 from bnat3 (its second-most-significant bit).
-bnat3_bit_2 : PolyCatTest.bnat3_to_bool
-bnat3_bit_2 = SMCase SFalse STrue <! SMProjLeft _ _ <! SMProjRight _ _
+-- The exponential object representing functions from Bool to Bool.
+boolToBool : SubstObjMu
+boolToBool = SubstHomObj SubstBool SubstBool
+
+b2bid : SubstMorph SubstBool SubstBool
+b2bid = SMId SubstBool
+
+b2bidTerm : HomTerm SubstBool SubstBool
+b2bidTerm = MorphAsTerm b2bid
+
+b2bid_eval_t : SOTerm SubstBool
+b2bid_eval_t = soEval _ _ <! SMPair b2bidTerm STrue
+
+b2bid_eval_f : SOTerm SubstBool
+b2bid_eval_f = soEval _ _ <! SMPair b2bidTerm SFalse
+
+b2bid_gn : Nat
+b2bid_gn = substMorphToGNum b2bid
+
+b2bnot : SubstMorph SubstBool SubstBool
+b2bnot = SNot
+
+b2bnot_gn : Nat
+b2bnot_gn = substMorphToGNum b2bnot
+
+b2bnotnot : SubstMorph SubstBool SubstBool
+b2bnotnot = SNot <! SNot
+
+b2bnotnotTerm : HomTerm SubstBool SubstBool
+b2bnotnotTerm = MorphAsTerm b2bnotnot
+
+b2bnotnot_eval_t : SOTerm SubstBool
+b2bnotnot_eval_t = soEval _ _ <! SMPair b2bnotnotTerm STrue
+
+b2bnotnot_eval_f : SOTerm SubstBool
+b2bnotnot_eval_f = soEval _ _ <! SMPair b2bnotnotTerm SFalse
+
+b2bnotnot_gn : Nat
+b2bnotnot_gn = substMorphToGNum b2bnotnot
+
+b2btrue : SubstMorph SubstBool SubstBool
+b2btrue = soConst {x=SubstBool} STrue
+
+b2btrue_gn : Nat
+b2btrue_gn = substMorphToGNum b2btrue
+
+b2bfalse : SubstMorph SubstBool SubstBool
+b2bfalse = soConst {x=SubstBool} SFalse
+
+b2bfalse_gn : Nat
+b2bfalse_gn = substMorphToGNum b2bfalse
+
+-- The exponential object representing mappings from bnat4 to bool (which
+-- are characteristic functions of subsets of bnat4).
+bnat4chi : SubstObjMu
+bnat4chi = bnat4 !-> SubstBool
+
+bnat4_bit_2_gn : Nat
+bnat4_bit_2_gn = substMorphToGNum bnat4_bit_2
+
+bnat4chi_gn_0 : Maybe PolyCatTest.bnat4_to_bool
+bnat4chi_gn_0 = substGNumToMorph bnat4 SubstBool 0
+
+bnat4chi_gn_65535 : Maybe PolyCatTest.bnat4_to_bool
+bnat4chi_gn_65535 = substGNumToMorph bnat4 SubstBool 65535
+
+bnat4chi_gn_65536 : Maybe PolyCatTest.bnat4_to_bool
+bnat4chi_gn_65536 = substGNumToMorph bnat4 SubstBool 65536
 
 ----------------------------------
 ----------------------------------
@@ -1265,32 +1329,140 @@ polyCatTest = do
   putStrLn $ "unat7: " ++ show unat7
   putStrLn $ "unat7 as Nat: " ++ show (substObjToNat unat7)
   putStrLn $ "unat7 in metalanguage: " ++ show (metaSOShowType unat7)
-  putStrLn $ "bnat3: " ++ show bnat3
-  putStrLn $ "bnat3 as Nat: " ++ show (substObjToNat bnat3)
-  putStrLn $ "bnat3 in metalanguage: " ++ show (metaSOShowType bnat3)
-  putStrLn $ "bnat3chi: " ++ show bnat3chi
-  putStrLn $ "bnat3chi as Nat: " ++ show (substObjToNat bnat3chi)
-  putStrLn $ "bnat3chi in metalanguage: " ++ show (metaSOShowType bnat3chi)
-  putStrLn $ "bnat3_0: " ++ showSubstMorph bnat3_0
-  putStrLn $ "bnat3_0 as Nat: " ++ show (substTermToInt bnat3_0)
-  putStrLn $ "bnat3_0 as poly func: " ++ show (substMorphToBNC bnat3_0)
-  putStrLn $ "bnat3_1: " ++ showSubstMorph bnat3_1
-  putStrLn $ "bnat3_1 as Nat: " ++ show (substTermToInt bnat3_1)
-  putStrLn $ "bnat3_1 as poly func: " ++ show (substMorphToBNC bnat3_1)
-  putStrLn $ "bnat3_2: " ++ showSubstMorph bnat3_2
-  putStrLn $ "bnat3_2 as Nat: " ++ show (substTermToInt bnat3_2)
-  putStrLn $ "bnat3_2 as poly func: " ++ show (substMorphToBNC bnat3_2)
-  putStrLn $ "bnat3_15: " ++ showSubstMorph bnat3_15
-  putStrLn $ "bnat3_15 as Nat: " ++ show (substTermToInt bnat3_15)
-  putStrLn $ "bnat3_15 as poly func: " ++ show (substMorphToBNC bnat3_15)
-  putStrLn $ "bit 2 of bnat3_15: " ++
-    show (substTermToInt $ bnat3_bit_2 <! bnat3_15)
-  putStrLn $ "bit 2 of bnat3_15 as poly func: " ++
-    show (substMorphToBNC $ bnat3_bit_2 <! bnat3_15)
-  putStrLn $ "bit 2 of bnat3_2: " ++
-    show (substTermToInt $ bnat3_bit_2 <! bnat3_2)
+  putStrLn $ "bnat4: " ++ show bnat4
+  putStrLn $ "bnat4 as Nat: " ++ show (substObjToNat bnat4)
+  putStrLn $ "bnat4 in metalanguage: " ++ show (metaSOShowType bnat4)
+  putStrLn $ "bnat4_0: " ++ showSubstMorph bnat4_0
+  putStrLn $ "bnat4_0 as Nat: " ++ show (substTermToNat bnat4_0)
+  putStrLn $ "bnat4_0 as poly func: " ++ show (substMorphToBNC bnat4_0)
+  putStrLn $ "bnat4_1: " ++ showSubstMorph bnat4_1
+  putStrLn $ "bnat4_1 as Nat: " ++ show (substTermToNat bnat4_1)
+  putStrLn $ "bnat4_1 as poly func: " ++ show (substMorphToBNC bnat4_1)
+  putStrLn $ "bnat4_2: " ++ showSubstMorph bnat4_2
+  putStrLn $ "bnat4_2 as Nat: " ++ show (substTermToNat bnat4_2)
+  putStrLn $ "bnat4_2 as poly func: " ++ show (substMorphToBNC bnat4_2)
+  putStrLn $ "bnat4_15: " ++ showSubstMorph bnat4_15
+  putStrLn $ "bnat4_15 as Nat: " ++ show (substTermToNat bnat4_15)
+  putStrLn $ "bnat4_15 as poly func: " ++ show (substMorphToBNC bnat4_15)
+  putStrLn $ "bit 2 of bnat4_15: " ++
+    show (substTermToNat $ bnat4_bit_2 <! bnat4_15)
+  putStrLn $ "bit 2 of bnat4_15 as poly func: " ++
+    show (substMorphToBNC $ bnat4_bit_2 <! bnat4_15)
+  putStrLn $ "bit 2 of bnat4_2: " ++
+    show (substTermToNat $ bnat4_bit_2 <! bnat4_2)
   putStrLn $ "bit 2 of bnat_2 as poly func: " ++
-    show (substMorphToBNC $ bnat3_bit_2 <! bnat3_2)
+    show (substMorphToBNC $ bnat4_bit_2 <! bnat4_2)
+  putStrLn $ "bnat4chi: " ++ show bnat4chi
+  putStrLn $ "bnat4chi as Nat: " ++ show (substObjToNat bnat4chi)
+  putStrLn $ "bnat4chi in metalanguage: " ++ show (metaSOShowType bnat4chi)
+  putStrLn $ "bnat4_bit_2 as morphism: " ++ showSubstMorph bnat4_bit_2
+  putStrLn $ "bnat4_bit_2's Gödel number: " ++ show bnat4_bit_2_gn
+  putStrLn $ "lowest-numbered morphism in bnat4chi: " ++
+    showMaybeSubstMorph bnat4chi_gn_0
+  putStrLn $ "highest-numbered morphism in bnat4chi: " ++
+    showMaybeSubstMorph bnat4chi_gn_65535
+  putStrLn $ "beyond-highest-numbered morphism in bnat4chi: " ++
+    showMaybeSubstMorph bnat4chi_gn_65536
+  putStrLn $ "boolToBool as Nat: " ++ show (substObjToNat boolToBool)
+  putStrLn $ "id(boolToBool) as morph: " ++ showSubstMorph b2bid
+  putStrLn $ "not(boolToBool) as morph: " ++ showSubstMorph b2bnot
+  putStrLn $ "true(boolToBool) as morph: " ++ showSubstMorph b2btrue
+  putStrLn $ "false(boolToBool) as morph: " ++ showSubstMorph b2bfalse
+  putStrLn $ "id(boolToBool) as term: " ++
+    showSubstMorph (MorphAsTerm b2bid)
+  putStrLn $ "not(boolToBool) as term: " ++
+    showSubstMorph (MorphAsTerm b2bnot)
+  putStrLn $ "true(boolToBool) as term: " ++
+    showSubstMorph (MorphAsTerm b2btrue)
+  putStrLn $ "false(boolToBool) as term: " ++
+    showSubstMorph (MorphAsTerm b2bfalse)
+  putStrLn $ "term(id(boolToBool)) back to morph: " ++
+    showSubstMorph (MorphToTermAndBack b2bid)
+  putStrLn $ "term(not(boolToBool)) back to morph: " ++
+    showSubstMorph (MorphToTermAndBack b2bnot)
+  putStrLn $ "term(true(boolToBool)) back to morph: " ++
+    showSubstMorph (MorphToTermAndBack b2btrue)
+  putStrLn $ "term(false(boolToBool)) back to morph: " ++
+    showSubstMorph (MorphToTermAndBack b2bfalse)
+  putStrLn $ "id(boolToBool)'s Gödel number: " ++ show b2bid_gn
+  putStrLn $ "backandforth(id(boolToBool))'s Gödel number: " ++
+    show (substMorphToGNum (MorphToTermAndBack b2bid))
+  putStrLn $ "not(boolToBool)'s Gödel number: " ++ show b2bnot_gn
+  putStrLn $ "notnot(boolToBool)'s Gödel number: " ++ show b2bnotnot_gn
+  putStrLn $ "true(boolToBool)'s Gödel number: " ++ show b2btrue_gn
+  putStrLn $ "false(boolToBool)'s Gödel number: " ++ show b2bfalse_gn
+  putStrLn $ "0 morphism in boolToBool: " ++
+    showMaybeSubstMorph (substGNumToMorph SubstBool SubstBool 0)
+  putStrLn $ "1 morphism in boolToBool: " ++
+    showMaybeSubstMorph (substGNumToMorph SubstBool SubstBool 1)
+  putStrLn $ "2 morphism in boolToBool: " ++
+    showMaybeSubstMorph (substGNumToMorph SubstBool SubstBool 2)
+  putStrLn $ "3 morphism in boolToBool: " ++
+    showMaybeSubstMorph (substGNumToMorph SubstBool SubstBool 3)
+  putStrLn $ "4 morphism in boolToBool: " ++
+    showMaybeSubstMorph (substGNumToMorph SubstBool SubstBool 4)
+  putStrLn $ "5 morphism in boolToBool: " ++
+    showMaybeSubstMorph (substGNumToMorph SubstBool SubstBool 5)
+  putStrLn $ "true as nat: " ++ show (substTermToNat STrue)
+  putStrLn $ "false as nat: " ++ show (substTermToNat SFalse)
+  putStrLn $ "not(true) as nat: " ++ show (substTermToNat (b2bnot <! STrue))
+  putStrLn $ "not(false) as nat: " ++ show (substTermToNat (b2bnot <! SFalse))
+  putStrLn $ "id(true) as nat: " ++ show (substTermToNat (b2bid <! STrue))
+  putStrLn $ "id(false) as nat: " ++ show (substTermToNat (b2bid <! SFalse))
+  putStrLn $ "notnot(true) as nat: " ++
+    show (substTermToNat (b2bnotnot <! STrue))
+  putStrLn $ "notnot(false) as nat: " ++
+    show (substTermToNat (b2bnotnot <! SFalse))
+  putStrLn $ "backandforth(not(true)) as nat: " ++
+    show (substTermToNat (MorphToTermAndBack b2bnot <! STrue))
+  putStrLn $ "backandforth(not(false)) as nat: " ++
+    show (substTermToNat (MorphToTermAndBack b2bnot <! SFalse))
+  putStrLn $ "backandforth(id(true)) as nat: " ++
+    show (substTermToNat (MorphToTermAndBack b2bid <! STrue))
+  putStrLn $ "backandforth(id(false)) as nat: " ++
+    show (substTermToNat (MorphToTermAndBack b2bid <! SFalse))
+  putStrLn $ "backandforth(true(true)) as nat: " ++
+    show (substTermToNat (MorphToTermAndBack b2btrue <! STrue))
+  putStrLn $ "backandforth(true(false)) as nat: " ++
+    show (substTermToNat (MorphToTermAndBack b2btrue <! SFalse))
+  putStrLn $ "backandforth(false(true)) as nat: " ++
+    show (substTermToNat (MorphToTermAndBack b2bfalse <! STrue))
+  putStrLn $ "backandforth(false(false)) as nat: " ++
+    show (substTermToNat (MorphToTermAndBack b2bfalse <! SFalse))
+  putStrLn $ "eval(notnot(true)) = " ++
+    show (substTermToNat b2bnotnot_eval_t)
+  putStrLn $ "eval(notnot(false)) = " ++
+    show (substTermToNat b2bnotnot_eval_f)
+  putStrLn $ "eval(id(true)) = " ++
+    show (substTermToNat b2bid_eval_t)
+  putStrLn $ "eval(id(false)) = " ++
+    show (substTermToNat b2bid_eval_f)
+  putStrLn $ "bool->bool as object: " ++ show (SubstHomObj SubstBool SubstBool)
+  putStrLn $ "eval (f->f t->f) x false = " ++
+    show (substTermToNat (soEval SubstBool SubstBool <!
+      SMPair (SMPair (SMInjLeft _ _) (SMInjLeft _ _)) SFalse))
+  putStrLn $ "eval (f->f t->f) x true = " ++
+    show (substTermToNat (soEval SubstBool SubstBool <!
+      SMPair (SMPair (SMInjLeft _ _) (SMInjLeft _ _)) STrue))
+  putStrLn $ "eval (f->f t->t) x false = " ++
+    show (substTermToNat (soEval SubstBool SubstBool <!
+      SMPair (SMPair (SMInjLeft _ _) (SMInjRight _ _)) SFalse))
+  putStrLn $ "eval (f->f t->t) x true = " ++
+    show (substTermToNat (soEval SubstBool SubstBool <!
+      SMPair (SMPair (SMInjLeft _ _) (SMInjRight _ _)) STrue))
+  putStrLn $ "eval (f->t t->f) x false = " ++
+    show (substTermToNat (soEval SubstBool SubstBool <!
+      SMPair (SMPair (SMInjRight _ _) (SMInjLeft _ _)) SFalse))
+  putStrLn $ "eval (f->t t->f) x true = " ++
+    show (substTermToNat (soEval SubstBool SubstBool <!
+      SMPair (SMPair (SMInjRight _ _) (SMInjLeft _ _)) STrue))
+  putStrLn $ "eval (f->t t->t) x false = " ++
+    show (substTermToNat (soEval SubstBool SubstBool <!
+      SMPair (SMPair (SMInjRight _ _) (SMInjRight _ _)) SFalse))
+  putStrLn $ "eval (f->t t->t) x true = " ++
+    show (substTermToNat (soEval SubstBool SubstBool <!
+      SMPair (SMPair (SMInjRight _ _) (SMInjRight _ _)) STrue))
+  putStrLn $ "eval bool->bool: " ++ showSubstMorph (soEval SubstBool SubstBool)
   putStrLn ""
   putStrLn "----------------"
   putStrLn "End polyCatTest."

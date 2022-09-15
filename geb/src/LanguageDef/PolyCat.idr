@@ -3943,6 +3943,16 @@ soProdCommutesLeft : {x, y, z : SubstObjMu} ->
 soProdCommutesLeft f = f <! soProdCommutes y x
 
 public export
+soProdDistribRight :
+  (x, y, z : SubstObjMu) -> SubstMorph ((y !+ z) !* x) ((y !* x) !+ (z !* x))
+soProdDistribRight x y z =
+  soProdCommutesLeft
+    (SMCase
+      (soProdCommutesLeft (SMInjLeft _ _))
+      (soProdCommutesLeft (SMInjRight _ _))
+     <! SMDistrib _ _ _)
+
+public export
 soProdCommutesRight : {x, y, z : SubstObjMu} ->
   SubstMorph x (y !* z) -> SubstMorph x (z !* y)
 soProdCommutesRight f = soProdCommutes y z <! f
@@ -4069,11 +4079,10 @@ soEval : (x, y : SubstObjMu) ->
 soEval (InSO SO0) y = SMFromInit y <! SMProjRight Subst1 Subst0
 soEval (InSO SO1) y = SMProjLeft y Subst1
 soEval (InSO (x !!+ y)) z =
-  SMCase (soEval x z) (soEval y z) <!
-    SMCase
-      (SMInjLeft _ _ <! soForgetMiddle _ _ _)
-      (SMInjRight _ _ <! soForgetFirst _ _ _)
-    <! SMDistrib _ _ _
+  SMCase
+    (soEval x z <! soForgetMiddle _ _ _)
+    (soEval y z <! soForgetFirst _ _ _)
+  <! SMDistrib _ _ _
 soEval (InSO (x !!* y)) z =
   let
     eyz = soEval y z
@@ -4109,6 +4118,18 @@ public export
 soPartialApp : {w, x, y, z : SubstObjMu} ->
   SubstMorph (x !* y) z -> SubstMorph w x -> SubstMorph (w !* y) z
 soPartialApp g f = soUncurry $ soCurry g <! f
+
+public export
+covarYonedaEmbed : {a, b : SubstObjMu} ->
+  SubstMorph b a -> (x : SubstObjMu) -> SubstMorph (a !-> x) (b !-> x)
+covarYonedaEmbed {a} {b} f x =
+  soCurry (soEval a x <! SMPair (SMProjLeft _ _) (f <! SMProjRight _ _))
+
+public export
+contravarYonedaEmbed : {a, b : SubstObjMu} ->
+  SubstMorph a b -> (x : SubstObjMu) -> SubstMorph (x !-> a) (x !-> b)
+contravarYonedaEmbed {a} {b} f x =
+  soCurry (f <! soEval x a)
 
 public export
 soSubst : {x, y, z : SubstObjMu} ->
@@ -4179,18 +4200,6 @@ public export
 MorphAsTerm : {x, y : SubstObjMu} -> SubstMorph x y -> HomTerm x y
 MorphAsTerm {x} {y} f = soCurry {x=Subst1} {y=x} {z=y} $ soProdLeftIntro f
 
-public export
-covarYonedaEmbed : {a, b : SubstObjMu} ->
-  SubstMorph b a -> (x : SubstObjMu) -> SubstMorph (a !-> x) (b !-> x)
-covarYonedaEmbed {a} {b} f x =
-  soCurry (soEval a x <! SMPair (SMProjLeft _ _) (f <! SMProjRight _ _))
-
-public export
-contravarYonedaEmbed : {a, b : SubstObjMu} ->
-  SubstMorph a b -> (x : SubstObjMu) -> SubstMorph (x !-> a) (x !-> b)
-contravarYonedaEmbed {a} {b} f x =
-  soCurry (f <! soEval x a)
-
 ----------------------------------------------------------------------------
 ---- Homoiconicity: SubstMorph reflected into the substitutive category ----
 ----------------------------------------------------------------------------
@@ -4209,7 +4218,7 @@ IdTerm x = soReflectedId {x=Subst1} {y=x}
 
 public export
 soReflectedFromInit : (x, y : SubstObjMu) -> SubstMorph x (Subst0 !-> y)
-soReflectedFromInit x y = soConst $ SMToTerminal _
+soReflectedFromInit x y = soConst $ SMId Subst1
 
 public export
 soReflectedToTerminal : (x, y : SubstObjMu) -> SubstMorph x (y !-> Subst1)
@@ -4375,6 +4384,26 @@ STrue : SOTerm SubstBool
 STrue = SMInjRight _ _
 
 public export
+SNot : SubstMorph SubstBool SubstBool
+SNot = SMCase (SMInjRight _ _) (SMInjLeft _ _)
+
+public export
+SHigherAnd : SubstMorph SubstBool (SubstBool !-> SubstBool)
+SHigherAnd = SMPair (SMId SubstBool) (soConst $ SMInjRight _ _)
+
+public export
+SHigherOr : SubstMorph SubstBool (SubstBool !-> SubstBool)
+SHigherOr = SMPair (soConst $ SMInjLeft _ _) (SMId SubstBool)
+
+public export
+SAnd : SubstMorph (SubstBool !* SubstBool) SubstBool
+SAnd = soUncurry SHigherAnd
+
+public export
+SOr : SubstMorph (SubstBool !* SubstBool) SubstBool
+SOr = soUncurry SHigherOr
+
+public export
 SIfElse : {x : SubstObjMu} ->
   SOTerm SubstBool -> SOTerm x -> SOTerm x -> SOTerm x
 SIfElse {x} b t f =
@@ -4385,6 +4414,37 @@ SHigherIfElse : {x, y : SubstObjMu} ->
   SubstMorph x SubstBool -> SubstMorph x y -> SubstMorph x y -> SubstMorph x y
 SHigherIfElse {x} {y} b t f =
   soEval x y <! SMPair (SMCase (MorphAsTerm t) (MorphAsTerm f) <! b) (SMId x)
+
+public export
+SEqual : (x : SubstObjMu) -> SubstMorph (x !* x) SubstBool
+SEqual (InSO SO0) = SMFromInit _ <! SMProjLeft _ _
+SEqual (InSO SO1) = soConst $ SMInjLeft _ _
+SEqual (InSO (x !!+ y)) =
+  SMCase
+    (SMCase (SEqual x) (soConst $ SMInjRight _ _) <! soProdDistribRight _ _ _)
+    (SMCase (soConst $ SMInjRight _ _) (SEqual y) <! soProdDistribRight _ _ _)
+  <! SMDistrib _ _ _
+SEqual (InSO (x !!* y)) =
+  SAnd <!
+    SMPair
+      (SEqual x <! SMPair
+        (SMProjLeft _ _ <! SMProjLeft _ _)
+        (SMProjLeft _ _ <! SMProjRight _ _))
+      (SEqual y <! SMPair
+        (SMProjRight _ _ <! SMProjLeft _ _)
+        (SMProjRight _ _ <! SMProjRight _ _))
+
+public export
+SEqualF : {x, y : SubstObjMu} -> (f, g : SubstMorph x y) ->
+  SubstMorph x SubstBool
+SEqualF {x} {y} f g = SEqual y <! SMPair f g
+
+public export
+SIfEqual : {x, y, z : SubstObjMu} ->
+  (test, test' : SubstMorph x y) -> (ftrue, ffalse : SubstMorph x z) ->
+  SubstMorph x z
+SIfEqual {x} {y} {z} test test' ftrue ffalse =
+  SHigherIfElse {x} {y=z} (SEqualF {x} {y} test test') ftrue ffalse
 
 ---------------
 ---- Maybe ----
@@ -4403,7 +4463,7 @@ public export
 SUNat : Nat -> SubstObjMu
 SUNat Z = Subst0
 SUNat (S Z) = Subst1
-SUNat (S (S n)) = Subst1 !+ SUNat (S n)
+SUNat (S (S n)) = SMaybe $ SUNat (S n)
 
 public export
 MkSUNat : {m : Nat} -> (n : Nat) -> {x : SubstObjMu} ->
@@ -4491,11 +4551,40 @@ suPow = soFlip suRaiseTo
 ---- Binary natural numbers ----
 --------------------------------
 
--- `n+1`-bit natural numbers.
+-- `n`-bit natural numbers.
 public export
 SBNat : Nat -> SubstObjMu
-SBNat Z = SubstBool
-SBNat (S n) = SubstBool !* SBNat n
+SBNat Z = Subst1
+SBNat (S Z) = SubstBool
+SBNat (S (S n)) = SubstBool !* SBNat (S n)
+
+---------------
+---- Lists ----
+---------------
+
+public export
+SList : Nat -> SubstObjMu -> SubstObjMu
+SList Z x = Subst1
+SList (S n) x = SList n x !+ (x !*^ S n)
+
+----------------------
+---- Binary trees ----
+----------------------
+
+public export
+SBinTree : Nat -> SubstObjMu -> SubstObjMu
+SBinTree Z x = Subst0
+SBinTree (S n) x = SMaybe (x !* SBinTree n x !* SBinTree n x)
+
+-----------------------
+---- S-expressions ----
+-----------------------
+
+public export
+SSExp : Nat -> SubstObjMu -> SubstObjMu
+SSExp Z x = Subst0
+SSExp (S Z) x = x -- atom
+SSExp (S (S n)) x = SSExp (S n) x !+ (SSExp (S n) x !* (SSExp (S n) x))
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
@@ -5595,19 +5684,36 @@ substMorphToBNC (SMCase {x} {y} {z} f g) with (substObjToNat x)
 substMorphToBNC (SMPair {x} {y} {z} f g) with (substObjToNat y, substObjToNat z)
   substMorphToBNC (SMPair {x} {y} {z} f g) | (cy, cz) =
     #| cz #* substMorphToBNC f #+ substMorphToBNC g
-substMorphToBNC (SMProjLeft x y) with (substObjToNat x, substObjToNat y)
-  substMorphToBNC (SMProjLeft x y) | (cx, cy) =
+substMorphToBNC (SMProjLeft x y) with (substObjToNat y)
+  substMorphToBNC (SMProjLeft x y) | cy =
     if cy == 0 then
       #| 0
     else
       PI #/ #| cy
-substMorphToBNC (SMProjRight x y) with (substObjToNat x, substObjToNat y)
-  substMorphToBNC (SMProjRight x y) | (cx, cy) =
+substMorphToBNC (SMProjRight x y) with (substObjToNat y)
+  substMorphToBNC (SMProjRight x y) | cy =
     if cy == 0 then
       #| 0
     else
       PI #% #| cy
-substMorphToBNC (SMDistrib x y z) = PI
+substMorphToBNC {x=(x' !* (y' !+ z'))} {y=((x' !* y') !+ (x' !* z'))}
+  (SMDistrib x' y' z') =
+    let
+      cx = substObjToNat x'
+      cy = substObjToNat y'
+      cz = substObjToNat z'
+    in
+    if cy == 0 && cz == 0 then
+      #| 0
+    else
+      let
+        yz = cy + cz
+        xin = PI #/ #| yz
+        yzin = PI #% #| yz
+      in
+      IfLT yzin (#| cy)
+        (#| cy #* xin #+ yzin)
+        (#| cz #* xin #+ (yzin #- #| cy) #+ #| (cx * cy))
 
 public export
 substMorphToFunc : {a, b : SubstObjMu} -> SubstMorph a b -> Integer -> Integer
@@ -5615,8 +5721,59 @@ substMorphToFunc {a} {b} f =
   metaBNCPolyM (natToInteger $ pred $ substObjToNat b) (substMorphToBNC f)
 
 public export
-substTermToInt : {a : SubstObjMu} -> SOTerm a -> Integer
-substTermToInt t = substMorphToFunc t 0
+substTermToNat : {a : SubstObjMu} -> SOTerm a -> Nat
+substTermToNat t = integerToNat (substMorphToFunc t 0)
+
+public export
+natToSubstTerm : (a : SubstObjMu) -> Nat -> Maybe (SOTerm a)
+natToSubstTerm (InSO SO0) n = Nothing
+natToSubstTerm (InSO SO1) n = if n == 0 then Just (SMId Subst1) else Nothing
+natToSubstTerm a@(InSO (x !!+ y)) n =
+  if n < substObjCard x then do
+    t <- natToSubstTerm x n
+    Just $ SMInjLeft x y <! t
+  else if n < substObjCard x + substObjCard y then do
+    t <- natToSubstTerm y (minus n (substObjCard x))
+    Just $ SMInjRight x y <! t
+  else
+    Nothing
+natToSubstTerm (InSO (x !!* y)) n = do
+  xn <- divMaybe n (substObjCard y)
+  yn <- modMaybe n (substObjCard y)
+  xt <- natToSubstTerm x xn
+  yt <- natToSubstTerm y yn
+  Just $ SMPair xt yt
+
+public export
+NatToSubstTerm : (a : SubstObjMu) -> (n : Nat) ->
+  {auto ok : IsJustTrue (natToSubstTerm a n)} -> SOTerm a
+NatToSubstTerm a n {ok} = fromIsJust ok
+
+public export
+substMorphToGNum : {a, b : SubstObjMu} -> SubstMorph a b -> Nat
+substMorphToGNum = substTermToNat . MorphAsTerm
+
+public export
+substGNumToMorph : (a, b : SubstObjMu) -> Nat -> Maybe (SubstMorph a b)
+substGNumToMorph a b n =
+  map {f=Maybe} TermAsMorph (natToSubstTerm (SubstHomObj a b) n)
+
+public export
+SubstGNumToMorph : (a, b : SubstObjMu) -> (n : Nat) ->
+  {auto ok : IsJustTrue (substGNumToMorph a b n)} -> SubstMorph a b
+SubstGNumToMorph a b n {ok} = fromIsJust ok
+
+public export
+showMaybeSubstMorph : {x, y : SubstObjMu} -> Maybe (SubstMorph x y) -> String
+showMaybeSubstMorph = maybeElim showSubstMorph (show (Nothing {ty=()}))
+
+--------------------------------
+---- Test utility functions ----
+--------------------------------
+
+public export
+MorphToTermAndBack : {x, y : SubstObjMu} -> SubstMorph x y -> SubstMorph x y
+MorphToTermAndBack = TermAsMorph . MorphAsTerm
 
 ---------------------------------------------------
 ---------------------------------------------------
