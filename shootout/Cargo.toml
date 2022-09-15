@@ -2,7 +2,8 @@
 
 exclude = [
         "sudoku-risc0",
-        "sudoku-halo",
+        "sudoku-plonk",
+        "sudoku-halo2",
         "fib-miden",
         "fib-risc"
 ]
@@ -14,7 +15,8 @@ edition = "2021"
 
 [dependencies]
 sudoku_risc = { path = "sudoku-risc0" }
-sudoku_halo = { path = "sudoku-halo" }
+sudoku_plonk = { path = "sudoku-plonk" }
+sudoku_halo2 = { path = "sudoku-halo2" }
 fib-miden   = { path = "fib-miden"}
 fib-risc    = { path = "fib-risc"}
 criterion   = "0.3"
