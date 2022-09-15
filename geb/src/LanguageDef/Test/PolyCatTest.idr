@@ -1557,7 +1557,7 @@ polyCatTest = do
         suSuccMod {n=10} <! (MkSUNat {m=10} 3)))
   putStrLn $ "3+4 as b10: " ++
     show (substTermToNat
-      (suAddTailRec {k=10} (MkSUNat {m=10} 3) (MkSUNat {m=10} 4)))
+      (suAddUnrolled {k=10} (MkSUNat {m=10} 3) (MkSUNat {m=10} 4)))
   putStrLn ""
   putStrLn "----------------"
   putStrLn "End polyCatTest."

@@ -392,7 +392,7 @@ su1 : {n : Nat} -> {x : SubstObjMu} -> SubstMorph x (SUNat (S n))
 
 suAdd : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
 
-suAddTailRec : {k : Nat} ->
+suAddUnrolled : {k : Nat} ->
   SOTerm (SUNat k) -> SOTerm (SUNat k) -> SOTerm (SUNat k)
 
 suMul : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
@@ -418,6 +418,9 @@ sListEvalCons : {n : Nat} -> {x : SubstObjMu} ->
 
 sListCata : (n : Nat) -> (a, x : SubstObjMu) ->
   SubstMorph ((Subst1 !+ (a !* x)) !-> x) (SList n a !-> x)
+
+sListFoldUnrolled : {k : Nat} -> {a, x : SubstObjMu} ->
+  SOTerm x -> SubstMorph (a !* x) x -> SubstMorph (SList k a) x
 
 public export
 sListEvalCata : {n : Nat} -> {a, x : SubstObjMu} ->

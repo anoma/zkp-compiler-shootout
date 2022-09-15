@@ -4568,10 +4568,10 @@ suAdd {n=(S n)} = soUncurry $ suNatCata _ _ <!
   SMPair (SMId _) (soConst $ MorphAsTerm $ suSuccMod {n=(S n)})
 
 public export
-suAddTailRec : {k : Nat} ->
+suAddUnrolled : {k : Nat} ->
   SOTerm (SUNat k) -> SOTerm (SUNat k) -> SOTerm (SUNat k)
-suAddTailRec {k=Z} m n = m
-suAddTailRec {k=(S k)} m n = suNatFold {n=k} m (suSuccMod {n=(S k)}) <! n
+suAddUnrolled {k=Z} m n = m
+suAddUnrolled {k=(S k)} m n = suNatFold {n=k} m (suSuccMod {n=(S k)}) <! n
 
 public export
 suMul : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
@@ -4638,6 +4638,15 @@ sListEvalCons : {n : Nat} -> {x : SubstObjMu} ->
   SOTerm x -> SOTerm (SList n x) -> SOTerm (SList (S n) x)
 sListEvalCons {n} {x} a l = sListCons {n} {x} <! SMPair a l
 
+public export
+sListFoldUnrolled : {k : Nat} -> {a, x : SubstObjMu} ->
+  SOTerm x -> SubstMorph (a !* x) x -> SubstMorph (SList k a) x
+sListFoldUnrolled {k=Z} {a} {x} n c = n
+sListFoldUnrolled {k=(S k)} {a} {x} n c =
+  SMCase (soConst n)
+    (c <!
+      SMPair (SMProjLeft _ _) (sListFoldUnrolled {k} n c <! SMProjRight _ _))
+
 -- Catamorphism on lists.
 public export
 sListCata : (n : Nat) -> (a, x : SubstObjMu) ->
@@ -4659,10 +4668,7 @@ sListCata (S n) a x =
 public export
 sListEvalCata : {n : Nat} -> {a, x : SubstObjMu} ->
   SOTerm x -> SubstMorph (a !* x) x -> SOTerm (SList n a) -> SOTerm x
-sListEvalCata {n} {a} {x} z s t =
-  soUncurry (sListCata n a x)
-  <! SMPair (SMPair (soConst z) (soConst $ MorphAsTerm $ soCurry s)) (SMId _)
-  <! t
+sListEvalCata {n} {a} {x} z s t = sListFoldUnrolled z s <! t
 
 ----------------------
 ---- Binary trees ----
