@@ -476,11 +476,10 @@ soEval : (x, y : SubstObjMu) ->
 soEval (InSO SO0) y = SMFromInit y <! SMProjRight Subst1 Subst0
 soEval (InSO SO1) y = SMProjLeft y Subst1
 soEval (InSO (x !!+ y)) z =
-  SMCase (soEval x z) (soEval y z) <!
-    SMCase
-      (SMInjLeft _ _ <! soForgetMiddle _ _ _)
-      (SMInjRight _ _ <! soForgetFirst _ _ _)
-    <! SMDistrib _ _ _
+  SMCase
+    (soEval x z <! soForgetMiddle _ _ _)
+    (soEval y z <! soForgetFirst _ _ _)
+  <! SMDistrib _ _ _
 soEval (InSO (x !!* y)) z =
   let
     eyz = soEval y z
