@@ -227,7 +227,7 @@ SBNat (S (S n)) = SubstBool !* SBNat (S n)
 
 SList : Nat -> SubstObjMu -> SubstObjMu
 SList Z x = Subst1
-SList (S n) x = SBList n x !+ (x !*^ S n)
+SList (S n) x = SList n x !+ (x !* SList n x)
 
 SBinTree : Nat -> SubstObjMu -> SubstObjMu
 SBinTree Z x = Subst0
@@ -393,6 +393,9 @@ suRaiseTo : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
 
 suPow : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
 suPow = soFlip suRaiseTo
+
+sListCata : (n : Nat) -> (a, x : SubstObjMu) ->
+  SubstMorph ((Subst1 !+ (a !* x)) !-> x) (SList n a !-> x)
 ```
 
 #### Higher-order functions

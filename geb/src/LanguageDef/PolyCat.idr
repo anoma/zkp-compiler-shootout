@@ -4565,7 +4565,25 @@ SBNat (S (S n)) = SubstBool !* SBNat (S n)
 public export
 SList : Nat -> SubstObjMu -> SubstObjMu
 SList Z x = Subst1
-SList (S n) x = SList n x !+ (x !*^ S n)
+SList (S n) x = SList n x !+ (x !* SList n x)
+
+-- Catamorphism on lists.
+public export
+sListCata : (n : Nat) -> (a, x : SubstObjMu) ->
+  SubstMorph ((Subst1 !+ (a !* x)) !-> x) (SList n a !-> x)
+sListCata Z a x = SMProjLeft _ _
+sListCata (S n) a x =
+  let cataN = sListCata n a x in
+  SMPair
+    cataN
+    (soCurry $ soCurry $ soEval x x <! SMPair
+      (soEval a (SubstHomObj x x) <! SMPair
+        (SMProjRight _ _ <! SMProjLeft _ _ <! SMProjLeft _ _)
+        (SMProjRight _ _ <! SMProjLeft _ _))
+      (soEval (SList n a) x <!
+        SMPair
+          (cataN <! SMProjLeft _ _ <! SMProjLeft _ _)
+          (SMProjRight _ _)))
 
 ----------------------
 ---- Binary trees ----
