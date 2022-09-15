@@ -830,7 +830,24 @@ substMorphToBNC (SMProjRight x y) with (substObjToNat y)
       #| 0
     else
       PI #% #| cy
-substMorphToBNC (SMDistrib x y z) = PI
+substMorphToBNC {x=(x' !* (y' !+ z'))} {y=((x' !* y') !+ (x' !* z'))}
+  (SMDistrib x' y' z') =
+    let
+      cx = substObjToNat x'
+      cy = substObjToNat y'
+      cz = substObjToNat z'
+    in
+    if cy == 0 && cz == 0 then
+      #| 0
+    else
+      let
+        yz = cy + cz
+        xin = PI #/ #| yz
+        yzin = PI #% #| yz
+      in
+      IfLT yzin (#| cy)
+        (#| cy #* xin #+ yzin)
+        (#| cz #* xin #+ (yzin #- #| cy) #+ #| (cx * cy))
 ```
 
 There is a function which interprets a Geb morphism into

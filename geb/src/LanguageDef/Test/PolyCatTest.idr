@@ -1056,6 +1056,15 @@ boolToBool = SubstHomObj SubstBool SubstBool
 b2bid : SubstMorph SubstBool SubstBool
 b2bid = SMId SubstBool
 
+b2bidTerm : HomTerm SubstBool SubstBool
+b2bidTerm = MorphAsTerm b2bid
+
+b2bid_eval_t : SOTerm SubstBool
+b2bid_eval_t = soEval _ _ <! SMPair b2bidTerm STrue
+
+b2bid_eval_f : SOTerm SubstBool
+b2bid_eval_f = soEval _ _ <! SMPair b2bidTerm SFalse
+
 b2bid_gn : Nat
 b2bid_gn = substMorphToGNum b2bid
 
@@ -1424,6 +1433,36 @@ polyCatTest = do
     show (substTermToNat b2bnotnot_eval_t)
   putStrLn $ "eval(notnot(false)) = " ++
     show (substTermToNat b2bnotnot_eval_f)
+  putStrLn $ "eval(id(true)) = " ++
+    show (substTermToNat b2bid_eval_t)
+  putStrLn $ "eval(id(false)) = " ++
+    show (substTermToNat b2bid_eval_f)
+  putStrLn $ "bool->bool as object: " ++ show (SubstHomObj SubstBool SubstBool)
+  putStrLn $ "eval (f->f t->f) x false = " ++
+    show (substTermToNat (soEval SubstBool SubstBool <!
+      SMPair (SMPair (SMInjLeft _ _) (SMInjLeft _ _)) SFalse))
+  putStrLn $ "eval (f->f t->f) x true = " ++
+    show (substTermToNat (soEval SubstBool SubstBool <!
+      SMPair (SMPair (SMInjLeft _ _) (SMInjLeft _ _)) STrue))
+  putStrLn $ "eval (f->f t->t) x false = " ++
+    show (substTermToNat (soEval SubstBool SubstBool <!
+      SMPair (SMPair (SMInjLeft _ _) (SMInjRight _ _)) SFalse))
+  putStrLn $ "eval (f->f t->t) x true = " ++
+    show (substTermToNat (soEval SubstBool SubstBool <!
+      SMPair (SMPair (SMInjLeft _ _) (SMInjRight _ _)) STrue))
+  putStrLn $ "eval (f->t t->f) x false = " ++
+    show (substTermToNat (soEval SubstBool SubstBool <!
+      SMPair (SMPair (SMInjRight _ _) (SMInjLeft _ _)) SFalse))
+  putStrLn $ "eval (f->t t->f) x true = " ++
+    show (substTermToNat (soEval SubstBool SubstBool <!
+      SMPair (SMPair (SMInjRight _ _) (SMInjLeft _ _)) STrue))
+  putStrLn $ "eval (f->t t->t) x false = " ++
+    show (substTermToNat (soEval SubstBool SubstBool <!
+      SMPair (SMPair (SMInjRight _ _) (SMInjRight _ _)) SFalse))
+  putStrLn $ "eval (f->t t->t) x true = " ++
+    show (substTermToNat (soEval SubstBool SubstBool <!
+      SMPair (SMPair (SMInjRight _ _) (SMInjRight _ _)) STrue))
+  putStrLn $ "eval bool->bool: " ++ showSubstMorph (soEval SubstBool SubstBool)
   putStrLn ""
   putStrLn "----------------"
   putStrLn "End polyCatTest."
