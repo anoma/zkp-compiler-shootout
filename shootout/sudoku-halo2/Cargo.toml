@@ -1,0 +1,18 @@
+[workspace]
+
+[package]
+name = "sudoku-halo2"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+halo2_proofs = { git = "https://github.com/heliaxdev/halo2", branch="simon/sudoku"}
+halo2_gadgets = { git = "https://github.com/heliaxdev/halo2", branch="simon/sudoku"}
+plotters = { version = "0.3.0", optional = true }
+pasta_curves = "0.4"
+ff = "0.12"
+rand = "0.8.4"
+group = "0.12"
+lazy_static = "1"
