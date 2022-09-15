@@ -392,6 +392,9 @@ su1 : {n : Nat} -> {x : SubstObjMu} -> SubstMorph x (SUNat (S n))
 
 suAdd : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
 
+suAddTailRec : {k : Nat} ->
+  SOTerm (SUNat k) -> SOTerm (SUNat k) -> SOTerm (SUNat k)
+
 suMul : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
 
 suRaiseTo : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)

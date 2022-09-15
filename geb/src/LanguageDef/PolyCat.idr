@@ -4481,6 +4481,12 @@ MkSUNat {m=(S Z)} (S n) {lt=Refl} impossible
 MkSUNat {m=(S (S m))} (S n) {lt} =
   SMInjRight _ _ <! MkSUNat {m=(S m)} n {lt=(fromLteSuccYes lt)}
 
+public export
+suNatFold : {n : Nat} -> {x : SubstObjMu} ->
+  SOTerm x -> SubstMorph x x -> SubstMorph (SUNat (S n)) x
+suNatFold {n=Z} {x} z s = z
+suNatFold {n=(S n)} {x} z s = SMCase z $ suNatFold {n} (s <! z) s
+
 -- Catamorphism on unary natural numbers.
 public export
 suNatCata : (n : Nat) -> (x : SubstObjMu) ->
@@ -4560,6 +4566,12 @@ suAdd : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
 suAdd {n=Z} = SMFromInit _ <! SMProjLeft _ _
 suAdd {n=(S n)} = soUncurry $ suNatCata _ _ <!
   SMPair (SMId _) (soConst $ MorphAsTerm $ suSuccMod {n=(S n)})
+
+public export
+suAddTailRec : {k : Nat} ->
+  SOTerm (SUNat k) -> SOTerm (SUNat k) -> SOTerm (SUNat k)
+suAddTailRec {k=Z} m n = m
+suAddTailRec {k=(S k)} m n = suNatFold {n=k} m (suSuccMod {n=(S k)}) <! n
 
 public export
 suMul : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)

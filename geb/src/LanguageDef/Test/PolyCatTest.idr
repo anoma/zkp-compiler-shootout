@@ -1549,6 +1549,15 @@ polyCatTest = do
   putStrLn $ "1+1 as b3: " ++
     show (substTermToNat
       (suAdd {n=3} <! SMPair (MkSUNat {m=3} 1) (MkSUNat {m=3} 1)))
+  putStrLn $ "succ(3 mod 10): " ++
+    show (substTermToNat (suSuccMod {n=10} <! (MkSUNat {m=10} 3)))
+  putStrLn $ "succ(succ(succ(succ(3 mod 10)))): " ++
+    show (substTermToNat (
+        suSuccMod {n=10} <! suSuccMod {n=10} <! suSuccMod {n=10} <!
+        suSuccMod {n=10} <! (MkSUNat {m=10} 3)))
+  putStrLn $ "3+4 as b10: " ++
+    show (substTermToNat
+      (suAddTailRec {k=10} (MkSUNat {m=10} 3) (MkSUNat {m=10} 4)))
   putStrLn ""
   putStrLn "----------------"
   putStrLn "End polyCatTest."
