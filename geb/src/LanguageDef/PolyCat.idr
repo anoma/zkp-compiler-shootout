@@ -4569,9 +4569,9 @@ suAdd {n=(S n)} = soUncurry $ suNatCata _ _ <!
 
 public export
 suAddUnrolled : {k : Nat} ->
-  SOTerm (SUNat k) -> SOTerm (SUNat k) -> SOTerm (SUNat k)
-suAddUnrolled {k=Z} m n = m
-suAddUnrolled {k=(S k)} m n = suNatFold {n=k} m (suSuccMod {n=(S k)}) <! n
+  SOTerm (SUNat k) -> SubstMorph (SUNat k) (SUNat k)
+suAddUnrolled {k=Z} m = SMId Subst0
+suAddUnrolled {k=(S k)} m = suNatFold {n=k} m (suSuccMod {n=(S k)})
 
 public export
 suMul : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)

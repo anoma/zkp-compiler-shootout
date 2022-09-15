@@ -1157,6 +1157,10 @@ l4_4 = sListEvalCons {n=3} (MkSUNat {m=8} 4) l3_3
 l5_5 : SOTerm PolyCatTest.list_depth_5
 l5_5 = sListEvalCons {n=4} (MkSUNat {m=8} 5) l4_4
 
+sumlist_20 : SubstMorph (SList 5 (PolyCatTest.u_byte)) (SUNat 20)
+sumlist_20 = sListFoldUnrolled {k=5} {a=u_byte} {x=(SUNat 20)} (suZ {n=19}) $
+  ?sumlist_20_hole
+
 addb_20 : SubstMorph (PolyCatTest.u_byte !* SUNat 20) (SUNat 20)
 addb_20 = suAdd {n=20} <!
   SMPair
@@ -1557,7 +1561,7 @@ polyCatTest = do
         suSuccMod {n=10} <! (MkSUNat {m=10} 3)))
   putStrLn $ "3+4 as b10: " ++
     show (substTermToNat
-      (suAddUnrolled {k=10} (MkSUNat {m=10} 3) (MkSUNat {m=10} 4)))
+      (suAddUnrolled {k=10} (MkSUNat {m=10} 3) <! (MkSUNat {m=10} 4)))
   putStrLn ""
   putStrLn "----------------"
   putStrLn "End polyCatTest."
