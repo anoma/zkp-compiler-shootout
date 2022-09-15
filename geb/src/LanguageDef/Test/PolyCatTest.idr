@@ -1344,26 +1344,6 @@ polyCatTest = do
   putStrLn $ "bnat4_15: " ++ showSubstMorph bnat4_15
   putStrLn $ "bnat4_15 as Nat: " ++ show (substTermToNat bnat4_15)
   putStrLn $ "bnat4_15 as poly func: " ++ show (substMorphToBNC bnat4_15)
-  putStrLn $ "bit 2 of bnat4_15: " ++
-    show (substTermToNat $ bnat4_bit_2 <! bnat4_15)
-  putStrLn $ "bit 2 of bnat4_15 as poly func: " ++
-    show (substMorphToBNC $ bnat4_bit_2 <! bnat4_15)
-  putStrLn $ "bit 2 of bnat4_2: " ++
-    show (substTermToNat $ bnat4_bit_2 <! bnat4_2)
-  putStrLn $ "bit 2 of bnat_2 as poly func: " ++
-    show (substMorphToBNC $ bnat4_bit_2 <! bnat4_2)
-  putStrLn $ "bnat4chi: " ++ show bnat4chi
-  putStrLn $ "bnat4chi as Nat: " ++ show (substObjToNat bnat4chi)
-  putStrLn $ "bnat4chi in metalanguage: " ++ show (metaSOShowType bnat4chi)
-  putStrLn $ "bnat4_bit_2 as morphism: " ++ showSubstMorph bnat4_bit_2
-  putStrLn $ "bnat4_bit_2's Gödel number: " ++ show bnat4_bit_2_gn
-  putStrLn $ "lowest-numbered morphism in bnat4chi: " ++
-    showMaybeSubstMorph bnat4chi_gn_0
-  putStrLn $ "highest-numbered morphism in bnat4chi: " ++
-    showMaybeSubstMorph bnat4chi_gn_65535
-  putStrLn $ "beyond-highest-numbered morphism in bnat4chi: " ++
-    showMaybeSubstMorph bnat4chi_gn_65536
-  putStrLn $ "boolToBool as Nat: " ++ show (substObjToNat boolToBool)
   putStrLn $ "id(boolToBool) as morph: " ++ showSubstMorph b2bid
   putStrLn $ "not(boolToBool) as morph: " ++ showSubstMorph b2bnot
   putStrLn $ "true(boolToBool) as morph: " ++ showSubstMorph b2btrue
@@ -1463,6 +1443,26 @@ polyCatTest = do
     show (substTermToNat (soEval SubstBool SubstBool <!
       SMPair (SMPair (SMInjRight _ _) (SMInjRight _ _)) STrue))
   putStrLn $ "eval bool->bool: " ++ showSubstMorph (soEval SubstBool SubstBool)
+  putStrLn $ "boolToBool as Nat: " ++ show (substObjToNat boolToBool)
+  putStrLn $ "bnat4chi: " ++ show bnat4chi
+  putStrLn $ "bnat4chi as Nat: " ++ show (substObjToNat bnat4chi)
+  putStrLn $ "bnat4chi in metalanguage: " ++ show (metaSOShowType bnat4chi)
+  putStrLn $ "bnat4_bit_2 as morphism: " ++ showSubstMorph bnat4_bit_2
+  putStrLn $ "bnat4_bit_2's Gödel number: " ++ show bnat4_bit_2_gn
+  putStrLn $ "lowest-numbered morphism in bnat4chi: " ++
+    showMaybeSubstMorph bnat4chi_gn_0
+  putStrLn $ "highest-numbered morphism in bnat4chi: " ++
+    showMaybeSubstMorph bnat4chi_gn_65535
+  putStrLn $ "beyond-highest-numbered morphism in bnat4chi: " ++
+    showMaybeSubstMorph bnat4chi_gn_65536
+  putStrLn $ "bit 2 of bnat4_15: " ++
+    show (substTermToNat $ bnat4_bit_2 <! bnat4_15)
+  putStrLn $ "bit 2 of bnat4_15 as poly func: " ++
+    show (substMorphToBNC $ bnat4_bit_2 <! bnat4_15)
+  putStrLn $ "bit 2 of bnat4_2: " ++
+    show (substTermToNat $ bnat4_bit_2 <! bnat4_2)
+  putStrLn $ "bit 2 of bnat_2 as poly func: " ++
+    show (substMorphToBNC $ bnat4_bit_2 <! bnat4_2)
   putStrLn ""
   putStrLn "----------------"
   putStrLn "End polyCatTest."
