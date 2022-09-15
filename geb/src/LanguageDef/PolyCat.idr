@@ -4079,11 +4079,10 @@ soEval : (x, y : SubstObjMu) ->
 soEval (InSO SO0) y = SMFromInit y <! SMProjRight Subst1 Subst0
 soEval (InSO SO1) y = SMProjLeft y Subst1
 soEval (InSO (x !!+ y)) z =
-  SMCase (soEval x z) (soEval y z) <!
-    SMCase
-      (SMInjLeft _ _ <! soForgetMiddle _ _ _)
-      (SMInjRight _ _ <! soForgetFirst _ _ _)
-    <! SMDistrib _ _ _
+  SMCase
+    (soEval x z <! soForgetMiddle _ _ _)
+    (soEval y z <! soForgetFirst _ _ _)
+  <! SMDistrib _ _ _
 soEval (InSO (x !!* y)) z =
   let
     eyz = soEval y z
@@ -5716,8 +5715,8 @@ natToSubstTerm a@(InSO (x !!+ y)) n =
   if n < substObjCard x then do
     t <- natToSubstTerm x n
     Just $ SMInjLeft x y <! t
-  else if n < substObjCard y then do
-    t <- natToSubstTerm y n
+  else if n < substObjCard x + substObjCard y then do
+    t <- natToSubstTerm y (minus n (substObjCard x))
     Just $ SMInjRight x y <! t
   else
     Nothing
@@ -5746,6 +5745,18 @@ public export
 SubstGNumToMorph : (a, b : SubstObjMu) -> (n : Nat) ->
   {auto ok : IsJustTrue (substGNumToMorph a b n)} -> SubstMorph a b
 SubstGNumToMorph a b n {ok} = fromIsJust ok
+
+public export
+showMaybeSubstMorph : {x, y : SubstObjMu} -> Maybe (SubstMorph x y) -> String
+showMaybeSubstMorph = maybeElim showSubstMorph (show (Nothing {ty=()}))
+
+--------------------------------
+---- Test utility functions ----
+--------------------------------
+
+public export
+MorphToTermAndBack : {x, y : SubstObjMu} -> SubstMorph x y -> SubstMorph x y
+MorphToTermAndBack = TermAsMorph . MorphAsTerm
 
 ---------------------------------------------------
 ---------------------------------------------------
