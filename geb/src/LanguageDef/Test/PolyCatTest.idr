@@ -1528,6 +1528,8 @@ polyCatTest = do
     show (substMorphToBNC $ bnat4_bit_2 <! bnat4_2)
   putStrLn $ "bnat4_bit_2 as morphism: " ++ showSubstMorph bnat4_bit_2
   putStrLn $ "bnat4_bit_2's Gödel number: " ++ show bnat4_bit_2_gn
+  putStrLn $ "bnat4_bit_2 to term and back: " ++
+    showSubstMorph (MorphToTermAndBack bnat4_bit_2)
   putStrLn $ "bit 2 of bnat4_15 via term: " ++
     show (substTermToNat $ MorphToTermAndBack bnat4_bit_2 <! bnat4_15)
   putStrLn $ "bit 2 of bnat4_2 via term: " ++
