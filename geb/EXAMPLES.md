@@ -430,6 +430,14 @@ sListEvalCata : {n : Nat} -> {a, x : SubstObjMu} ->
   SOTerm x -> SubstMorph (a !* x) x -> SOTerm (SList n a) -> SOTerm x
 ```
 
+An example is the implementation of `l5_5_fold_add` in `PolyCatTest.idr`
+-- again, I unfortunately haven't been able to get the REPL to evaluate it,
+but the command-line tests execute it:
+
+```shell
+sum [1, 2, 3, 4, 5] = 15
+```
+
 #### Higher-order functions
 
 The core objects and morphisms of the category defined above
