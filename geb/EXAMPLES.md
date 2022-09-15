@@ -373,6 +373,9 @@ suPromote : {n : Nat} -> SubstMorph (SUNat n) (SUNat (S n))
 suPromoteN : {m, n : Nat} -> {auto ok : LTE m n} ->
   SubstMorph (SUNat m) (SUNat n)
 
+suNatFold : {n : Nat} -> {x : SubstObjMu} ->
+  SubstMorph x x -> SubstMorph (x !* SUNat (S n)) x
+
 -- Catamorphism on unary natural numbers.
 suNatCata : (n : Nat) -> (x : SubstObjMu) ->
   SubstMorph ((Subst1 !+ x) !-> x) (SUNat (S n) !-> x)
@@ -393,7 +396,7 @@ su1 : {n : Nat} -> {x : SubstObjMu} -> SubstMorph x (SUNat (S n))
 suAdd : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
 
 suAddUnrolled : {k : Nat} ->
-  SOTerm (SUNat k) -> SubstMorph (SUNat k) (SUNat k)
+  SubstMorph (SUNat k !* SUNat k) (SUNat k)
 
 suMul : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
 
