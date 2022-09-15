@@ -1118,6 +1118,26 @@ bnat4chi_gn_65535 = substGNumToMorph bnat4 SubstBool 65535
 bnat4chi_gn_65536 : Maybe PolyCatTest.bnat4_to_bool
 bnat4chi_gn_65536 = substGNumToMorph bnat4 SubstBool 65536
 
+-- Unary bytes
+u_byte : SubstObjMu
+u_byte = SUNat 8
+
+-- An up-to-length-5 list of (unary) bytes.
+list_depth_5 : SubstObjMu
+list_depth_5 = SList 5 u_byte
+
+l0_empty : SOTerm (SList 0 PolyCatTest.u_byte)
+l0_empty = sListNil {n=0} {x=u_byte}
+
+l5_empty : SOTerm PolyCatTest.list_depth_5
+l5_empty = sListPromoteN {m=0} {n=5} <! l0_empty
+
+l1_1 : SOTerm (SList 1 PolyCatTest.u_byte)
+l1_1 = sListEvalCons {n=0} (MkSUNat {m=8} 1) l0_empty
+
+l5_1 : SOTerm PolyCatTest.list_depth_5
+l5_1 = sListPromoteN {m=1} {n=5} <! l1_1
+
 ----------------------------------
 ----------------------------------
 ----- Exported test function -----

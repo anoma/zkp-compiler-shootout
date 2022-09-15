@@ -4567,6 +4567,37 @@ SList : Nat -> SubstObjMu -> SubstObjMu
 SList Z x = Subst1
 SList (S n) x = SList n x !+ (x !* SList n x)
 
+public export
+sListNil : {n : Nat} -> {x : SubstObjMu} -> SOTerm (SList n x)
+sListNil {n=Z} {x} = SMId Subst1
+sListNil {n=(S n)} {x} = SMInjLeft _ _ <! sListNil {n} {x}
+
+public export
+sListPromote : {n : Nat} -> {x : SubstObjMu} ->
+  SubstMorph (SList n x) (SList (S n) x)
+sListPromote {n} = SMInjLeft _ _
+
+public export
+sListPromoteN : {m, n : Nat} -> {x : SubstObjMu} ->
+  {auto ok : LTE m n} -> SubstMorph (SList m x) (SList n x)
+sListPromoteN {m=Z} {n=Z} {x} {ok=LTEZero} = SMId Subst1
+sListPromoteN {m=Z} {n=(S n)} {x} {ok=LTEZero} =
+  SMInjLeft _ _ <! sListPromoteN {m=Z} {n} {x} {ok=LTEZero}
+sListPromoteN {m=(S m)} {n=(S n)} {x} {ok=(LTESucc ok)} =
+  SMInjLeft _ _ <! SMCase
+    (sListPromoteN {m} {n} {x} {ok})
+    (sListPromoteN {m} {n} {x} {ok} <! SMProjRight _ _)
+
+public export
+sListCons : {n : Nat} -> {x : SubstObjMu} ->
+  SubstMorph (x !* SList n x) (SList (S n) x)
+sListCons {n} {x} = SMInjRight _ _
+
+public export
+sListEvalCons : {n : Nat} -> {x : SubstObjMu} ->
+  SOTerm x -> SOTerm (SList n x) -> SOTerm (SList (S n) x)
+sListEvalCons {n} {x} a l = sListCons {n} {x} <! SMPair a l
+
 -- Catamorphism on lists.
 public export
 sListCata : (n : Nat) -> (a, x : SubstObjMu) ->

@@ -394,6 +394,20 @@ suRaiseTo : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
 suPow : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
 suPow = soFlip suRaiseTo
 
+sListNil : {n : Nat} -> {x : SubstObjMu} -> SOTerm (SList n x)
+
+sListPromote : {n : Nat} -> {x : SubstObjMu} ->
+  SubstMorph (SList n x) (SList (S n) x)
+
+sListPromoteN : {m, n : Nat} -> {x : SubstObjMu} ->
+  {auto ok : LTE m n} -> SubstMorph (SList m x) (SList n x)
+
+sListCons : {n : Nat} -> {x : SubstObjMu} ->
+  SubstMorph (x !* SList n x) (SList (S n) x)
+
+sListEvalCons : {n : Nat} -> {x : SubstObjMu} ->
+  SOTerm x -> SOTerm (SList n x) -> SOTerm (SList (S n) x)
+
 sListCata : (n : Nat) -> (a, x : SubstObjMu) ->
   SubstMorph ((Subst1 !+ (a !* x)) !-> x) (SList n a !-> x)
 ```
