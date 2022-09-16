@@ -4120,6 +4120,11 @@ soPartialApp : {w, x, y, z : SubstObjMu} ->
 soPartialApp g f = soUncurry $ soCurry g <! f
 
 public export
+soPartialAppTerm : {w, x, y, z : SubstObjMu} ->
+  SubstMorph (x !* y) z -> SOTerm x -> SubstMorph y z
+soPartialAppTerm g t = soProd1LeftElim $ soPartialApp {w=Subst1} g t
+
+public export
 covarYonedaEmbed : {a, b : SubstObjMu} ->
   SubstMorph b a -> (x : SubstObjMu) -> SubstMorph (a !-> x) (b !-> x)
 covarYonedaEmbed {a} {b} f x =
@@ -4207,6 +4212,10 @@ MorphAsTerm {x} {y} f = soCurry {x=Subst1} {y=x} {z=y} $ soProdLeftIntro f
 public export
 soConst : {x, y : SubstObjMu} -> SOTerm y -> SubstMorph x y
 soConst {x} {y} f = f <! SMToTerminal _
+
+public export
+soReflectedConst : (x, y : SubstObjMu) -> SubstMorph y (x !-> y)
+soReflectedConst x y = soCurry $ SMProjLeft _ _
 
 public export
 soReflectedId : {x, y : SubstObjMu} -> SubstMorph x (y !-> y)
@@ -4477,6 +4486,16 @@ MkSUNat {m=(S Z)} (S n) {lt=Refl} impossible
 MkSUNat {m=(S (S m))} (S n) {lt} =
   SMInjRight _ _ <! MkSUNat {m=(S m)} n {lt=(fromLteSuccYes lt)}
 
+public export
+suNatFold : {n : Nat} -> {x : SubstObjMu} ->
+  SubstMorph x x -> SubstMorph (x !* SUNat (S n)) x
+suNatFold {n=Z} {x} op = SMProjLeft _ _
+suNatFold {n=(S n)} {x} op =
+  SMCase
+    (SMProjLeft _ _)
+    (op <! suNatFold {n} {x} op)
+  <! SMDistrib _ _ _
+
 -- Catamorphism on unary natural numbers.
 public export
 suNatCata : (n : Nat) -> (x : SubstObjMu) ->
@@ -4497,9 +4516,34 @@ suZ {n=Z} {x} = SMToTerminal x
 suZ {n=(S n)} {x} = SMInjLeft _ _ <! SMToTerminal x
 
 public export
+suPromote : {n : Nat} -> SubstMorph (SUNat n) (SUNat (S n))
+suPromote {n=Z} = SMFromInit Subst1
+suPromote {n=(S Z)} = SMInjLeft _ _
+suPromote {n=(S (S n))} =
+  SMCase (SMInjLeft _ _) (SMInjRight _ _ <! suPromote {n=(S n)})
+
+public export
+suPromoteN : {m, n : Nat} -> {auto ok : LTE m n} ->
+  SubstMorph (SUNat m) (SUNat n)
+suPromoteN {m=Z} {n} {ok=LTEZero} = SMFromInit _
+suPromoteN {m=(S Z)} {n=(S Z)} {ok=(LTESucc ok)} = SMId Subst1
+suPromoteN {m=(S Z)} {n=(S (S n))} {ok=(LTESucc ok)} = SMInjLeft _ _
+suPromoteN {m=(S (S m))} {n=(S Z)} {ok=(LTESucc ok)} = void $ succNotLTEzero ok
+suPromoteN {m=(S (S m))} {n=(S (S n))} {ok=(LTESucc ok)} =
+  SMCase
+    (SMInjLeft _ _)
+    (SMInjRight _ _ <! suPromoteN {m=(S m)} {n=(S n)} {ok})
+
+public export
 suSucc : {n : Nat} -> SubstMorph (SUNat n) (SUNat (S n))
 suSucc {n=Z} = SMFromInit Subst1
 suSucc {n=(S n)} = SMInjRight _ _
+
+public export
+su1 : {n : Nat} -> {x : SubstObjMu} -> SubstMorph x (SUNat (S n))
+su1 {n=Z} {x} = SMToTerminal x
+su1 {n=(S Z)} {x} = SMInjRight _ _ <! SMToTerminal _
+su1 {n=(S (S n))} {x} = SMInjRight _ _ <! SMInjLeft _ _ <! SMToTerminal _
 
 -- Successor, which returns `Nothing` (`Left`) if the input is the
 -- maximum value of `SUNat n`.
@@ -4508,9 +4552,13 @@ suSuccMax : {n : Nat} -> SubstMorph (SUNat n) (SMaybe (SUNat n))
 suSuccMax {n=Z} = SMFromInit _
 suSuccMax {n=(S Z)} = SMInjLeft _ _ <! SMToTerminal _
 suSuccMax {n=(S (S n))} =
+  let r = suSuccMax {n=(S n)} in
   SMCase
-    (SMInjRight _ _ <! SMInjLeft _ _ <! SMToTerminal _)
-    (SMInjRight _ _ <! suSuccMax {n=(S n)})
+    (SMInjRight _ _ <! su1 {n=(S n)})
+    (SMCase
+      (SMInjLeft _ _)
+      (SMInjRight _ _ <! SMInjRight _ _)
+     <! r)
 
 -- Successor modulo `n`.
 public export
@@ -4523,15 +4571,23 @@ suSuccMod {n=(S n)} =
   <! suSuccMax {n=(S n)}
 
 public export
-su1 : {n : Nat} -> {x : SubstObjMu} -> SubstMorph x (SUNat (S n))
-su1 {n=Z} {x} = SMToTerminal x
-su1 {n=(S Z)} {x} = SMInjRight _ _ <! SMToTerminal _
-su1 {n=(S (S n))} {x} = SMInjRight _ _ <! SMInjLeft _ _ <! SMToTerminal _
-
-public export
 suAdd : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
 suAdd {n=Z} = SMFromInit _ <! SMProjLeft _ _
-suAdd {n=(S n)} = soUncurry $ suNatCata _ _ <! SMPair (SMId _) soReflectedId
+suAdd {n=(S n)} = soUncurry $ suNatCata _ _ <!
+  SMPair (SMId _) (soConst $ MorphAsTerm $ suSuccMod {n=(S n)})
+
+public export
+suAddUnrolled : {k : Nat} ->
+  SubstMorph (SUNat k !* SUNat k) (SUNat k)
+suAddUnrolled {k=Z} = SMProjLeft _ _
+suAddUnrolled {k=(S k)} = suNatFold {n=k} (suSuccMod {n=(S k)})
+
+public export
+suAddN : (k : Nat) -> (n : Nat) -> {auto lt : IsYesTrue (isLT n k)} ->
+  SubstMorph (SUNat k) (SUNat k)
+suAddN k n {lt} =
+  soPartialAppTerm {w=Subst1} {x=(SUNat k)}
+    (suAddUnrolled {k}) (MkSUNat {m=k} {x=Subst1} n {lt})
 
 public export
 suMul : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
@@ -4565,7 +4621,70 @@ SBNat (S (S n)) = SubstBool !* SBNat (S n)
 public export
 SList : Nat -> SubstObjMu -> SubstObjMu
 SList Z x = Subst1
-SList (S n) x = SList n x !+ (x !*^ S n)
+SList (S n) x = SList n x !+ (x !* SList n x)
+
+public export
+sListNil : {n : Nat} -> {x : SubstObjMu} -> SOTerm (SList n x)
+sListNil {n=Z} {x} = SMId Subst1
+sListNil {n=(S n)} {x} = SMInjLeft _ _ <! sListNil {n} {x}
+
+public export
+sListPromote : {n : Nat} -> {x : SubstObjMu} ->
+  SubstMorph (SList n x) (SList (S n) x)
+sListPromote {n} = SMInjLeft _ _
+
+public export
+sListPromoteN : {m, n : Nat} -> {x : SubstObjMu} ->
+  {auto ok : LTE m n} -> SubstMorph (SList m x) (SList n x)
+sListPromoteN {m=Z} {n=Z} {x} {ok=LTEZero} = SMId Subst1
+sListPromoteN {m=Z} {n=(S n)} {x} {ok=LTEZero} =
+  SMInjLeft _ _ <! sListPromoteN {m=Z} {n} {x} {ok=LTEZero}
+sListPromoteN {m=(S m)} {n=(S n)} {x} {ok=(LTESucc ok)} =
+  SMInjLeft _ _ <! SMCase
+    (sListPromoteN {m} {n} {x} {ok})
+    (sListPromoteN {m} {n} {x} {ok} <! SMProjRight _ _)
+
+public export
+sListCons : {n : Nat} -> {x : SubstObjMu} ->
+  SubstMorph (x !* SList n x) (SList (S n) x)
+sListCons {n} {x} = SMInjRight _ _
+
+public export
+sListEvalCons : {n : Nat} -> {x : SubstObjMu} ->
+  SOTerm x -> SOTerm (SList n x) -> SOTerm (SList (S n) x)
+sListEvalCons {n} {x} a l = sListCons {n} {x} <! SMPair a l
+
+public export
+sListFoldUnrolled : {k : Nat} -> {a, x : SubstObjMu} ->
+  SOTerm x -> SubstMorph (a !* x) x -> SubstMorph (SList k a) x
+sListFoldUnrolled {k=Z} {a} {x} n c = n
+sListFoldUnrolled {k=(S k)} {a} {x} n c =
+  SMCase (soConst n)
+    (c <!
+      SMPair (SMProjLeft _ _) (sListFoldUnrolled {k} n c <! SMProjRight _ _))
+
+-- Catamorphism on lists.
+public export
+sListCata : (n : Nat) -> (a, x : SubstObjMu) ->
+  SubstMorph ((Subst1 !+ (a !* x)) !-> x) (SList n a !-> x)
+sListCata Z a x = SMProjLeft _ _
+sListCata (S n) a x =
+  let cataN = sListCata n a x in
+  SMPair
+    cataN
+    (soCurry $ soCurry $ soEval x x <! SMPair
+      (soEval a (SubstHomObj x x) <! SMPair
+        (SMProjRight _ _ <! SMProjLeft _ _ <! SMProjLeft _ _)
+        (SMProjRight _ _ <! SMProjLeft _ _))
+      (soEval (SList n a) x <!
+        SMPair
+          (cataN <! SMProjLeft _ _ <! SMProjLeft _ _)
+          (SMProjRight _ _)))
+
+public export
+sListEvalCata : {n : Nat} -> {a, x : SubstObjMu} ->
+  SOTerm x -> SubstMorph (a !* x) x -> SOTerm (SList n a) -> SOTerm x
+sListEvalCata {n} {a} {x} z s t = sListFoldUnrolled z s <! t
 
 ----------------------
 ---- Binary trees ----
@@ -5774,6 +5893,12 @@ showMaybeSubstMorph = maybeElim showSubstMorph (show (Nothing {ty=()}))
 public export
 MorphToTermAndBack : {x, y : SubstObjMu} -> SubstMorph x y -> SubstMorph x y
 MorphToTermAndBack = TermAsMorph . MorphAsTerm
+
+public export
+evalByGN : (x, y : SubstObjMu) -> Nat -> Nat -> Maybe Nat
+evalByGN x y m n with (substGNumToMorph x y m, natToSubstTerm x n)
+  evalByGN x y m n | (Just f, Just t) = Just $ substTermToNat {a=y} (f <! t)
+  evalByGN x y m n | _ = Nothing
 
 ---------------------------------------------------
 ---------------------------------------------------

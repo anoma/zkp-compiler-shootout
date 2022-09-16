@@ -1118,6 +1118,91 @@ bnat4chi_gn_65535 = substGNumToMorph bnat4 SubstBool 65535
 bnat4chi_gn_65536 : Maybe PolyCatTest.bnat4_to_bool
 bnat4chi_gn_65536 = substGNumToMorph bnat4 SubstBool 65536
 
+-- Unary bytes
+u_byte : SubstObjMu
+u_byte = SUNat 8
+
+unat_b : (n : Nat) -> {auto lt : IsYesTrue (isLT n 8)} ->
+  SOTerm PolyCatTest.u_byte
+unat_b n {lt} = MkSUNat {m=8} {lt} n
+
+unat_20 : (n : Nat) -> {auto lt : IsYesTrue (isLT n 20)} -> SOTerm (SUNat 20)
+unat_20 n {lt} = MkSUNat {m=20} {lt} n
+
+-- An up-to-length-5 list of (unary) bytes.
+list_depth_5 : SubstObjMu
+list_depth_5 = SList 5 u_byte
+
+l0_empty : SOTerm (SList 0 PolyCatTest.u_byte)
+l0_empty = sListNil {n=0} {x=u_byte}
+
+l5_empty : SOTerm PolyCatTest.list_depth_5
+l5_empty = sListPromoteN {m=0} {n=5} <! l0_empty
+
+l1_1 : SOTerm (SList 1 PolyCatTest.u_byte)
+l1_1 = sListEvalCons {n=0} (MkSUNat {m=8} 1) l0_empty
+
+l5_1 : SOTerm PolyCatTest.list_depth_5
+l5_1 = sListPromoteN {m=1} {n=5} <! l1_1
+
+l2_2 : SOTerm (SList 2 PolyCatTest.u_byte)
+l2_2 = sListEvalCons {n=1} (MkSUNat {m=8} 2) l1_1
+
+l3_3 : SOTerm (SList 3 PolyCatTest.u_byte)
+l3_3 = sListEvalCons {n=2} (MkSUNat {m=8} 3) l2_2
+
+l4_4 : SOTerm (SList 4 PolyCatTest.u_byte)
+l4_4 = sListEvalCons {n=3} (MkSUNat {m=8} 4) l3_3
+
+l5_5 : SOTerm PolyCatTest.list_depth_5
+l5_5 = sListEvalCons {n=4} (MkSUNat {m=8} 5) l4_4
+
+sumlist_20 : {k : Nat} -> SubstMorph (SList k (PolyCatTest.u_byte)) (SUNat 20)
+sumlist_20 = sListFoldUnrolled {k} {a=u_byte} {x=(SUNat 20)} (suZ {n=19}) $
+  suAddUnrolled {k=20} <!
+    SMPair
+      (suPromoteN {m=8} {n=20} <! SMProjLeft _ _)
+      (SMProjRight _ _)
+
+addb_20 : SubstMorph (PolyCatTest.u_byte !* SUNat 20) (SUNat 20)
+addb_20 = suAdd {n=20} <!
+  SMPair
+    (suPromoteN {m=8} {n=20} <! SMProjLeft _ _)
+    (SMProjRight _ _)
+
+addb_20_eval :
+  SOTerm (PolyCatTest.u_byte) -> (SOTerm (SUNat 20)) -> (SOTerm (SUNat 20))
+addb_20_eval m n = addb_20 <! SMPair m n
+
+l1_1_fold_add : SOTerm (SUNat 20)
+l1_1_fold_add = sumlist_20 {k=1} <! l1_1
+
+l3_3_fold_add : SOTerm (SUNat 20)
+l3_3_fold_add = sumlist_20 {k=3} <! l3_3
+
+l5_5_fold_add : SOTerm (SUNat 20)
+l5_5_fold_add = sumlist_20 {k=5} <! l5_5
+
+reflectionTestPair : {x : SubstObjMu} -> {n : Nat} ->
+  SubstMorph ((x !-> SUNat n) !* (x !-> SUNat n)) (x !-> SUNat n)
+reflectionTestPair {x} {n} =
+  contravarYonedaEmbed (suAddUnrolled {k=n}) x
+  <! soReflectedPair x (SUNat n) (SUNat n)
+
+reflectionPairTerm : SOTerm ((SUNat 8 !-> SUNat 8) !* (SUNat 8 !-> SUNat 8))
+reflectionPairTerm =
+  SMPair (MorphAsTerm (suAddN 8 2)) (MorphAsTerm (suAddN 8 3))
+
+reflectionPairedTerm : SOTerm (SUNat 8 !-> SUNat 8)
+reflectionPairedTerm =
+  reflectionTestPair {x=(SUNat 8)} {n=8} <! reflectionPairTerm
+
+reflectionTestMorphism : SubstMorph (SUNat 8) (SUNat 8)
+reflectionTestMorphism = TermAsMorph reflectionPairedTerm
+
+reflectionTestTerm : SOTerm (SUNat 8)
+reflectionTestTerm = reflectionTestMorphism <! MkSUNat {m=8} 1
+
 ----------------------------------
 ----------------------------------
 ----- Exported test function -----
@@ -1344,26 +1429,6 @@ polyCatTest = do
   putStrLn $ "bnat4_15: " ++ showSubstMorph bnat4_15
   putStrLn $ "bnat4_15 as Nat: " ++ show (substTermToNat bnat4_15)
   putStrLn $ "bnat4_15 as poly func: " ++ show (substMorphToBNC bnat4_15)
-  putStrLn $ "bit 2 of bnat4_15: " ++
-    show (substTermToNat $ bnat4_bit_2 <! bnat4_15)
-  putStrLn $ "bit 2 of bnat4_15 as poly func: " ++
-    show (substMorphToBNC $ bnat4_bit_2 <! bnat4_15)
-  putStrLn $ "bit 2 of bnat4_2: " ++
-    show (substTermToNat $ bnat4_bit_2 <! bnat4_2)
-  putStrLn $ "bit 2 of bnat_2 as poly func: " ++
-    show (substMorphToBNC $ bnat4_bit_2 <! bnat4_2)
-  putStrLn $ "bnat4chi: " ++ show bnat4chi
-  putStrLn $ "bnat4chi as Nat: " ++ show (substObjToNat bnat4chi)
-  putStrLn $ "bnat4chi in metalanguage: " ++ show (metaSOShowType bnat4chi)
-  putStrLn $ "bnat4_bit_2 as morphism: " ++ showSubstMorph bnat4_bit_2
-  putStrLn $ "bnat4_bit_2's Gödel number: " ++ show bnat4_bit_2_gn
-  putStrLn $ "lowest-numbered morphism in bnat4chi: " ++
-    showMaybeSubstMorph bnat4chi_gn_0
-  putStrLn $ "highest-numbered morphism in bnat4chi: " ++
-    showMaybeSubstMorph bnat4chi_gn_65535
-  putStrLn $ "beyond-highest-numbered morphism in bnat4chi: " ++
-    showMaybeSubstMorph bnat4chi_gn_65536
-  putStrLn $ "boolToBool as Nat: " ++ show (substObjToNat boolToBool)
   putStrLn $ "id(boolToBool) as morph: " ++ showSubstMorph b2bid
   putStrLn $ "not(boolToBool) as morph: " ++ showSubstMorph b2bnot
   putStrLn $ "true(boolToBool) as morph: " ++ showSubstMorph b2btrue
@@ -1463,6 +1528,102 @@ polyCatTest = do
     show (substTermToNat (soEval SubstBool SubstBool <!
       SMPair (SMPair (SMInjRight _ _) (SMInjRight _ _)) STrue))
   putStrLn $ "eval bool->bool: " ++ showSubstMorph (soEval SubstBool SubstBool)
+  putStrLn $ "boolToBool as Nat: " ++ show (substObjToNat boolToBool)
+  putStrLn $ "bnat4chi: " ++ show bnat4chi
+  putStrLn $ "bnat4chi as Nat: " ++ show (substObjToNat bnat4chi)
+  putStrLn $ "bnat4chi in metalanguage: " ++ show (metaSOShowType bnat4chi)
+  putStrLn $ "lowest-numbered morphism in bnat4chi: " ++
+    showMaybeSubstMorph bnat4chi_gn_0
+  putStrLn $ "highest-numbered morphism in bnat4chi: " ++
+    showMaybeSubstMorph bnat4chi_gn_65535
+  putStrLn $ "beyond-highest-numbered morphism in bnat4chi: " ++
+    showMaybeSubstMorph bnat4chi_gn_65536
+  putStrLn $ "bit 2 of bnat4_15: " ++
+    show (substTermToNat $ bnat4_bit_2 <! bnat4_15)
+  putStrLn $ "bit 2 of bnat4_15 as poly func: " ++
+    show (substMorphToBNC $ bnat4_bit_2 <! bnat4_15)
+  putStrLn $ "bit 2 of bnat4_2: " ++
+    show (substTermToNat $ bnat4_bit_2 <! bnat4_2)
+  putStrLn $ "bit 2 of bnat_2 as poly func: " ++
+    show (substMorphToBNC $ bnat4_bit_2 <! bnat4_2)
+  putStrLn $ "bnat4_bit_2 as morphism: " ++ showSubstMorph bnat4_bit_2
+  putStrLn $ "bnat4_bit_2's Gödel number: " ++ show bnat4_bit_2_gn
+  putStrLn $ "bnat4_bit_2 to term and back: " ++
+    showSubstMorph (MorphToTermAndBack bnat4_bit_2)
+  putStrLn $ "bit 2 of bnat4_15 via term: " ++
+    show (substTermToNat $ MorphToTermAndBack bnat4_bit_2 <! bnat4_15)
+  putStrLn $ "bit 2 of bnat4_2 via term: " ++
+    show (substTermToNat $ MorphToTermAndBack bnat4_bit_2 <! bnat4_2)
+  putStrLn $ "7 as byte: " ++ show (substTermToNat (MkSUNat {m=8} 7))
+  putStrLn $ "19 as u20: " ++ show (substTermToNat (MkSUNat {m=20} 19))
+  putStrLn $ "7 as byte promoted to u20: " ++
+    show (substTermToNat (suPromoteN {m=8} {n=20} <! (MkSUNat {m=8} 7)))
+  putStrLn $ "succ(1 as 2) as 3: " ++
+    show (substTermToNat (suSucc {n=2} <! (MkSUNat {m=2} 1)))
+  putStrLn $ "succ(0 < 3): " ++
+    show (substTermToNat (suSuccMax {n=3} <! (MkSUNat {m=3} 0)))
+  putStrLn $ "succ(1 < 3): " ++
+    show (substTermToNat (suSuccMax {n=3} <! (MkSUNat {m=3} 1)))
+  putStrLn $ "succ(2 < 3): " ++
+    show (substTermToNat (suSuccMax {n=3} <! (MkSUNat {m=3} 2)))
+  putStrLn $ "succ(0 mod 3): " ++
+    show (substTermToNat (suSuccMod {n=3} <! (MkSUNat {m=3} 0)))
+  putStrLn $ "succ(1 mod 3): " ++
+    show (substTermToNat (suSuccMod {n=3} <! (MkSUNat {m=3} 1)))
+  putStrLn $ "succ(2 mod 3): " ++
+    show (substTermToNat (suSuccMod {n=3} <! (MkSUNat {m=3} 2)))
+  putStrLn $ "1+1 as b3: " ++
+    show (substTermToNat
+      (suAdd {n=3} <! SMPair (MkSUNat {m=3} 1) (MkSUNat {m=3} 1)))
+  putStrLn $ "succ(3 mod 10): " ++
+    show (substTermToNat (suSuccMod {n=10} <! (MkSUNat {m=10} 3)))
+  putStrLn $ "succ(succ(succ(succ(3 mod 10)))): " ++
+    show (substTermToNat (
+        suSuccMod {n=10} <! suSuccMod {n=10} <! suSuccMod {n=10} <!
+        suSuccMod {n=10} <! (MkSUNat {m=10} 3)))
+  putStrLn $ "3+4 as b10: " ++
+    show (substTermToNat
+      (suAddUnrolled {k=10} <! SMPair (MkSUNat {m=10} 3) (MkSUNat {m=10} 4)))
+  putStrLn $ "sum [1] = " ++ show (substTermToNat l1_1_fold_add)
+  putStrLn $ "sum [1, 2, 3] = " ++ show (substTermToNat l3_3_fold_add)
+  putStrLn $ "sum [1, 2, 3, 4, 5] = " ++ show (substTermToNat l5_5_fold_add)
+  putStrLn $ "eval (bnat4chi) 3855 0 = " ++
+    show (evalByGN bnat4 SubstBool 3855 0)
+  putStrLn $ "eval (bnat4chi) 3855 1 = " ++
+    show (evalByGN bnat4 SubstBool 3855 1)
+  putStrLn $ "eval (bnat4chi) 3855 2 = " ++
+    show (evalByGN bnat4 SubstBool 3855 2)
+  putStrLn $ "eval (bnat4chi) 3855 3 = " ++
+    show (evalByGN bnat4 SubstBool 3855 3)
+  putStrLn $ "eval (bnat4chi) 3855 4 = " ++
+    show (evalByGN bnat4 SubstBool 3855 4)
+  putStrLn $ "eval (bnat4chi) 3855 5 = " ++
+    show (evalByGN bnat4 SubstBool 3855 5)
+  putStrLn $ "eval (bnat4chi) 3855 6 = " ++
+    show (evalByGN bnat4 SubstBool 3855 6)
+  putStrLn $ "eval (bnat4chi) 3855 7 = " ++
+    show (evalByGN bnat4 SubstBool 3855 7)
+  putStrLn $ "eval (bnat4chi) 3855 8 = " ++
+    show (evalByGN bnat4 SubstBool 3855 8)
+  putStrLn $ "eval (bnat4chi) 3855 9 = " ++
+    show (evalByGN bnat4 SubstBool 3855 9)
+  putStrLn $ "eval (bnat4chi) 3855 10 = " ++
+    show (evalByGN bnat4 SubstBool 3855 10)
+  putStrLn $ "eval (bnat4chi) 3855 11 = " ++
+    show (evalByGN bnat4 SubstBool 3855 11)
+  putStrLn $ "eval (bnat4chi) 3855 12 = " ++
+    show (evalByGN bnat4 SubstBool 3855 12)
+  putStrLn $ "eval (bnat4chi) 3855 13 = " ++
+    show (evalByGN bnat4 SubstBool 3855 13)
+  putStrLn $ "eval (bnat4chi) 3855 14 = " ++
+    show (evalByGN bnat4 SubstBool 3855 14)
+  putStrLn $ "eval (bnat4chi) 3855 15 = " ++
+    show (evalByGN bnat4 SubstBool 3855 15)
+  putStrLn $ "eval (bnat4chi) 10000 2 = " ++
+    show (evalByGN bnat4 SubstBool 10000 2)
+  putStrLn $ "eval (bnat4chi) 10000 9 = " ++
+    show (evalByGN bnat4 SubstBool 10000 9)
+  putStrLn $ "reflectionTestTerm = " ++ show (substTermToNat reflectionTestTerm)
   putStrLn ""
   putStrLn "----------------"
   putStrLn "End polyCatTest."
