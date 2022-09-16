@@ -72,12 +72,12 @@ pub fn miden_fib(c: &mut Criterion, fib_number: &str, answer: &[u64]) {
                 let (outputs, proof) = prove(&program, &input).unwrap();
                 (program, proof)
             },
-            |(program, proof)| verify_from_start(&program, &[12200160415121876738], proof),
+            |(program, proof)| verify_from_start(&program, &[12200160415121876738], proof, &[0, 1]),
             criterion::BatchSize::SmallInput,
         )
     });
     c.bench_function(&format!("Miden: {}", name), |b| {
-        b.iter(|| prove_and_verify(path, answer))
+        b.iter(|| prove_and_verify(path, answer, &[0, 1]))
     });
 }
 
