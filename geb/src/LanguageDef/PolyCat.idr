@@ -372,9 +372,8 @@ pfnFold : {p : PolyFuncN} -> {0 a : Type} -> PFNAlg p a -> PolyFuncNMu p -> a
 pfnFold {p=p@(pos ** dir)} {a} alg = pfnFold' id where
   mutual
     pfnFold' : (a -> a) -> PolyFuncNMu p -> a
-    pfnFold' cont (InPFM i da) with (dir i) proof ndir
-      pfnFold' cont (InPFM i da) | pdi =
-        pfnFoldMap pdi (\v => cont $ alg i $ rewrite ndir in v) $ finFToVect da
+    pfnFold' cont (InPFM i da) =
+      pfnFoldMap (dir i) (\v => cont $ alg i v) $ finFToVect da
 
     pfnFoldMap : (n : Nat) -> (Vect n a -> a) -> Vect n (PolyFuncNMu p) -> a
     pfnFoldMap Z cont [] = cont []
