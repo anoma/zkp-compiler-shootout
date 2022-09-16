@@ -1,7 +1,6 @@
 use criterion::Criterion;
 use std::path::Path;
 
-
 pub fn bench_sudoku(c: &mut Criterion) {
     use sudoku_risc::*;
     let receipt = prove(setup());

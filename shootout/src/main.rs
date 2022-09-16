@@ -5,13 +5,13 @@ mod plonk;
 mod risc;
 // TODO Put the plonk code by itself and make it runable standalone!
 
-pub fn bench_fib(c : &mut Criterion) {
-    miden::bench_fib(c, "92", &[12200160415121876738]);
-    miden::bench_fib(c, "50", &[20365011074]);
+pub fn bench_fib(c: &mut Criterion) {
+    miden::bench_fib_fix(c, "92", Some(&[12200160415121876738]));
+    miden::bench_fib_fix(c, "50", Some(&[20365011074]));
     risc::bench_fib(c);
 }
 
-pub fn bench_sudoku(c : &mut Criterion) {
+pub fn bench_sudoku(c: &mut Criterion) {
     plonk::bench_sudoku(c);
     risc::bench_sudoku(c);
 }

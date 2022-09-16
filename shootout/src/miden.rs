@@ -1,17 +1,37 @@
 use criterion::Criterion;
 use std::path::Path;
 
-pub fn bench_fib(c: &mut Criterion, fib_number: &str, answer: &[u64]) {
-    use fib_miden::*;
+pub fn bench_fib_fix(c: &mut Criterion, fib_number: &str, answer: Option<&[u64]>) {
     let name = format!("fib{}", fib_number);
     let path_str = format!("../miden-assembler/miden/{}.masm", name);
-    let path = Path::new(&path_str);
-    let program = compile(path).unwrap();
-    let input = inputs(&[0, 1]).unwrap();
-    let (outputs, proof) = prove(&program, &input).unwrap();
-    // might as well check the answer is what we expect in this case
+    bench_fib_flexy(c, name, path_str, &[0, 1], answer);
+}
 
-    assert_eq!((answer), outputs);
+pub fn bench_fib(c: &mut Criterion, fib_number: u64, answer: Option<&[u64]>) {
+    let name = format!("fib-iter-{}", fib_number);
+    let path_str = String::from("../miden-assembler/miden/fib.masm");
+    bench_fib_flexy(c, name, path_str, &[fib_number], answer);
+}
+
+// for those who prefer a more dynamic fibonacci
+pub fn bench_fib_flexy(
+    c: &mut Criterion,
+    name: String,
+    path: String,
+    input_vec: &[u64],
+    answer: Option<&[u64]>,
+) {
+    use fib_miden::*;
+    let path = Path::new(&path);
+    let program = compile(path).unwrap();
+    let input = inputs(input_vec).unwrap();
+    let (outputs, proof) = prove(&program, &input).unwrap();
+
+    match answer {
+        Some(answer) => assert_eq!(answer, outputs),
+        None => (),
+    };
+
     c.bench_function(&format!("Miden: {}-compile", name), |b| {
         b.iter(|| compile(path))
     });
@@ -27,13 +47,15 @@ pub fn bench_fib(c: &mut Criterion, fib_number: &str, answer: &[u64]) {
                 let program = compile(path).unwrap();
                 let input = inputs(&[0, 1]).unwrap();
                 let (outputs, proof) = prove(&program, &input).unwrap();
-                (program, proof)
+                (program, proof, outputs)
             },
-            |(program, proof)| verify_from_start(&program, &[12200160415121876738], proof, &[0, 1]),
+            |(program, proof, outputs)| {
+                verify_from_start(&program, &outputs as &[u64], proof, input_vec)
+            },
             criterion::BatchSize::SmallInput,
         )
     });
     c.bench_function(&format!("Miden: {}", name), |b| {
-        b.iter(|| prove_and_verify(path, answer, &[0, 1]))
+        b.iter(|| prove_and_verify(path, answer, input_vec))
     });
 }

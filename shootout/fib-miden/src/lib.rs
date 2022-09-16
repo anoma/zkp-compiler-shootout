@@ -39,11 +39,14 @@ pub fn inputs(inputs: &[u64]) -> Result<ProgramInputs, miden::InputError> {
     ProgramInputs::from_stack_inputs(inputs)
 }
 
-pub fn prove_and_verify(path: &Path, answer: &[u64], input: &[u64]) {
+pub fn prove_and_verify(path: &Path, answer: Option<&[u64]>, input: &[u64]) {
     let program = compile(path).unwrap();
     let inputs = ProgramInputs::from_stack_inputs(&[0, 1]).unwrap();
     let (outputs, proof) = prove(&program, &inputs).unwrap();
     // might as well check the answer is what we expect in this case
-    assert_eq!(answer, outputs);
-    verify_from_start(&program, answer, proof, input).unwrap();
+    match answer {
+        Some(answer) => assert_eq!(answer, outputs),
+        None         => (),
+    };
+    verify_from_start(&program, &outputs as &[u64], proof, input).unwrap();
 }
