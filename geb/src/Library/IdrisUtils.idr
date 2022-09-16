@@ -330,7 +330,7 @@ indexToFinLTS {n} {i} {okS} {ok} {x} {v} =
 
 public export
 finFTrunc : {0 a : Type} -> {n : Nat} -> (Fin (S n) -> a) -> Fin n -> a
-finFTrunc {a} {n} f = f . weaken
+finFTrunc f = f . FS
 
 public export
 finFToVect : {0 a : Type} -> {n : Nat} -> (Fin n -> a) -> Vect n a

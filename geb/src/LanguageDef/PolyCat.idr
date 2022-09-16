@@ -378,7 +378,7 @@ pfnFold {p=p@(pos ** dir)} {a} alg = pfnFold' id where
     pfnFoldMap : (n : Nat) -> (Vect n a -> a) -> (Fin n -> PolyFuncNMu p) -> a
     pfnFoldMap Z cont _ = cont []
     pfnFoldMap (S n) cont v =
-      pfnFoldMap n (\v' => cont $ (pfnFold' id $ v FZ) :: v') $ v . weaken
+      pfnFoldMap n (\v' => cont $ (pfnFold' id $ v FZ) :: v') $ v . FS
 
 ----------------------------------
 ---- Polynomial (free) monads ----
