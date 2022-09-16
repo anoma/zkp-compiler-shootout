@@ -752,6 +752,58 @@ For example, `soReflectedCompose` takes two quoted morphisms
 (with compatible signatures) and produces a quoted morphism
 equal to their composition (which could then be evaluated).
 
+As a not-particularly-meaningful example, this function from
+`PolyCatTest` uses higher-order pairing -- that is, pairing
+reflected into the object language -- to transform two
+input functions into an output function which returns the sum
+of the input functions:
+
+```haskell
+reflectionTestPair : {x : SubstObjMu} -> {n : Nat} ->
+  SubstMorph ((x !-> SUNat n) !* (x !-> SUNat n)) (x !-> SUNat n)
+reflectionTestPair {x} {n} =
+  contravarYonedaEmbed (suAddUnrolled {k=n}) x
+  <! soReflectedPair x (SUNat n) (SUNat n)
+```
+
+We can call this on, for example, a pair of curried add functions,
+which add `2` and `3` respectively to their arguments:
+
+```haskell
+reflectionPairTerm : SOTerm ((SUNat 8 !-> SUNat 8) !* (SUNat 8 !-> SUNat 8))
+reflectionPairTerm =
+  SMPair (MorphAsTerm (suAddN 8 2)) (MorphAsTerm (suAddN 8 3)
+```
+
+That generates a term of a function type, which could be viewed as
+a quoted function; we can unquote it to produce an executable function:
+
+```haskell
+reflectionTestMorphism : SubstMorph (SUNat 8) (SUNat 8)
+reflectionTestMorphism = TermAsMorph reflectionPairedTerm
+```
+
+The function takes functions which add 2 and 3 respectively
+to their inputs and returns one which sums the results, so
+the net effect that we expect is:
+
+```haskell
+x -> (x + 2) + (x + 3) === 2 x + 5
+```
+
+Finally we can apply this function to a parameter:
+
+```haskell
+reflectionTestTerm : SOTerm (SUNat 8)
+reflectionTestTerm = reflectionTestMorphism <! MkSUNat {m=8} 1
+```
+
+We expect to get `2 * 1 + 5 === 7`, and we do:
+
+```shell
+reflectionTestTerm = 7
+```
+
 ### The category `Nat`/`BNCPolyM`
 
 This category represents a subset of the functionality of

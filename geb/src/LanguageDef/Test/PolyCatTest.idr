@@ -1183,6 +1183,26 @@ l3_3_fold_add = sumlist_20 {k=3} <! l3_3
 l5_5_fold_add : SOTerm (SUNat 20)
 l5_5_fold_add = sumlist_20 {k=5} <! l5_5
 
+reflectionTestPair : {x : SubstObjMu} -> {n : Nat} ->
+  SubstMorph ((x !-> SUNat n) !* (x !-> SUNat n)) (x !-> SUNat n)
+reflectionTestPair {x} {n} =
+  contravarYonedaEmbed (suAddUnrolled {k=n}) x
+  <! soReflectedPair x (SUNat n) (SUNat n)
+
+reflectionPairTerm : SOTerm ((SUNat 8 !-> SUNat 8) !* (SUNat 8 !-> SUNat 8))
+reflectionPairTerm =
+  SMPair (MorphAsTerm (suAddN 8 2)) (MorphAsTerm (suAddN 8 3))
+
+reflectionPairedTerm : SOTerm (SUNat 8 !-> SUNat 8)
+reflectionPairedTerm =
+  reflectionTestPair {x=(SUNat 8)} {n=8} <! reflectionPairTerm
+
+reflectionTestMorphism : SubstMorph (SUNat 8) (SUNat 8)
+reflectionTestMorphism = TermAsMorph reflectionPairedTerm
+
+reflectionTestTerm : SOTerm (SUNat 8)
+reflectionTestTerm = reflectionTestMorphism <! MkSUNat {m=8} 1
+
 ----------------------------------
 ----------------------------------
 ----- Exported test function -----
@@ -1603,6 +1623,7 @@ polyCatTest = do
     show (evalByGN bnat4 SubstBool 10000 2)
   putStrLn $ "eval (bnat4chi) 10000 9 = " ++
     show (evalByGN bnat4 SubstBool 10000 9)
+  putStrLn $ "reflectionTestTerm = " ++ show (substTermToNat reflectionTestTerm)
   putStrLn ""
   putStrLn "----------------"
   putStrLn "End polyCatTest."

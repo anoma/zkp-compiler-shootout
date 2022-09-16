@@ -4120,6 +4120,11 @@ soPartialApp : {w, x, y, z : SubstObjMu} ->
 soPartialApp g f = soUncurry $ soCurry g <! f
 
 public export
+soPartialAppTerm : {w, x, y, z : SubstObjMu} ->
+  SubstMorph (x !* y) z -> SOTerm x -> SubstMorph y z
+soPartialAppTerm g t = soProd1LeftElim $ soPartialApp {w=Subst1} g t
+
+public export
 covarYonedaEmbed : {a, b : SubstObjMu} ->
   SubstMorph b a -> (x : SubstObjMu) -> SubstMorph (a !-> x) (b !-> x)
 covarYonedaEmbed {a} {b} f x =
@@ -4576,6 +4581,13 @@ suAddUnrolled : {k : Nat} ->
   SubstMorph (SUNat k !* SUNat k) (SUNat k)
 suAddUnrolled {k=Z} = SMProjLeft _ _
 suAddUnrolled {k=(S k)} = suNatFold {n=k} (suSuccMod {n=(S k)})
+
+public export
+suAddN : (k : Nat) -> (n : Nat) -> {auto lt : IsYesTrue (isLT n k)} ->
+  SubstMorph (SUNat k) (SUNat k)
+suAddN k n {lt} =
+  soPartialAppTerm {w=Subst1} {x=(SUNat k)}
+    (suAddUnrolled {k}) (MkSUNat {m=k} {x=Subst1} n {lt})
 
 public export
 suMul : {n : Nat} -> SubstMorph (SUNat n !* SUNat n) (SUNat n)
