@@ -1567,6 +1567,42 @@ polyCatTest = do
   putStrLn $ "sum [1] = " ++ show (substTermToNat l1_1_fold_add)
   putStrLn $ "sum [1, 2, 3] = " ++ show (substTermToNat l3_3_fold_add)
   putStrLn $ "sum [1, 2, 3, 4, 5] = " ++ show (substTermToNat l5_5_fold_add)
+  putStrLn $ "eval (bnat4chi) 3855 0 = " ++
+    show (evalByGN bnat4 SubstBool 3855 0)
+  putStrLn $ "eval (bnat4chi) 3855 1 = " ++
+    show (evalByGN bnat4 SubstBool 3855 1)
+  putStrLn $ "eval (bnat4chi) 3855 2 = " ++
+    show (evalByGN bnat4 SubstBool 3855 2)
+  putStrLn $ "eval (bnat4chi) 3855 3 = " ++
+    show (evalByGN bnat4 SubstBool 3855 3)
+  putStrLn $ "eval (bnat4chi) 3855 4 = " ++
+    show (evalByGN bnat4 SubstBool 3855 4)
+  putStrLn $ "eval (bnat4chi) 3855 5 = " ++
+    show (evalByGN bnat4 SubstBool 3855 5)
+  putStrLn $ "eval (bnat4chi) 3855 6 = " ++
+    show (evalByGN bnat4 SubstBool 3855 6)
+  putStrLn $ "eval (bnat4chi) 3855 7 = " ++
+    show (evalByGN bnat4 SubstBool 3855 7)
+  putStrLn $ "eval (bnat4chi) 3855 8 = " ++
+    show (evalByGN bnat4 SubstBool 3855 8)
+  putStrLn $ "eval (bnat4chi) 3855 9 = " ++
+    show (evalByGN bnat4 SubstBool 3855 9)
+  putStrLn $ "eval (bnat4chi) 3855 10 = " ++
+    show (evalByGN bnat4 SubstBool 3855 10)
+  putStrLn $ "eval (bnat4chi) 3855 11 = " ++
+    show (evalByGN bnat4 SubstBool 3855 11)
+  putStrLn $ "eval (bnat4chi) 3855 12 = " ++
+    show (evalByGN bnat4 SubstBool 3855 12)
+  putStrLn $ "eval (bnat4chi) 3855 13 = " ++
+    show (evalByGN bnat4 SubstBool 3855 13)
+  putStrLn $ "eval (bnat4chi) 3855 14 = " ++
+    show (evalByGN bnat4 SubstBool 3855 14)
+  putStrLn $ "eval (bnat4chi) 3855 15 = " ++
+    show (evalByGN bnat4 SubstBool 3855 15)
+  putStrLn $ "eval (bnat4chi) 10000 2 = " ++
+    show (evalByGN bnat4 SubstBool 10000 2)
+  putStrLn $ "eval (bnat4chi) 10000 9 = " ++
+    show (evalByGN bnat4 SubstBool 10000 9)
   putStrLn ""
   putStrLn "----------------"
   putStrLn "End polyCatTest."

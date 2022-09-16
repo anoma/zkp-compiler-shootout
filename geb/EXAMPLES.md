@@ -959,3 +959,39 @@ bit 2 of bnat4_2: 0
 bit 2 of bnat4_15 via term: 1
 bit 2 of bnat4_2 via term: 0
 ```
+
+It is possible to do silly things with this Gödel-numbering.
+For example, the test output showed that the Gödel number of the
+morphism which extracts bit 2 from a four-bit natural number is
+`3855`.  So we can evaluate that function on all its inputs by
+applying `3855` to `0`-`15` (this is also from the `PolyCatTest` output):
+
+```shell
+eval (bnat4chi) 3855 0 = Just 0
+eval (bnat4chi) 3855 1 = Just 0
+eval (bnat4chi) 3855 2 = Just 0
+eval (bnat4chi) 3855 3 = Just 0
+eval (bnat4chi) 3855 4 = Just 1
+eval (bnat4chi) 3855 5 = Just 1
+eval (bnat4chi) 3855 6 = Just 1
+eval (bnat4chi) 3855 7 = Just 1
+eval (bnat4chi) 3855 8 = Just 0
+eval (bnat4chi) 3855 9 = Just 0
+eval (bnat4chi) 3855 10 = Just 0
+eval (bnat4chi) 3855 11 = Just 0
+eval (bnat4chi) 3855 12 = Just 1
+eval (bnat4chi) 3855 13 = Just 1
+eval (bnat4chi) 3855 14 = Just 1
+eval (bnat4chi) 3855 15 = Just 1
+```
+
+Of course, we could have picked any other Gödel number.  I have
+no idea what morphism `10000` is intuitively, but we can evaluate it:
+
+```shell
+eval (bnat4chi) 10000 2 = Just 1
+eval (bnat4chi) 10000 9 = Just 0
+```
+
+So we can evaluate random numbers as well-typed functions, although
+I'm not sure that's useful for anything (fuzzing?).

@@ -5882,6 +5882,12 @@ public export
 MorphToTermAndBack : {x, y : SubstObjMu} -> SubstMorph x y -> SubstMorph x y
 MorphToTermAndBack = TermAsMorph . MorphAsTerm
 
+public export
+evalByGN : (x, y : SubstObjMu) -> Nat -> Nat -> Maybe Nat
+evalByGN x y m n with (substGNumToMorph x y m, natToSubstTerm x n)
+  evalByGN x y m n | (Just f, Just t) = Just $ substTermToNat {a=y} (f <! t)
+  evalByGN x y m n | _ = Nothing
+
 ---------------------------------------------------
 ---------------------------------------------------
 ---- Older version of polynomial-type category ----
