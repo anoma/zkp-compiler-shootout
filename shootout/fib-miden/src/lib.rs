@@ -1,10 +1,10 @@
 #![feature(allocator_api)]
-use miden::{Assembler, ProgramInputs, ProofOptions, Program, ExecutionError};
+use miden::{Assembler, ExecutionError, Program, ProgramInputs, ProofOptions};
 use std::alloc::Global;
 
 use std::path::Path;
 
-pub fn compile(path : &Path) -> Result<Program, miden::AssemblyError> {
+pub fn compile(path: &Path) -> Result<Program, miden::AssemblyError> {
     // TODO return an assembly error instead of unwrapping
     let contents = std::fs::read_to_string(path).unwrap();
     Assembler::default().compile(&contents)
@@ -12,28 +12,34 @@ pub fn compile(path : &Path) -> Result<Program, miden::AssemblyError> {
 
 // we just alias this really, so Ι can remember to call it for
 // benchmarking
-pub fn trace(program : &Program, inputs : &ProgramInputs)
-             -> Result<miden::ExecutionTrace, ExecutionError> {
-    miden::execute(program,inputs)
+pub fn trace(
+    program: &Program,
+    inputs: &ProgramInputs,
+) -> Result<miden::ExecutionTrace, ExecutionError> {
+    miden::execute(program, inputs)
 }
 
-pub fn prove(program : &Program, inputs : &ProgramInputs)
-             -> Result<(Vec<u64, Global>, miden::StarkProof), ExecutionError> {
+pub fn prove(
+    program: &Program,
+    inputs: &ProgramInputs,
+) -> Result<(Vec<u64, Global>, miden::StarkProof), ExecutionError> {
     miden::prove(program, inputs, 1, &ProofOptions::default())
 }
 
-pub fn verify_from_start(program : &Program,
-                         answer  : &[u64],
-                         proof   : miden::StarkProof,
-                         inputs  : &[u64]) -> Result<(), miden::VerificationError> {
+pub fn verify_from_start(
+    program: &Program,
+    answer: &[u64],
+    proof: miden::StarkProof,
+    inputs: &[u64],
+) -> Result<(), miden::VerificationError> {
     miden::verify(program.hash(), inputs, answer, proof)
 }
 
-pub fn inputs(inputs : &[u64]) -> Result<ProgramInputs, miden::InputError> {
+pub fn inputs(inputs: &[u64]) -> Result<ProgramInputs, miden::InputError> {
     ProgramInputs::from_stack_inputs(inputs)
 }
 
-pub fn prove_and_verify(path : &Path, answer : &[u64], input : &[u64]) {
+pub fn prove_and_verify(path: &Path, answer: &[u64], input: &[u64]) {
     let program = compile(path).unwrap();
     let inputs = ProgramInputs::from_stack_inputs(&[0, 1]).unwrap();
     let (outputs, proof) = prove(&program, &inputs).unwrap();
