@@ -804,6 +804,11 @@ We expect to get `2 * 1 + 5 === 7`, and we do:
 reflectionTestTerm = 7
 ```
 
+Because function types (hom-objects) are constructed from
+products and coproducts, we can also operate on quoted
+functions by pattern-matching, building and deconstructing
+them just like any other ADTs.
+
 ### The category `Nat`/`BNCPolyM`
 
 This category represents a subset of the functionality of
