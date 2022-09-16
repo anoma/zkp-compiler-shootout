@@ -373,12 +373,12 @@ pfnFold {p=p@(pos ** dir)} {a} alg = pfnFold' id where
   mutual
     pfnFold' : (a -> a) -> PolyFuncNMu p -> a
     pfnFold' cont (InPFM i da) =
-      pfnFoldMap (dir i) (\v => cont $ alg i v) $ finFToVect da
+      pfnFoldMap (dir i) (\v => cont $ alg i v) da
 
-    pfnFoldMap : (n : Nat) -> (Vect n a -> a) -> Vect n (PolyFuncNMu p) -> a
-    pfnFoldMap Z cont [] = cont []
-    pfnFoldMap (S n) cont (e :: v) =
-      pfnFoldMap n (\v' => cont $ (pfnFold' id e) :: v') v
+    pfnFoldMap : (n : Nat) -> (Vect n a -> a) -> (Fin n -> PolyFuncNMu p) -> a
+    pfnFoldMap Z cont _ = cont []
+    pfnFoldMap (S n) cont v =
+      pfnFoldMap n (\v' => cont $ (pfnFold' id $ v FZ) :: v') $ v . weaken
 
 ----------------------------------
 ---- Polynomial (free) monads ----
