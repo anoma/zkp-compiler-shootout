@@ -6,6 +6,61 @@ import LanguageDef.PolyCat
 
 %default total
 
+------------------------
+------------------------
+---- Fin as a topos ----
+------------------------
+------------------------
+
+public export
+RefinedFSObj : Nat -> Type
+RefinedFSObj n = Vect n Bool
+
+public export
+RefinedFSObjFromFunc : {n : Nat} -> (Fin n -> Bool) -> RefinedFSObj n
+RefinedFSObjFromFunc = finFToVect
+
+public export
+RefinedFin : {n : Nat} -> RefinedFSObj n -> Type
+RefinedFin bv = (i : Fin n ** IsTrue (index i bv))
+
+public export
+MaybeRefinedFin : {n : Nat} -> RefinedFSObj n -> Bool -> Type
+MaybeRefinedFin nv True = RefinedFin nv
+MaybeRefinedFin nv False = Unit
+
+public export
+RefinedFinMorphElemType : {m, n : Nat} ->
+  RefinedFSObj m -> RefinedFSObj n -> Fin m -> Type
+RefinedFinMorphElemType mv nv i = MaybeRefinedFin nv (index i mv)
+
+public export
+RefinedFinMorphTypes : {m, n : Nat} ->
+  RefinedFSObj m -> RefinedFSObj n -> Vect m Type
+RefinedFinMorphTypes {m} {n} mv nv = finFToVect $ RefinedFinMorphElemType mv nv
+
+public export
+RefinedFinMorph : {m, n : Nat} -> RefinedFSObj m -> RefinedFSObj n -> Type
+RefinedFinMorph mv nv = HVect (RefinedFinMorphTypes mv nv)
+
+public export
+RFMId : {n : Nat} -> (dom, cod : RefinedFSObj n) -> RefinedFinMorph dom cod
+RFMId {n} dom cod = ?RFMId_hole
+
+public export
+RFMApply : {m, n : Nat} -> {dom : RefinedFSObj m} -> {cod : RefinedFSObj n} ->
+  RefinedFinMorph dom cod -> RefinedFin dom -> RefinedFin cod
+RFMApply {dom} {cod} m (i ** ok) with (index i dom) proof prf
+  RFMApply {dom} {cod} m (i ** Refl) | True =
+    replace {p=(MaybeRefinedFin cod)} prf $ finFGet i m
+  RFMApply {dom} {cod} m (i ** Refl) | False impossible
+
+public export
+RFMCompose : {k, m, n : Nat} ->
+  {a : RefinedFSObj k} -> {b : RefinedFSObj m} -> {c : RefinedFSObj n} ->
+  RefinedFinMorph b c -> RefinedFinMorph a b -> RefinedFinMorph a c
+RFMCompose = ?RFMCompose_hole
+
 -------------------------------------------
 -------------------------------------------
 ---- Polynomial endofunctors in FinSet ----
