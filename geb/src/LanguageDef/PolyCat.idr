@@ -5288,6 +5288,11 @@ PolyExp = flip PolyHomObj
 
 public export
 data PolyMuNT : PolyMu -> PolyMu -> Type where
+  PNTFrom0 : (p : PolyMu) -> PolyMuNT Poly0 p
+  PNTFromCop : {p, q, r : PolyMu} ->
+    PolyMuNT p r -> PolyMuNT q r -> PolyMuNT (p $+ q) r
+  PNTFromProd : {p, q, r : PolyMu} ->
+    PolyMuNT p (PolyHomObj q r) -> PolyMuNT (p $* q) r
 
 ----------------------------------------
 ---- Polynomial monads and comonads ----
