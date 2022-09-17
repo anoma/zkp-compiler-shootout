@@ -13,53 +13,85 @@ import LanguageDef.PolyCat
 ------------------------
 
 public export
-RefinedFSObj : Nat -> Type
-RefinedFSObj n = Vect n Bool
+RefinedFSObj : Type
+RefinedFSObj = List Bool
 
 public export
-RefinedFSObjFromFunc : {n : Nat} -> (Fin n -> Bool) -> RefinedFSObj n
-RefinedFSObjFromFunc = finFToVect
+RFSElem : RefinedFSObj -> Type
+RFSElem = Fin . length
 
 public export
-RefinedFin : {n : Nat} -> RefinedFSObj n -> Type
-RefinedFin bv = (i : Fin n ** IsTrue (index i bv))
+isRFSElem : (bv : RefinedFSObj) -> RFSElem bv -> Bool
+isRFSElem = index'
 
 public export
-MaybeRefinedFin : {n : Nat} -> RefinedFSObj n -> Bool -> Type
+RFSIsElem : (bv : RefinedFSObj) -> RFSElem bv -> Type
+RFSIsElem bv i = IsTrue (isRFSElem bv i)
+
+public export
+RefinedFSObjFromFunc : {n : Nat} -> (Fin n -> Bool) -> RefinedFSObj
+RefinedFSObjFromFunc = toList . finFToVect
+
+public export
+RefinedFin : RefinedFSObj -> Type
+RefinedFin bv = Subset0 (RFSElem bv) (RFSIsElem bv)
+
+public export
+MaybeRefinedFin : RefinedFSObj -> Bool -> Type
 MaybeRefinedFin nv True = RefinedFin nv
 MaybeRefinedFin nv False = Unit
 
 public export
-RefinedFinMorphElemType : {m, n : Nat} ->
-  RefinedFSObj m -> RefinedFSObj n -> Fin m -> Type
-RefinedFinMorphElemType mv nv i = MaybeRefinedFin nv (index i mv)
+RefinedFinMorphElemType : (dom, cod : RefinedFSObj) -> RFSElem dom -> Type
+RefinedFinMorphElemType mv nv i = MaybeRefinedFin nv (isRFSElem mv i)
 
 public export
-RefinedFinMorphTypes : {m, n : Nat} ->
-  RefinedFSObj m -> RefinedFSObj n -> Vect m Type
-RefinedFinMorphTypes {m} {n} mv nv = finFToVect $ RefinedFinMorphElemType mv nv
+getRFElem : {dom, cod : RefinedFSObj} -> {i : RFSElem dom} ->
+  RefinedFinMorphElemType dom cod i -> isRFSElem dom i = True -> RefinedFin cod
+getRFElem {dom} {cod} {i} t eq with (isRFSElem dom i)
+  getRFElem {dom} {cod} {i} t eq | True = t
+  getRFElem {dom} {cod} {i} t Refl | False impossible
 
 public export
-RefinedFinMorph : {m, n : Nat} -> RefinedFSObj m -> RefinedFSObj n -> Type
+RefinedFinMorphTypes : (dom, cod : RefinedFSObj) -> Vect (length dom) Type
+RefinedFinMorphTypes mv nv = finFToVect $ RefinedFinMorphElemType mv nv
+
+public export
+RefinedFinMorph : RefinedFSObj -> RefinedFSObj -> Type
 RefinedFinMorph mv nv = HVect (RefinedFinMorphTypes mv nv)
 
 public export
-RFMId : {n : Nat} -> (dom, cod : RefinedFSObj n) -> RefinedFinMorph dom cod
-RFMId {n} dom cod = ?RFMId_hole
+RFMIdElem : (bv : RefinedFSObj) -> (i : Fin (length bv)) ->
+  MaybeRefinedFin bv (isRFSElem bv i)
+RFMIdElem bv i with (isRFSElem bv i) proof isElem
+  RFMIdElem bv i | True = Element0 i isElem
+  RFMIdElem bv i | False = ()
 
 public export
-RFMApply : {m, n : Nat} -> {dom : RefinedFSObj m} -> {cod : RefinedFSObj n} ->
+RFMId : (bv : RefinedFSObj) -> RefinedFinMorph bv bv
+RFMId bv = finHFToHVect (RFMIdElem bv)
+
+public export
+RFMApply : {dom, cod : RefinedFSObj} ->
   RefinedFinMorph dom cod -> RefinedFin dom -> RefinedFin cod
-RFMApply {dom} {cod} m (i ** ok) with (index i dom) proof prf
-  RFMApply {dom} {cod} m (i ** Refl) | True =
+RFMApply {dom} {cod} m (Element0 i ok) with (isRFSElem dom i) proof prf
+  RFMApply {dom} {cod} m (Element0 i Refl) | True =
     replace {p=(MaybeRefinedFin cod)} prf $ finFGet i m
-  RFMApply {dom} {cod} m (i ** Refl) | False impossible
+  RFMApply {dom} {cod} m (Element0 i Refl) | False impossible
 
 public export
-RFMCompose : {k, m, n : Nat} ->
-  {a : RefinedFSObj k} -> {b : RefinedFSObj m} -> {c : RefinedFSObj n} ->
+RFMComposeElem : {a, b, c : RefinedFSObj} ->
+  (g : RefinedFinMorph b c) -> (f : RefinedFinMorph a b) ->
+  (i : RFSElem a) -> MaybeRefinedFin c (isRFSElem a i)
+RFMComposeElem {a} {b} {c} g f i with (isRFSElem a i) proof isElem
+  RFMComposeElem {a} {b} {c} g f i | True =
+    RFMApply g $ getRFElem (finFGet i f) isElem
+  RFMComposeElem {a} {b} {c} g f i | False = ()
+
+public export
+RFMCompose : {a, b, c : RefinedFSObj} ->
   RefinedFinMorph b c -> RefinedFinMorph a b -> RefinedFinMorph a c
-RFMCompose = ?RFMCompose_hole
+RFMCompose g f = finHFToHVect (RFMComposeElem g f)
 
 -------------------------------------------
 -------------------------------------------

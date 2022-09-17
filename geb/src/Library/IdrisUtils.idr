@@ -331,7 +331,13 @@ indexToFinLTS {n} {i} {okS} {ok} {x} {v} =
 public export
 finFToVect : {0 a : Type} -> {n : Nat} -> (Fin n -> a) -> Vect n a
 finFToVect {a} {n=Z} f = []
-finFToVect {a} {n=(S n)} f = f FZ :: finFToVect (f . FS)
+finFToVect {a} {n=(S n)} f = f FZ :: finFToVect {n} (f . FS)
+
+public export
+finHFToHVect : {n : Nat} -> {t : Fin n -> Type} -> ((i : Fin n) -> t i) ->
+  HVect (finFToVect t)
+finHFToHVect {n=Z} {t} f = []
+finHFToHVect {n=(S n)} {t} f = f FZ :: finHFToHVect {n} (\i => f (FS i))
 
 public export
 finFGet : {0 n : Nat} ->
