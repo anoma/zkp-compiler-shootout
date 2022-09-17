@@ -12,6 +12,10 @@ import LanguageDef.PolyCat
 -------------------------------------------
 -------------------------------------------
 
+---------------------------------------------------
+---- Polynomial endofunctors as dependent sets ----
+---------------------------------------------------
+
 -- We will use polynomial endofunctors of FinSet to define our first
 -- recursive types.
 
@@ -56,3 +60,20 @@ InterpFSPolyFMap p m (i ** d) = (i ** map m d)
 public export
 (p : FSPolyF) => Functor (InterpFSPolyF p) where
   map {p} = InterpFSPolyFMap p
+
+-- A polynomial endofunctor may also be viewed as a slice object
+-- (in the slice category of its type of positions).
+-- (Similarly, it may also be viewed as an object of the
+-- arrow category.)
+
+public export
+FSSlice : Nat -> Type
+FSSlice n = Vect n Nat
+
+public export
+FSPolyFToSlice : (p : FSPolyF) -> FSSlice (fsPolyNPos p)
+FSPolyFToSlice p = fromList (fspArena p)
+
+public export
+SliceToFSPolyF : {n : Nat} -> FSSlice n -> FSPolyF
+SliceToFSPolyF {n} sl = FSPArena (toList sl)
