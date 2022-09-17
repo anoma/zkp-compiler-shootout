@@ -71,6 +71,10 @@ FSSlice : Nat -> Type
 FSSlice n = Vect n Nat
 
 public export
+FSSliceToTypeSlice : {n : Nat} -> FSSlice n -> SliceObj (Fin n)
+FSSliceToTypeSlice {n} sl i = Fin (index i sl)
+
+public export
 FSPolyFToSlice : (p : FSPolyF) -> FSSlice (fsPolyNPos p)
 FSPolyFToSlice p = fromList (fspArena p)
 
