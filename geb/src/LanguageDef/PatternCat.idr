@@ -61,6 +61,10 @@ public export
 (p : FSPolyF) => Functor (InterpFSPolyF p) where
   map {p} = InterpFSPolyFMap p
 
+----------------------------------------------
+---- Polynomial functors as slice objects ----
+----------------------------------------------
+
 -- A polynomial endofunctor may also be viewed as a slice object
 -- (in the slice category of its type of positions).
 -- (Similarly, it may also be viewed as an object of the
@@ -71,8 +75,8 @@ FSSlice : Nat -> Type
 FSSlice n = Vect n Nat
 
 public export
-FSSliceToTypeSlice : {n : Nat} -> FSSlice n -> SliceObj (Fin n)
-FSSliceToTypeSlice {n} sl i = Fin (index i sl)
+FSSliceToType : {n : Nat} -> FSSlice n -> SliceObj (Fin n)
+FSSliceToType {n} sl i = Fin (index i sl)
 
 public export
 FSPolyFToSlice : (p : FSPolyF) -> FSSlice (fsPolyNPos p)
@@ -81,3 +85,35 @@ FSPolyFToSlice p = fromList (fspArena p)
 public export
 SliceToFSPolyF : {n : Nat} -> FSSlice n -> FSPolyF
 SliceToFSPolyF {n} sl = FSPArena (toList sl)
+
+public export
+FSSliceFiberMap : {n : Nat} -> FSSlice n -> FSSlice n -> Fin n -> Type
+FSSliceFiberMap sl sl' i = Vect (index i sl) (Fin (index i sl'))
+
+public export
+FSSliceMorphism : {n : Nat} -> FSSlice n -> FSSlice n -> Type
+FSSliceMorphism {n} sl sl' = HVect $ finFToVect (FSSliceFiberMap sl sl')
+
+public export
+FSSliceMorphToType : {n : Nat} -> {sl, sl' : FSSlice n} ->
+  FSSliceMorphism sl sl' -> SliceMorphism (FSSliceToType sl) (FSSliceToType sl')
+FSSliceMorphToType {n} {sl} {sl'} m i d = Vect.index d $ finFGet i m
+
+---------------------------------------------------------------------------
+---- Natural transformations between polynomial endofunctors on FinSet ----
+---------------------------------------------------------------------------
+
+public export
+FSPNatTrans : FSPolyF -> FSPolyF -> Type
+FSPNatTrans p q =
+  (onPos : fsPolyPos p -> fsPolyPos q **
+   SliceMorphism (fsPolyDir q . onPos) (fsPolyDir p))
+
+public export
+fspOnPos : {0 p, q : FSPolyF} -> FSPNatTrans p q -> fsPolyPos p -> fsPolyPos q
+fspOnPos = fst
+
+public export
+fspOnDir : {0 p, q : FSPolyF} -> (alpha : FSPNatTrans p q) ->
+  (i : fsPolyPos p) -> fsPolyDir q (fspOnPos {p} {q} alpha i) -> fsPolyDir p i
+fspOnDir = snd

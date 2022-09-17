@@ -329,13 +329,16 @@ indexToFinLTS {n} {i} {okS} {ok} {x} {v} =
   indexToFinS {a} {m=i} {n=n} {ltS=(fromIsYes okS)} {lt=(fromIsYes ok)} {x} {v}
 
 public export
-finFTrunc : {0 a : Type} -> {n : Nat} -> (Fin (S n) -> a) -> Fin n -> a
-finFTrunc f = f . FS
-
-public export
 finFToVect : {0 a : Type} -> {n : Nat} -> (Fin n -> a) -> Vect n a
 finFToVect {a} {n=Z} f = []
-finFToVect {a} {n=(S n)} f = f (last {n}) :: (finFToVect {n} $ finFTrunc {n} f)
+finFToVect {a} {n=(S n)} f = f FZ :: finFToVect (f . FS)
+
+public export
+finFGet : {0 n : Nat} ->
+  (i : Fin n) -> {f : Fin n -> Type} -> HVect (finFToVect f) -> f i
+finFGet {n=Z} i {f} [] = absurd i
+finFGet {n=(S n)} FZ {f} (ty :: hv) = ty
+finFGet {n=(S n)} (FS i) {f} (ty :: hv) = finFGet {n} i {f=(f . FS)} hv
 
 public export
 foldrNat : (a -> a) -> a -> Nat -> a
