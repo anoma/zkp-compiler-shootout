@@ -110,6 +110,31 @@ fsUncurry : {a, b, c : FSObj} ->
   FSMorph a (FSHomObj b c) -> FSMorph (FSProduct a b) c
 fsUncurry {a} {b} {c} f = ?fsUncurry_hole
 
+public export
+FSBool : FSObj
+FSBool = FSCoproduct FSTerminal FSTerminal
+
+public export
+FSFalse : FSElem FSBool
+FSFalse = FZ
+
+public export
+FSTrue : FSElem FSBool
+FSTrue = FS FZ
+
+public export
+FSPred : FSObj -> Type
+FSPred a = FSMorph a FSBool
+
+public export
+FSPredObj : FSObj -> FSObj
+FSPredObj a = FSHomObj a FSBool
+
+public export
+FSEqualizerPred : {a, b : FSObj} -> FSMorph a b -> FSMorph a b -> FSPred a
+FSEqualizerPred {a} {b} f g =
+  finFToVect $ \i => if FSApply f i == FSApply g i then FSTrue else FSFalse
+
 ------------------------
 ------------------------
 ---- Fin as a topos ----
