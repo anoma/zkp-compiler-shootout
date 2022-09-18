@@ -38,6 +38,78 @@ public export
 FSCompose : {a, b, c : FSObj} -> FSMorph b c -> FSMorph a b -> FSMorph a c
 FSCompose g f = finFToVect (FSApply g . FSApply f)
 
+public export
+FSInit : FSObj
+FSInit = 0
+
+public export
+fsFromInit : (a : FSObj) -> FSMorph FSInit a
+fsFromInit _ = []
+
+public export
+FSTerminal : FSObj
+FSTerminal = 1
+
+public export
+FSToTerminal : (a : FSObj) -> FSMorph a FSTerminal
+FSToTerminal a = finFToVect (const FZ)
+
+public export
+FSCoproduct : FSObj -> FSObj -> FSObj
+FSCoproduct = (+)
+
+public export
+fsCopIntroLeft : (a, b : FSObj) -> FSMorph a (FSCoproduct a b)
+fsCopIntroLeft a b = finFToVect (weakenN b)
+
+public export
+fsCopIntroRight : (a, b : FSObj) -> FSMorph b (FSCoproduct a b)
+fsCopIntroRight a b = finFToVect (shift a)
+
+public export
+fsCopElim : {a, b, c : FSObj} ->
+  FSMorph a c -> FSMorph b c -> FSMorph (FSCoproduct a b) c
+fsCopElim f g = f ++ g
+
+public export
+FSProduct : FSObj -> FSObj -> FSObj
+FSProduct = (*)
+
+public export
+fsProdIntro : {a, b, c : FSObj} ->
+  FSMorph a b -> FSMorph a c -> FSMorph a (FSProduct b c)
+fsProdIntro {a} {b} {c} f g = ?fsProdIntro_hole
+
+public export
+fsProdElimLeft : (a, b : FSObj) -> FSMorph (FSProduct a b) a
+fsProdElimLeft a b = ?fsProdElimLeft_hole
+
+public export
+fsProdElimRight : (a, b : FSObj) -> FSMorph (FSProduct a b) b
+fsProdElimRight a b = ?fsProdElimRight_hole
+
+public export
+FSExpObj : FSObj -> FSObj -> FSObj
+FSExpObj = power
+
+public export
+FSHomObj : FSObj -> FSObj -> FSObj
+FSHomObj = flip FSExpObj
+
+public export
+fsEval : (a, b : FSObj) -> FSMorph (FSProduct (FSHomObj a b) a) b
+fsEval a b = ?fsEval_hole
+
+public export
+fsCurry : {a, b, c : FSObj} ->
+  FSMorph (FSProduct a b) c -> FSMorph a (FSHomObj b c)
+fsCurry {a} {b} {c} f = ?fsCurry_hole
+
+public export
+fsUncurry : {a, b, c : FSObj} ->
+  FSMorph a (FSHomObj b c) -> FSMorph (FSProduct a b) c
+fsUncurry {a} {b} {c} f = ?fsUncurry_hole
+
 ------------------------
 ------------------------
 ---- Fin as a topos ----
