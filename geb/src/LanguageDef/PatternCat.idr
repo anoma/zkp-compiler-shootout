@@ -78,15 +78,19 @@ FSProduct = (*)
 public export
 fsProdIntro : {a, b, c : FSObj} ->
   FSMorph a b -> FSMorph a c -> FSMorph a (FSProduct b c)
-fsProdIntro {a} {b} {c} f g = ?fsProdIntro_hole
+fsProdIntro {a} {b} {c} f g =
+  finFToVect $ \i =>
+    natToFinLT
+      {prf=(?fsProdIntro_prf_hole)}
+      (c * finToNat (FSApply f i) + finToNat (FSApply g i))
 
 public export
 fsProdElimLeft : (a, b : FSObj) -> FSMorph (FSProduct a b) a
-fsProdElimLeft a b = ?fsProdElimLeft_hole
+fsProdElimLeft a b = finFToVect $ \i => ?fsProdElimLeft_hole
 
 public export
 fsProdElimRight : (a, b : FSObj) -> FSMorph (FSProduct a b) b
-fsProdElimRight a b = ?fsProdElimRight_hole
+fsProdElimRight a b = finFToVect $ \i => ?fsProdElimRight_hole
 
 public export
 FSExpObj : FSObj -> FSObj -> FSObj
