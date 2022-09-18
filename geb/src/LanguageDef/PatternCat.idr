@@ -6,6 +6,38 @@ import LanguageDef.PolyCat
 
 %default total
 
+--------------------------------------
+--------------------------------------
+---- Objects and morphisms of Fin ----
+--------------------------------------
+--------------------------------------
+
+-- Interpreted as the cardinality of a set.
+public export
+FSObj : Type
+FSObj = Nat
+
+public export
+FSElem : FSObj -> Type
+FSElem = Fin
+
+-- Morphisms between finite sets.
+public export
+FSMorph : FSObj -> FSObj -> Type
+FSMorph m n = Vect m (Fin n)
+
+public export
+FSId : (a : FSObj) -> FSMorph a a
+FSId a = finFToVect id
+
+public export
+FSApply : {a, b : FSObj} -> FSMorph a b -> FSElem a -> FSElem b
+FSApply = flip index
+
+public export
+FSCompose : {a, b, c : FSObj} -> FSMorph b c -> FSMorph a b -> FSMorph a c
+FSCompose g f = finFToVect (FSApply g . FSApply f)
+
 ------------------------
 ------------------------
 ---- Fin as a topos ----
