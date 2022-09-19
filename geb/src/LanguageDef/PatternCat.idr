@@ -111,9 +111,22 @@ FSHomObj : FSObj -> FSObj -> FSObj
 FSHomObj = flip FSExpObj
 
 public export
-vectRepeat : (a, b, c : FSObj) -> Vect b (Fin c) -> Vect (mult a b) (Fin c)
-vectRepeat Z b c v = []
-vectRepeat (S a) b c v = v ++ vectRepeat a b c v
+vectRepeat : (a : FSObj) -> {b, c : FSObj} ->
+  Vect b (Fin c) -> Vect (mult a b) (Fin c)
+vectRepeat Z {b} {c} v = []
+vectRepeat (S a) {b} {c} v = v ++ vectRepeat a {b} {c} v
+
+public export
+finMul : (n : Nat) -> Fin m -> Fin (n * m)
+finMul n i = ?finMul_hole
+
+public export
+finPow : (n : Nat) -> Fin m -> Fin (power m n)
+finPow n i = ?finPow_hole
+
+public export
+finPlus : {m, n : Nat} -> Fin m -> Fin n -> Fin (m + n)
+finPlus i j = ?finPlus_hole
 
 public export
 fsPowerElimRight : (a, b : FSObj) -> FSMorph (FSHomObj a (S b)) (S b)
@@ -132,12 +145,27 @@ fsEval (S a) (S b) =
   rewrite sym (multAssociative (S b) (power (S b) a) a) in
   rewrite sym (multDistributesOverPlusRight
     (S b) (power (S b) a) (mult (power (S b) a) a)) in
-  vectRepeat (S b) _ _ (fsPowerElimRight a b ++ fsEval a (S b))
+  vectRepeat (S b) (fsPowerElimRight a b ++ fsEval a (S b))
 
 public export
 fsCurry : {a, b, c : FSObj} ->
   FSMorph (FSProduct a b) c -> FSMorph a (FSHomObj b c)
-fsCurry {a} {b} {c} f = ?fsCurry_hole
+fsCurry {a} {b=Z} {c} f =
+  rewrite sym (multOneRightNeutral a) in vectRepeat a [FZ]
+fsCurry {a=Z} {b=(S b)} {c=Z} [] = []
+fsCurry {a=(S a)} {b=(S b)} {c=Z} (x :: _) = absurd x
+fsCurry {a} {b=(S b)} {c=(S c)} f =
+  let
+    f' = replace {p=(flip Vect (Fin (S c)))} (multRightSuccPlus a b) f
+    (fhd, ftl) = splitAt _ f'
+    cftl = fsCurry {a} {b} {c=(S c)} ftl
+  in
+  finFToVect $ \i =>
+    let
+      fhdi = FSApply fhd i
+      ftli = FSApply cftl i
+    in
+    finPlus (finPow b fhdi) (finMul c ftli)
 
 public export
 fsUncurry : {a, b, c : FSObj} ->
