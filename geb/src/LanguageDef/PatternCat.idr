@@ -142,7 +142,10 @@ fsCurry {a} {b} {c} f = ?fsCurry_hole
 public export
 fsUncurry : {a, b, c : FSObj} ->
   FSMorph a (FSHomObj b c) -> FSMorph (FSProduct a b) c
-fsUncurry {a} {b} {c} f = ?fsUncurry_hole
+fsUncurry {a} {b} {c} f =
+  FSCompose
+    (fsEval b c)
+    (fsProdIntro (FSCompose f $ fsProdElimLeft _ _) (fsProdElimRight _ _))
 
 public export
 FSBool : FSObj
