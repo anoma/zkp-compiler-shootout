@@ -284,6 +284,12 @@ fromLteSuccYes : {m, n : Nat} ->
 fromLteSuccYes y = toIsYes (fromLteSucc $ fromIsYes y)
 
 public export
+finToNatLT : {m : Nat} -> (i : Fin m) -> LT (finToNat i) m
+finToNatLT {m=Z} i = absurd i
+finToNatLT {m=(S m)} FZ = LTESucc LTEZero
+finToNatLT {m=(S m)} (FS i) = LTESucc $ finToNatLT {m} i
+
+public export
 indexN : {0 a : Type} -> {n : Nat} ->
   (i : Nat) -> {auto ok : IsJustTrue (natToFin i n)} -> Vect n a -> a
 indexN _ {ok} = index (fromIsJust ok)
