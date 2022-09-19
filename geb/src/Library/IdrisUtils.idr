@@ -448,10 +448,16 @@ LTEReflectsLte LTEZero = Refl
 LTEReflectsLte (LTESucc lte) = LTEReflectsLte lte
 
 public export
+mod'Z : (m : Nat) -> mod' m m Z = Z
+mod'Z Z = Refl
+mod'Z (S m) = rewrite minusZeroRight m in mod'Z m
+
+public export
 modLTDivisor : (m, n : Nat) -> LT (modNatNZ m (S n) SIsNonZero) (S n)
 modLTDivisor Z Z = LTESucc LTEZero
-modLTDivisor (S m) Z = ?mod_lT_divisor_correct_sz
-modLTDivisor Z (S n) = ?mod_lT_divisor_correct_zs
+modLTDivisor (S m) Z =
+  LTESucc $ rewrite minusZeroRight m in rewrite mod'Z m in LTEZero
+modLTDivisor Z (S n) = LTESucc LTEZero
 modLTDivisor (S m) (S n) = ?mod_lT_divisor_correct_ss
 
 public export
