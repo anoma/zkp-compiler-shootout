@@ -4,6 +4,7 @@ import public Data.Maybe
 import public Data.List
 import public Data.List.Reverse
 import public Data.Nat
+import public Data.Nat.Division
 import public Data.Vect
 import public Data.HVect
 import public Data.Fin
@@ -474,28 +475,7 @@ mod'Z (S m) = rewrite minusZeroRight m in mod'Z m
 
 public export
 modLTDivisor : (m, n : Nat) -> LT (modNatNZ m (S n) SIsNonZero) (S n)
-modLTDivisor Z Z = LTESucc LTEZero
-modLTDivisor (S m) Z =
-  LTESucc $ rewrite minusZeroRight m in rewrite mod'Z m in LTEZero
-modLTDivisor Z (S n) = LTESucc LTEZero
-modLTDivisor (S m) (S n) with (lte m n) proof ltemn
-  modLTDivisor (S m) (S n) | True = LTESucc $ LTESucc $ lteReflectsLTE _ _ ltemn
-  modLTDivisor (S Z) (S n) | False = LTESucc $ LTEZero
-  modLTDivisor (S (S m)) (S n) | False = LTESucc $
-    case isLTE (minus m n) (S n) of
-      Yes lteminus => rewrite LTEReflectsLte lteminus in lteminus
-      No gtminus => case decEq m n of
-        Yes Refl => rewrite sym (minusZeroN n) in LTEZero
-        No neqmn =>
-          let gtminus' = notLTEReflectsLte gtminus in
-          let gtminus'' = notLTEImpliesGT gtminus in
-          let ltemn' = notLteReflectsLTE ltemn in
-          let ltesmn = fromLteSucc (modLTDivisor (S m) (S n)) in
-          let ltmn = gteTogt ltemn' neqmn in
-          let ltmn' = notLTEReflectsLte ltmn in
-          let mss = minusSuccSucc m (S n) in
-          rewrite gtminus' in
-          ?modLTDivisor_hole
+modLTDivisor m n = boundModNatNZ m (S n) SIsNonZero
 
 public export
 modLtDivisor : (m, n : Nat) -> IsTrue $ gt (S n) $ modNatNZ m (S n) SIsNonZero
