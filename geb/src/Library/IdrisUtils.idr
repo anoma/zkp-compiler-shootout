@@ -495,7 +495,14 @@ multDivLT {k=(S k)} {m=(S m)} {n=Z} lt =
     rewrite minusZeroRight k in
     rewrite div'One k in
     lt''
-multDivLT {k=(S k)} {m=(S m)} {n=(S n)} lt = LTESucc $ ?multDivLT_hole_2
+multDivLT {k=(S k)} {m=(S m)} {n=(S n)} lt with (lte k n) proof ltekn
+  multDivLT {k=(S k)} {m=(S m)} {n=(S n)} lt | True = LTESucc $ LTEZero
+  multDivLT {k=(S k)} {m=(S m)} {n=(S n)} (LTESucc lt) | False =
+    let
+      lt' = lteSuccRight lt
+      mlt = multDivLT {k} {m=(S m)} {n=(S n)} lt'
+    in
+    transitive (LTESucc ?multDivLT_hole_f) mlt
 
 public export
 multAddLT : {k, m, n, p : Nat} ->
