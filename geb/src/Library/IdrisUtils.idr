@@ -281,6 +281,14 @@ toIsYes x {dx=(Yes y)} = Refl
 toIsYes x {dx=(No n)} = void $ n x
 
 public export
+fstEq : {a, b : Type} -> {x, y : (a, b)} -> x = y -> fst x = fst y
+fstEq Refl = Refl
+
+public export
+sndEq : {a, b : Type} -> {x, y : (a, b)} -> x = y -> snd x = snd y
+sndEq Refl = Refl
+
+public export
 fromLteSuccYes : {m, n : Nat} ->
   IsYesTrue (isLT (S m) (S n)) -> IsYesTrue (isLT m n)
 fromLteSuccYes y = toIsYes (fromLteSucc $ fromIsYes y)
@@ -516,11 +524,6 @@ div'One Z = Refl
 div'One (S k) = rewrite minusZeroRight k in cong S (div'One k)
 
 public export
-div'LT : {k, n : Nat} ->
-  LTE (S n) k -> LT (div' k (minus k (S n)) (S n)) (div' k k (S n))
-div'LT {k=(S k)} {n} (LTESucc lt) = ?div'LT_hole
-
-public export
 multDivLT : {k, m, n : Nat} ->
   LT k (m * (S n)) -> LT (divNatNZ k (S n) SIsNonZero) m
 multDivLT {k=Z} {m} {n=Z} lt = rewrite sym (multOneRightNeutral m) in lt
@@ -546,7 +549,7 @@ multDivLT {k=(S k)} {m=(S m)} {n=(S n)} lt with (lte k n) proof ltekn
       ltekn'' = notLTEImpliesGT ltekn'
       mpl = minusPosLT (S n) k (LTESucc LTEZero) ltekn''
     in
-    transitive (LTESucc (div'LT ltekn'')) mlt
+    ?multDivLT_hole
 
 public export
 multAddLT : {k, m, n, p : Nat} ->
