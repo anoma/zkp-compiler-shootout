@@ -429,6 +429,11 @@ powerZeroOne : (0 n : Nat) -> power n 0 = 1
 powerZeroOne n = Refl
 
 public export
+powerOneOne : (n : Nat) -> power 1 n = 1
+powerOneOne Z = Refl
+powerOneOne (S n) = rewrite powerOneOne n in Refl
+
+public export
 mulPowerZeroRightNeutral : {0 m, n : Nat} -> m * (power n 0) = m
 mulPowerZeroRightNeutral {m} {n} = rewrite multOneRightNeutral m in Refl
 
@@ -441,7 +446,21 @@ powerOfSum x (S y) z =
 
 public export
 powerOfMul : (x, y, z : Nat) -> power x (y * z) = power (power x y) z
-powerOfMul x y z = ?powerOfMul_hole
+powerOfMul x Z z = sym (powerOneOne z)
+powerOfMul x (S y) Z = rewrite multZeroRightZero y in Refl
+powerOfMul x (S y) (S z) =
+  rewrite powerOfSum x (S z) (y * (S z)) in
+  rewrite multRightSuccPlus y z in
+  rewrite powerOfSum x y (y * z) in
+  rewrite sym
+    (multAssociative x (power x z) (mult (power x y) (power x (mult y z)))) in
+  rewrite sym (multAssociative x (power x y) (power (mult x (power x y)) z)) in
+  rewrite powerOfMul x y z in
+  rewrite multAssociative (power x z) (power x y) (power (power x y) z) in
+  rewrite multCommutative (power x z) (power x y) in
+  rewrite sym (multAssociative (power x y) (power x z) (power (power x y) z)) in
+  cong (mult x) $ cong (mult (power x y)) $
+    ?powerOfMul_hole_s
 
 public export
 powerOfMulSym : (x, y, z : Nat) -> power x (y * z) = power (power x z) y
