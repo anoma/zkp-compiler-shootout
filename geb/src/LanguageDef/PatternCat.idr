@@ -112,7 +112,8 @@ FSHomObj = flip FSExpObj
 
 public export
 vectRepeat : (a, b, c : FSObj) -> Vect b (Fin c) -> Vect (mult a b) (Fin c)
-vectRepeat a b c v = ?fsEvalRepeat_hole
+vectRepeat Z b c v = []
+vectRepeat (S a) b c v = v ++ vectRepeat a b c v
 
 public export
 fsPowerElimRight : (a, b : FSObj) -> FSMorph (FSHomObj a (S b)) (S b)
