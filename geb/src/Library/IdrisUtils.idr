@@ -524,32 +524,47 @@ div'One Z = Refl
 div'One (S k) = rewrite minusZeroRight k in cong S (div'One k)
 
 public export
-multDivLT : {k, m, n : Nat} ->
-  LT k (m * (S n)) -> LT (divNatNZ k (S n) SIsNonZero) m
-multDivLT {k=Z} {m} {n=Z} lt = rewrite sym (multOneRightNeutral m) in lt
-multDivLT {k=Z} {m=Z} {n=(S n)} lt = lt
-multDivLT {k=Z} {m=(S m)} {n=(S n)} lt = LTESucc LTEZero
-multDivLT {k=(S k)} {m=Z} {n} lt = void $ succNotLTEzero lt
-multDivLT {k=(S k)} {m=(S m)} {n=Z} lt =
+div'LT : (k, k' : Nat) -> LTE (div' k k' 0) k
+div'LT Z Z = LTEZero
+div'LT (S k) Z = LTEZero
+div'LT Z (S k') = LTEZero
+div'LT (S k) (S k') = LTESucc $ rewrite minusZeroRight k' in div'LT k k'
+
+public export
+multDiv'LT : {k, k', m, n : Nat} ->
+  LT k (m * (S n)) -> LTE k' k -> LT (div' k k' n) m -- (divNatNZ k (S n) SIsNonZero) m
+multDiv'LT {k=Z} {k'} {m} {n=Z} lt ltk = rewrite sym (multOneRightNeutral m) in lt
+multDiv'LT {k=Z} {k'} {m=Z} {n=(S n)} lt ltk = lt
+multDiv'LT {k=Z} {k'} {m=(S m)} {n=(S n)} lt ltk = LTESucc LTEZero
+multDiv'LT {k=(S k)} {k'} {m=Z} {n} lt ltk = void $ succNotLTEzero lt
+multDiv'LT {k=(S k)} {k'=Z} {m=(S m)} {n=Z} lt ltk = LTESucc LTEZero
+multDiv'LT {k=(S k)} {k'=(S k')} {m=(S m)} {n=Z} lt ltk =
   LTESucc $
     let
       lt' = fromLteSucc lt
       lt'' = replace {p=(\q => LTE (S k) (Z + q))} (multOneRightNeutral m) lt'
     in
-    rewrite minusZeroRight k in
-    rewrite div'One k in
-    lt''
-multDivLT {k=(S k)} {m=(S m)} {n=(S n)} lt with (lte k n) proof ltekn
-  multDivLT {k=(S k)} {m=(S m)} {n=(S n)} lt | True = LTESucc $ LTEZero
-  multDivLT {k=(S k)} {m=(S m)} {n=(S n)} (LTESucc lt) | False =
+    rewrite minusZeroRight k' in
+    transitive (LTESucc $ div'LT k k') lt''
+multDiv'LT {k=(S k)} {k'=Z} {m=(S m)} {n=(S n)} lt ltk = LTESucc LTEZero
+multDiv'LT {k=(S k)} {k'=(S k')} {m=(S m)} {n=(S n)} lt ltk with (lte k' n)
+    proof ltekn
+  multDiv'LT {k=(S k)} {k'=(S k')} {m=(S m)} {n=(S n)} lt ltk | True =
+    LTESucc $ LTEZero
+  multDiv'LT {k=(S k)} {k'=(S k')} {m=(S m)} {n=(S n)}
+      (LTESucc lt) (LTESucc ltk) | False =
     let
-      lt' = lteSuccRight lt
-      mlt = multDivLT {k} {m=(S m)} {n=(S n)} lt'
-      ltekn' = notLteReflectsLTE ltekn
-      ltekn'' = notLTEImpliesGT ltekn'
-      mpl = minusPosLT (S n) k (LTESucc LTEZero) ltekn''
+      mlt = multDiv'LT {k} {k'=(minus k' (S n))} {m} {n=(S n)}
+      mpl = minusPosLT (S n) k' (LTESucc LTEZero)
     in
-    ?multDivLT_hole
+    LTESucc $
+      mlt ?multDivLT'_hole_1
+      $ lteSuccLeft $ transitive (mpl ?multDivLT'_hole_2) ltk
+
+public export
+multDivLT : {k, m, n : Nat} ->
+  LT k (m * (S n)) -> LT (divNatNZ k (S n) SIsNonZero) m
+multDivLT {k} {m} {n} lt = multDiv'LT {k} {k'=k} {m} {n} lt reflexive
 
 public export
 multAddLT : {k, m, n, p : Nat} ->
