@@ -532,7 +532,7 @@ div'LT (S k) (S k') = LTESucc $ rewrite minusZeroRight k' in div'LT k k'
 
 public export
 multDiv'LT : {k, k', m, n : Nat} ->
-  LT k (m * (S n)) -> LTE k' k -> LT (div' k k' n) m -- (divNatNZ k (S n) SIsNonZero) m
+  LT k (m * (S n)) -> LTE k' k -> LT (div' k k' n) m
 multDiv'LT {k=Z} {k'} {m} {n=Z} lt ltk = rewrite sym (multOneRightNeutral m) in lt
 multDiv'LT {k=Z} {k'} {m=Z} {n=(S n)} lt ltk = lt
 multDiv'LT {k=Z} {k'} {m=(S m)} {n=(S n)} lt ltk = LTESucc LTEZero
