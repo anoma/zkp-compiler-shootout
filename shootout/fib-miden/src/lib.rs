@@ -41,7 +41,7 @@ pub fn inputs(inputs: &[u64]) -> Result<ProgramInputs, miden::InputError> {
 
 pub fn prove_and_verify(path: &Path, answer: Option<&[u64]>, input: &[u64]) {
     let program = compile(path).unwrap();
-    let inputs = ProgramInputs::from_stack_inputs(&[0, 1]).unwrap();
+    let inputs = ProgramInputs::from_stack_inputs(input).unwrap();
     let (outputs, proof) = prove(&program, &inputs).unwrap();
     // might as well check the answer is what we expect in this case
     match answer {

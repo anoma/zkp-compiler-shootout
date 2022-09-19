@@ -6,6 +6,8 @@ mod risc;
 // TODO Put the plonk code by itself and make it runable standalone!
 
 pub fn bench_fib(c: &mut Criterion) {
+    miden::bench_fib(c, 93, Some(&[1293530150453638846]));
+    miden::bench_fib(c, 1000, None);
     miden::bench_fib_fix(c, "92", Some(&[12200160415121876738]));
     miden::bench_fib_fix(c, "50", Some(&[20365011074]));
     risc::bench_fib(c);

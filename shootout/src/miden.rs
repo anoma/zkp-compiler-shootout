@@ -45,7 +45,7 @@ pub fn bench_fib_flexy(
         b.iter_batched(
             || {
                 let program = compile(path).unwrap();
-                let input = inputs(&[0, 1]).unwrap();
+                let input = inputs(input_vec).unwrap();
                 let (outputs, proof) = prove(&program, &input).unwrap();
                 (program, proof, outputs)
             },
