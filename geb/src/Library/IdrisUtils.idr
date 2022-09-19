@@ -458,7 +458,18 @@ modLTDivisor Z Z = LTESucc LTEZero
 modLTDivisor (S m) Z =
   LTESucc $ rewrite minusZeroRight m in rewrite mod'Z m in LTEZero
 modLTDivisor Z (S n) = LTESucc LTEZero
-modLTDivisor (S m) (S n) = ?mod_lT_divisor_correct_ss
+modLTDivisor (S m) (S n) with (lte m n) proof ltemn
+  modLTDivisor (S m) (S n) | True = LTESucc $ LTESucc $ lteReflectsLTE _ _ ltemn
+  modLTDivisor (S Z) (S n) | False = LTESucc $ LTEZero
+  modLTDivisor (S (S m)) (S n) | False = LTESucc $
+    case isLTE (minus m n) (S n) of
+      Yes lteminus =>
+        let lteminus' = LTEReflectsLte lteminus in
+        rewrite lteminus' in
+        lteminus
+      No gtminus =>
+        let ltesmn = fromLteSucc (modLTDivisor (S m) n) in
+        ?modLTDivisor_False_hole_2
 
 public export
 modLtDivisor : (m, n : Nat) -> IsTrue $ gt (S n) $ modNatNZ m (S n) SIsNonZero
