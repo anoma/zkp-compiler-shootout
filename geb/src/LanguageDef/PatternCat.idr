@@ -86,11 +86,21 @@ fsProdIntro {a} {b} {c} f g =
 
 public export
 fsProdElimLeft : (a, b : FSObj) -> FSMorph (FSProduct a b) a
-fsProdElimLeft a b = finFToVect $ \i => ?fsProdElimLeft_hole
+fsProdElimLeft a Z = rewrite multZeroRightZero a in []
+fsProdElimLeft a (S b) =
+  finFToVect $ \i =>
+    natToFinLT
+      {prf=(?fsProdElimLeft_prf_hole)}
+      (divNatNZ (finToNat i) (S b) SIsNonZero)
 
 public export
 fsProdElimRight : (a, b : FSObj) -> FSMorph (FSProduct a b) b
-fsProdElimRight a b = finFToVect $ \i => ?fsProdElimRight_hole
+fsProdElimRight a Z = rewrite multZeroRightZero a in []
+fsProdElimRight a (S b) =
+  finFToVect $ \i =>
+    natToFinLT
+      {prf=(?fsProdElimRight_prf_hole)}
+      (modNatNZ (finToNat i) (S b) SIsNonZero)
 
 public export
 FSExpObj : FSObj -> FSObj -> FSObj
