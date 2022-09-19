@@ -2739,25 +2739,17 @@ public export
 polyMax : Polynomial -> Nat -> Nat
 polyMax = psMax . shape
 
--- XXX arenas w/bijections (unless I can implement all formulas without this)
-
--- XXX lenses / natural transformations w/bijections
-
--- XXX horizontal & vertical composition of NTs
-
--- XXX eval (i.e. for exponential)
-
--- XXX equalizer
-
--- XXX coequalizer
-
--- XXX eval for parallel product
-
--- XXX derivative (as one-hole context)
-
--- XXX plugging in (to one-hole context)
-
--- XXX p-p0, and iteration of it
+-- Possible future developments:
+  -- arenas w/bijections (unless I can implement all formulas without this)
+  -- lenses / natural transformations w/bijections
+  -- horizontal & vertical composition of NTs
+  -- eval (i.e. for exponential)
+  -- equalizer
+  -- coequalizer
+  -- eval for parallel product
+  -- derivative (as one-hole context)
+  -- plugging in (to one-hole context)
+  -- p-p0, and iteration of it
 
 -----------------------------------
 ---- Arithmetic on polynomials ----
