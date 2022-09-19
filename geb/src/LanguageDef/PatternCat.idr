@@ -99,7 +99,7 @@ fsProdElimRight a Z = rewrite multZeroRightZero a in []
 fsProdElimRight a (S b) =
   finFToVect $ \i =>
     natToFinLT
-      {prf=(?fsProdElimRight_prf_hole)}
+      {prf=(modLTDivisor (finToNat i) b)}
       (modNatNZ (finToNat i) (S b) SIsNonZero)
 
 public export
