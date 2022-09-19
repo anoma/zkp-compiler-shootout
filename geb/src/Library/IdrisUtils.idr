@@ -353,14 +353,6 @@ vectRepeat Z {b} {c} v = []
 vectRepeat (S a) {b} {c} v = v ++ vectRepeat a {b} {c} v
 
 public export
-finMul : (n : Nat) -> Fin m -> Fin (n * m)
-finMul n i = ?finMul_hole
-
-public export
-finPow : (n : Nat) -> Fin m -> Fin (power m n)
-finPow n i = ?finPow_hole
-
-public export
 finPlus : {m, n : Nat} -> Fin m -> Fin n -> Fin (m + n)
 finPlus {m=Z} {n} FZ j impossible
 finPlus {m=(S m)} {n} FZ j =
@@ -368,6 +360,14 @@ finPlus {m=(S m)} {n} FZ j =
   rewrite plusSuccRightSucc n m in
   weakenN (S m) j
 finPlus {m=(S m)} {n} (FS i) j = FS $ finPlus i j
+
+public export
+finMul : (n : Nat) -> Fin m -> Fin (n * m)
+finMul n i = ?finMul_hole
+
+public export
+finPow : (n : Nat) -> Fin m -> Fin (power m n)
+finPow n i = ?finPow_hole
 
 public export
 foldrNat : (a -> a) -> a -> Nat -> a
