@@ -4,6 +4,7 @@ import public Data.Maybe
 import public Data.List
 import public Data.List.Reverse
 import public Data.Nat
+import public Data.Nat.Order.Properties
 import public Data.Nat.Division
 import public Data.Vect
 import public Data.HVect
@@ -481,7 +482,17 @@ multDivLT {k} {m} {n} lt = ?divLTDivisor_hole
 public export
 multAddLT : {k, m, n, p : Nat} ->
   LT k n -> LT m p -> LT (p * k + m) (n * p)
-multAddLT {k} {m} {n} {p} ltkn ltmp = ?multAddLT_hole
+multAddLT {k} {m} {n=Z} {p} ltkn ltmp = void $ succNotLTEzero ltkn
+multAddLT {k} {m} {n=(S n)} {p=Z} ltkn ltmp = void $ succNotLTEzero ltmp
+multAddLT {k} {m} {n=(S n)} {p=(S p)} (LTESucc ltkn) (LTESucc ltmp) =
+  LTESucc $
+    rewrite multRightSuccPlus n p in
+    rewrite plusCommutative p (plus n (mult n p)) in
+    let mpk = multCommutative k p in
+    plusLteMonotone
+      (plusLteMonotone ltkn $
+        replace {p=(\q => LTE q (n * p))} mpk $ multLteMonotoneLeft _ _ _ ltkn)
+      ltmp
 
 public export
 modLTDivisor : (m, n : Nat) -> LT (modNatNZ m (S n) SIsNonZero) (S n)
