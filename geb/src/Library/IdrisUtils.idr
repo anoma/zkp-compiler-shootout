@@ -488,11 +488,13 @@ modLTDivisor (S m) (S n) with (lte m n) proof ltemn
         Yes Refl => rewrite sym (minusZeroN n) in LTEZero
         No neqmn =>
           let gtminus' = notLTEReflectsLte gtminus in
+          let gtminus'' = notLTEImpliesGT gtminus in
           let ltemn' = notLteReflectsLTE ltemn in
           let ltesmn = fromLteSucc (modLTDivisor (S m) (S n)) in
-          rewrite gtminus' in
           let ltmn = gteTogt ltemn' neqmn in
           let ltmn' = notLTEReflectsLte ltmn in
+          let mss = minusSuccSucc m (S n) in
+          rewrite gtminus' in
           ?modLTDivisor_hole
 
 public export
