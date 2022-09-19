@@ -75,6 +75,10 @@ value is given"
 (defun push (item)
   (make-opcode :name :push :constant item))
 
+(-> drop () opcode)
+(defun drop ()
+  (make-opcode :name :drop))
+
 (-> swap (&optional fixnum) opcode)
 (defun swap (&optional num)
   (make-opcode :name :swap :constant num))

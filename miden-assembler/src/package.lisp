@@ -1,7 +1,7 @@
 (defpackage #:miden
   (:documentation "Provides a quick and dirty assembler for MidenVM")
   (:use #:common-lisp #:serapeum)
-  (:shadow :block :count :repeat :push)
+  (:shadow :block :count :repeat :push :drop)
   (:export
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    ;; Dumping Operations

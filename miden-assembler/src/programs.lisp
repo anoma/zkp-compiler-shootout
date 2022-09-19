@@ -14,6 +14,10 @@
 (defproc fib_rec 0
   )
 
+(-> loop-check-sub (&key (:pos fixnum) (:by fixnum)) instruction)
+(defbegin loop-check-sub (&key pos by)
+  (movup pos) (sub by) (dup) (movdn (1+ pos)))
+
 (defproc fib_iter 0
   ;; setup the starting values!
   (push 0)
@@ -21,11 +25,9 @@
   ;; move back our starting value
   (dup 2)
   (neq 0)
-  (while (swap) (dup 1) (add) (loop-check-sub :pos 2 :by 1) (neq 0)))
-
-(-> loop-check-sub (&key (:pos fixnum) (:by fixnum)) instruction)
-(defbegin loop-check-sub (&key pos by)
-  (movup pos) (sub by) (dup) (movdn (1+ pos)))
+  (while (swap) (dup 1) (add) (loop-check-sub :pos 2 :by 1) (neq 0))
+  ;; clean up the pushes, otherwise rust throws a fit
+  (movdn 2) (drop) (drop))
 
 (defun dump ()
   (extract

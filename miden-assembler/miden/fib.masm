@@ -6,6 +6,9 @@ proc.fib_iter
   while.true
     swap dup.1 add movup.2 sub.1 dup movdn.3 neq.0
   end
+  movdn.2
+  drop
+  drop
 end
 
 begin
