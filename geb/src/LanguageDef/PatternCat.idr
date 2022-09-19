@@ -81,7 +81,7 @@ fsProdIntro : {a, b, c : FSObj} ->
 fsProdIntro {a} {b} {c} f g =
   finFToVect $ \i =>
     natToFinLT
-      {prf=(?fsProdIntro_prf_hole)}
+      {prf=(multAddLT (finToNatLT (index i f)) (finToNatLT (index i g)))}
       (c * finToNat (FSApply f i) + finToNat (FSApply g i))
 
 public export
@@ -90,7 +90,7 @@ fsProdElimLeft a Z = rewrite multZeroRightZero a in []
 fsProdElimLeft a (S b) =
   finFToVect $ \i =>
     natToFinLT
-      {prf=(?fsProdElimLeft_prf_hole)}
+      {prf=(multDivLT (finToNatLT i))}
       (divNatNZ (finToNat i) (S b) SIsNonZero)
 
 public export

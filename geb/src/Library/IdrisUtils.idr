@@ -474,6 +474,16 @@ mod'Z Z = Refl
 mod'Z (S m) = rewrite minusZeroRight m in mod'Z m
 
 public export
+multDivLT : {k, m, n : Nat} ->
+  LT k (m * (S n)) -> LT (divNatNZ k (S n) SIsNonZero) m
+multDivLT {k} {m} {n} lt = ?divLTDivisor_hole
+
+public export
+multAddLT : {k, m, n, p : Nat} ->
+  LT k n -> LT m p -> LT (p * k + m) (n * p)
+multAddLT {k} {m} {n} {p} ltkn ltmp = ?multAddLT_hole
+
+public export
 modLTDivisor : (m, n : Nat) -> LT (modNatNZ m (S n) SIsNonZero) (S n)
 modLTDivisor m n = boundModNatNZ m (S n) SIsNonZero
 
