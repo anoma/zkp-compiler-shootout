@@ -448,6 +448,26 @@ LTEReflectsLte LTEZero = Refl
 LTEReflectsLte (LTESucc lte) = LTEReflectsLte lte
 
 public export
+notLTEReflectsLte : {k, n : Nat} -> Not (k `LTE` n) -> lte k n = False
+notLTEReflectsLte nlte with (lte k n) proof ltekn
+  notLTEReflectsLte nlte | True = void $ nlte $ lteReflectsLTE _ _ ltekn
+  notLTEReflectsLte nlte | False = Refl
+
+public export
+notLteReflectsLTE : {k, n : Nat} -> lte k n = False -> Not (k `LTE` n)
+notLteReflectsLTE nlte with (isLTE k n)
+  notLteReflectsLTE nlte | Yes yLTE =
+    case trans (sym nlte) (LTEReflectsLte yLTE) of Refl impossible
+  notLteReflectsLTE nlte | No notLTE = notLTE
+
+public export
+gteTogt : {m, n : Nat} -> Not (LTE (S m) n) -> Not (m = n) -> Not (LT m (S n))
+gteTogt {m} {n=Z} gt neq (LTESucc lte) = neq $ sym (lteZeroIsZero lte)
+gteTogt {m=Z} {n=(S n)} gt neq (LTESucc lte) = gt $ LTESucc LTEZero
+gteTogt {m=(S m)} {n=(S n)} gt neq (LTESucc lte) =
+  gt $ LTESucc $ lteTolt (fromLteSucc lte) $ \ eqmn => neq $ cong S eqmn
+
+public export
 mod'Z : (m : Nat) -> mod' m m Z = Z
 mod'Z Z = Refl
 mod'Z (S m) = rewrite minusZeroRight m in mod'Z m
@@ -463,13 +483,17 @@ modLTDivisor (S m) (S n) with (lte m n) proof ltemn
   modLTDivisor (S Z) (S n) | False = LTESucc $ LTEZero
   modLTDivisor (S (S m)) (S n) | False = LTESucc $
     case isLTE (minus m n) (S n) of
-      Yes lteminus =>
-        let lteminus' = LTEReflectsLte lteminus in
-        rewrite lteminus' in
-        lteminus
-      No gtminus =>
-        let ltesmn = fromLteSucc (modLTDivisor (S m) n) in
-        ?modLTDivisor_False_hole_2
+      Yes lteminus => rewrite LTEReflectsLte lteminus in lteminus
+      No gtminus => case decEq m n of
+        Yes Refl => rewrite sym (minusZeroN n) in LTEZero
+        No neqmn =>
+          let gtminus' = notLTEReflectsLte gtminus in
+          let ltemn' = notLteReflectsLTE ltemn in
+          let ltesmn = fromLteSucc (modLTDivisor (S m) (S n)) in
+          rewrite gtminus' in
+          let ltmn = gteTogt ltemn' neqmn in
+          let ltmn' = notLTEReflectsLte ltmn in
+          ?modLTDivisor_hole
 
 public export
 modLtDivisor : (m, n : Nat) -> IsTrue $ gt (S n) $ modNatNZ m (S n) SIsNonZero
