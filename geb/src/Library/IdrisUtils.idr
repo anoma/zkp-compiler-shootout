@@ -445,6 +445,20 @@ powerOfSum x (S y) z =
     multAssociative x (power x y) (power x z)
 
 public export
+mulToPower : (x, y, z : Nat) -> power (x * y) z = power x z * power y z
+mulToPower x y Z = Refl
+mulToPower x y (S z) =
+  rewrite mulToPower x y z in
+  rewrite sym (multAssociative x y (mult (power x z) (power y z))) in
+  rewrite sym (multAssociative x (power x z) (mult y (power y z))) in
+  cong (mult x) $
+    trans
+      (trans
+        (multAssociative y (power x z) (power y z))
+        (rewrite multCommutative y (power x z) in Refl))
+      (sym $ multAssociative (power x z) y (power y z))
+
+public export
 powerOfMul : (x, y, z : Nat) -> power x (y * z) = power (power x y) z
 powerOfMul x Z z = sym (powerOneOne z)
 powerOfMul x (S y) Z = rewrite multZeroRightZero y in Refl
@@ -460,7 +474,7 @@ powerOfMul x (S y) (S z) =
   rewrite multCommutative (power x z) (power x y) in
   rewrite sym (multAssociative (power x y) (power x z) (power (power x y) z)) in
   cong (mult x) $ cong (mult (power x y)) $
-    ?powerOfMul_hole_s
+    sym $ mulToPower x (power x y) z
 
 public export
 powerOfMulSym : (x, y, z : Nat) -> power x (y * z) = power (power x z) y
