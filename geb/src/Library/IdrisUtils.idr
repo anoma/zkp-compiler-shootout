@@ -443,7 +443,10 @@ LTEReflectsLte (LTESucc lte) = LTEReflectsLte lte
 
 public export
 modLTDivisor : (m, n : Nat) -> LT (modNatNZ m (S n) SIsNonZero) (S n)
-modLTDivisor m n = ?mod_lT_divisor_correct
+modLTDivisor Z Z = LTESucc LTEZero
+modLTDivisor (S m) Z = ?mod_lT_divisor_correct_sz
+modLTDivisor Z (S n) = ?mod_lT_divisor_correct_zs
+modLTDivisor (S m) (S n) = ?mod_lT_divisor_correct_ss
 
 public export
 modLtDivisor : (m, n : Nat) -> IsTrue $ gt (S n) $ modNatNZ m (S n) SIsNonZero

@@ -115,7 +115,7 @@ fsPowerElimRight : (a, b : FSObj) -> FSMorph (FSHomObj a (S b)) (S b)
 fsPowerElimRight a b =
   finFToVect $ \i =>
     natToFinLT
-      {prf=(?fsPowerElimRight_prf_hole)}
+      {prf=(modLTDivisor (finToNat i) b)}
       (modNatNZ (finToNat i) (S b) SIsNonZero)
 
 public export
