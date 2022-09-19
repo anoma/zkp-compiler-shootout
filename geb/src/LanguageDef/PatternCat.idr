@@ -163,6 +163,25 @@ fsUncurry {a} {b} {c} f =
     (fsProdIntro (FSCompose f $ fsProdElimLeft _ _) (fsProdElimRight _ _))
 
 public export
+FSHomElem : FSObj -> FSObj -> Type
+FSHomElem = FSElem .* FSHomObj
+
+public export
+FSHomElemToMorph : {x, y : FSObj} -> FSHomElem x y -> FSMorph x y
+FSHomElemToMorph {x} {y} t =
+  rewrite sym (plusZeroRightNeutral x) in
+  fsUncurry {a=FSTerminal} {b=x} {c=y} [t]
+
+public export
+FSMorphToHomElem : {x, y : FSObj} -> FSMorph x y -> FSHomElem x y
+FSMorphToHomElem {x} {y} t =
+  let
+    t' = rewrite plusZeroRightNeutral x in t
+    ct = fsCurry {a=FSTerminal} {b=x} {c=y} t'
+  in
+  case ct of [t''] => t''
+
+public export
 FSBool : FSObj
 FSBool = FSCoproduct FSTerminal FSTerminal
 
