@@ -362,7 +362,12 @@ finPow n i = ?finPow_hole
 
 public export
 finPlus : {m, n : Nat} -> Fin m -> Fin n -> Fin (m + n)
-finPlus i j = ?finPlus_hole
+finPlus {m=Z} {n} FZ j impossible
+finPlus {m=(S m)} {n} FZ j =
+  rewrite plusCommutative m n in
+  rewrite plusSuccRightSucc n m in
+  weakenN (S m) j
+finPlus {m=(S m)} {n} (FS i) j = FS $ finPlus i j
 
 public export
 foldrNat : (a -> a) -> a -> Nat -> a
