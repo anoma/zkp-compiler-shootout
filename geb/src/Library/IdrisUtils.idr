@@ -353,6 +353,11 @@ vectRepeat Z {b} {c} v = []
 vectRepeat (S a) {b} {c} v = v ++ vectRepeat a {b} {c} v
 
 public export
+powerOneIsOne : (n : Nat) -> power 1 n = 1
+powerOneIsOne Z = Refl
+powerOneIsOne (S n) = rewrite powerOneIsOne n in Refl
+
+public export
 finPlus : {m, n : Nat} -> Fin m -> Fin n -> Fin (m + n)
 finPlus {m=Z} {n} FZ j impossible
 finPlus {m=(S m)} {n} FZ j =
@@ -362,11 +367,15 @@ finPlus {m=(S m)} {n} FZ j =
 finPlus {m=(S m)} {n} (FS i) j = FS $ finPlus i j
 
 public export
-finMul : (n : Nat) -> Fin m -> Fin (n * m)
-finMul n i = ?finMul_hole
+finMul : (m, n : Nat) -> Fin m -> Fin (S n * m)
+finMul Z n i = absurd i
+finMul (S m) Z i = rewrite plusZeroRightNeutral (S m) in i
+finMul (S m) (S n) i =
+  weaken $ replace {p=Fin} (plusCommutative (mult (S n) (S m)) m) $
+    weakenN m $ finMul (S m) n i
 
 public export
-finPow : (n : Nat) -> Fin m -> Fin (power m n)
+finPow : (m, n : Nat) -> Fin m -> Fin (power m n)
 finPow n i = ?finPow_hole
 
 public export

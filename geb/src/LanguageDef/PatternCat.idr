@@ -136,18 +136,23 @@ fsCurry {a} {b=Z} {c} f =
   rewrite sym (multOneRightNeutral a) in vectRepeat a [FZ]
 fsCurry {a=Z} {b=(S b)} {c=Z} [] = []
 fsCurry {a=(S a)} {b=(S b)} {c=Z} (x :: _) = absurd x
-fsCurry {a} {b=(S b)} {c=(S c)} f =
+fsCurry {a} {b=(S b)} {c=(S Z)} f =
+  finFToVect $ \i =>
+    rewrite powerOneIsOne b in
+    rewrite plusZeroRightNeutral 1 in
+    FZ
+fsCurry {a} {b=(S b)} {c=(S (S c))} f =
   let
-    f' = replace {p=(flip Vect (Fin (S c)))} (multRightSuccPlus a b) f
+    f' = replace {p=(flip Vect (Fin (S (S c))))} (multRightSuccPlus a b) f
     (fhd, ftl) = splitAt _ f'
-    cftl = fsCurry {a} {b} {c=(S c)} ftl
+    cftl = fsCurry {a} {b} {c=(S (S c))} ftl
   in
   finFToVect $ \i =>
     let
       fhdi = FSApply fhd i
       ftli = FSApply cftl i
     in
-    finPlus (finPow b fhdi) (finMul c ftli)
+    finPlus (finPow _ b fhdi) (finMul _ c ftli)
 
 public export
 fsUncurry : {a, b, c : FSObj} ->
