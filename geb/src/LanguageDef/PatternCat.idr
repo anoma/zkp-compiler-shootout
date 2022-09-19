@@ -111,8 +111,27 @@ FSHomObj : FSObj -> FSObj -> FSObj
 FSHomObj = flip FSExpObj
 
 public export
+vectRepeat : (a, b, c : FSObj) -> Vect b (Fin c) -> Vect (mult a b) (Fin c)
+vectRepeat a b c v = ?fsEvalRepeat_hole
+
+public export
+fsPowerElimRight : (a, b : FSObj) -> FSMorph (FSHomObj a (S b)) (S b)
+fsPowerElimRight a b =
+  finFToVect $ \i =>
+    natToFinLT
+      {prf=(?fsPowerElimRight_prf_hole)}
+      (modNatNZ (finToNat i) (S b) SIsNonZero)
+
+public export
 fsEval : (a, b : FSObj) -> FSMorph (FSProduct (FSHomObj a b) a) b
-fsEval a b = ?fsEval_hole
+fsEval Z b = []
+fsEval (S a) Z = []
+fsEval (S a) (S b) =
+  rewrite multRightSuccPlus (mult (S b) (power (S b) a)) a in
+  rewrite sym (multAssociative (S b) (power (S b) a) a) in
+  rewrite sym (multDistributesOverPlusRight
+    (S b) (power (S b) a) (mult (power (S b) a) a)) in
+  vectRepeat (S b) _ _ (fsPowerElimRight a b ++ fsEval a (S b))
 
 public export
 fsCurry : {a, b, c : FSObj} ->
