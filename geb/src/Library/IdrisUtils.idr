@@ -437,8 +437,17 @@ powerOfMulSym : (x, y, z : Nat) -> power x (y * z) = power (power x z) y
 powerOfMulSym x y z = rewrite multCommutative y z in powerOfMul x z y
 
 public export
+LTEReflectsLte : {k, n : Nat} -> k `LTE` n -> lte k n = True
+LTEReflectsLte LTEZero = Refl
+LTEReflectsLte (LTESucc lte) = LTEReflectsLte lte
+
+public export
+modLTDivisor : (m, n : Nat) -> LT (modNatNZ m (S n) SIsNonZero) (S n)
+modLTDivisor m n = ?mod_lT_divisor_correct
+
+public export
 modLtDivisor : (m, n : Nat) -> IsTrue $ gt (S n) $ modNatNZ m (S n) SIsNonZero
-modLtDivisor = ?mod_lt_divisor_correct
+modLtDivisor m n = LTEReflectsLte $ fromLteSucc $ modLTDivisor m n
 
 public export
 minusModulo : (modulus, m, n : Integer) -> Integer
