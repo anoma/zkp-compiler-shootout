@@ -434,7 +434,10 @@ mulPowerZeroRightNeutral {m} {n} = rewrite multOneRightNeutral m in Refl
 
 public export
 powerOfSum : (x, y, z : Nat) -> power x (y + z) = power x y * power x z
-powerOfSum x y z = ?powerOfSum_hole
+powerOfSum x Z z = rewrite plusZeroRightNeutral (power x z) in Refl
+powerOfSum x (S y) z =
+  trans (cong (mult x) (powerOfSum x y z)) $
+    multAssociative x (power x y) (power x z)
 
 public export
 powerOfMul : (x, y, z : Nat) -> power x (y * z) = power (power x y) z
