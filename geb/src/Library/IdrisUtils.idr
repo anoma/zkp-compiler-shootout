@@ -347,6 +347,24 @@ finFGet {n=(S n)} FZ {f} (ty :: hv) = ty
 finFGet {n=(S n)} (FS i) {f} (ty :: hv) = finFGet {n} i {f=(f . FS)} hv
 
 public export
+vectRepeat : (a : Nat) -> {b, c : Nat} ->
+  Vect b (Fin c) -> Vect (mult a b) (Fin c)
+vectRepeat Z {b} {c} v = []
+vectRepeat (S a) {b} {c} v = v ++ vectRepeat a {b} {c} v
+
+public export
+finMul : (n : Nat) -> Fin m -> Fin (n * m)
+finMul n i = ?finMul_hole
+
+public export
+finPow : (n : Nat) -> Fin m -> Fin (power m n)
+finPow n i = ?finPow_hole
+
+public export
+finPlus : {m, n : Nat} -> Fin m -> Fin n -> Fin (m + n)
+finPlus i j = ?finPlus_hole
+
+public export
 foldrNat : (a -> a) -> a -> Nat -> a
 foldrNat f acc Z = acc
 foldrNat f acc (S n) = foldrNat f (f acc) n

@@ -111,24 +111,6 @@ FSHomObj : FSObj -> FSObj -> FSObj
 FSHomObj = flip FSExpObj
 
 public export
-vectRepeat : (a : FSObj) -> {b, c : FSObj} ->
-  Vect b (Fin c) -> Vect (mult a b) (Fin c)
-vectRepeat Z {b} {c} v = []
-vectRepeat (S a) {b} {c} v = v ++ vectRepeat a {b} {c} v
-
-public export
-finMul : (n : Nat) -> Fin m -> Fin (n * m)
-finMul n i = ?finMul_hole
-
-public export
-finPow : (n : Nat) -> Fin m -> Fin (power m n)
-finPow n i = ?finPow_hole
-
-public export
-finPlus : {m, n : Nat} -> Fin m -> Fin n -> Fin (m + n)
-finPlus i j = ?finPlus_hole
-
-public export
 fsPowerElimRight : (a, b : FSObj) -> FSMorph (FSHomObj a (S b)) (S b)
 fsPowerElimRight a b =
   finFToVect $ \i =>
