@@ -194,6 +194,16 @@ FSTrue : FSElem FSBool
 FSTrue = FS FZ
 
 public export
+fsToBool : FSElem FSBool -> Bool
+fsToBool FZ = False
+fsToBool (FS FZ) = True
+
+public export
+boolToFS : Bool -> FSElem FSBool
+boolToFS False = FSFalse
+boolToFS True = FSTrue
+
+public export
 FSPred : FSObj -> Type
 FSPred a = FSMorph a FSBool
 
@@ -214,15 +224,15 @@ FSEqualizerPred {a} {b} f g =
 
 public export
 RefinedFSObj : Type
-RefinedFSObj = List Bool
+RefinedFSObj = DPair FSObj FSPred
 
 public export
 RFSElem : RefinedFSObj -> Type
-RFSElem = Fin . length
+RFSElem = FSElem . fst
 
 public export
 isRFSElem : (bv : RefinedFSObj) -> RFSElem bv -> Bool
-isRFSElem = index'
+isRFSElem (n ** pred) t = fsToBool (index t pred)
 
 public export
 RFSIsElem : (bv : RefinedFSObj) -> RFSElem bv -> Type
@@ -230,7 +240,7 @@ RFSIsElem bv i = IsTrue (isRFSElem bv i)
 
 public export
 RefinedFSObjFromFunc : {n : Nat} -> (Fin n -> Bool) -> RefinedFSObj
-RefinedFSObjFromFunc = toList . finFToVect
+RefinedFSObjFromFunc {n} f = (n ** finFToVect $ boolToFS . f)
 
 public export
 RefinedFin : RefinedFSObj -> Type
@@ -253,7 +263,7 @@ getRFElem {dom} {cod} {i} t eq with (isRFSElem dom i)
   getRFElem {dom} {cod} {i} t Refl | False impossible
 
 public export
-RefinedFinMorphTypes : (dom, cod : RefinedFSObj) -> Vect (length dom) Type
+RefinedFinMorphTypes : (dom, cod : RefinedFSObj) -> Vect (fst dom) Type
 RefinedFinMorphTypes mv nv = finFToVect $ RefinedFinMorphElemType mv nv
 
 public export
@@ -261,7 +271,7 @@ RefinedFinMorph : RefinedFSObj -> RefinedFSObj -> Type
 RefinedFinMorph mv nv = HVect (RefinedFinMorphTypes mv nv)
 
 public export
-RFMIdElem : (bv : RefinedFSObj) -> (i : Fin (length bv)) ->
+RFMIdElem : (bv : RefinedFSObj) -> (i : Fin (fst bv)) ->
   MaybeRefinedFin bv (isRFSElem bv i)
 RFMIdElem bv i with (isRFSElem bv i) proof isElem
   RFMIdElem bv i | True = Element0 i isElem
