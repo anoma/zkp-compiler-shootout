@@ -376,7 +376,12 @@ finMul (S m) (S n) i =
 
 public export
 finPow : (m, n : Nat) -> Fin m -> Fin (power m n)
-finPow n i = ?finPow_hole
+finPow m Z i = FZ
+finPow Z (S n) i = absurd i
+finPow (S Z) (S n) FZ = rewrite powerOneIsOne n in FZ
+finPow (S (S m)) (S n) i =
+  let fp = finPow (S (S m)) n i in
+  finPlus fp $ finMul _ m fp
 
 public export
 foldrNat : (a -> a) -> a -> Nat -> a
