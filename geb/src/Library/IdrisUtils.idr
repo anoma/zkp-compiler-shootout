@@ -477,7 +477,12 @@ mod'Z (S m) = rewrite minusZeroRight m in mod'Z m
 public export
 multDivLT : {k, m, n : Nat} ->
   LT k (m * (S n)) -> LT (divNatNZ k (S n) SIsNonZero) m
-multDivLT {k} {m} {n} lt = ?divLTDivisor_hole
+multDivLT {k=Z} {m} {n=Z} lt = rewrite sym (multOneRightNeutral m) in lt
+multDivLT {k=Z} {m=Z} {n=(S n)} lt = lt
+multDivLT {k=Z} {m=(S m)} {n=(S n)} lt = LTESucc LTEZero
+multDivLT {k=(S k)} {m=Z} {n} lt = void $ succNotLTEzero lt
+multDivLT {k=(S k)} {m=(S m)} {n=Z} lt = LTESucc $ ?multDivLT_hole_1
+multDivLT {k=(S k)} {m=(S m)} {n=(S n)} lt = LTESucc $ ?multDivLT_hole_2
 
 public export
 multAddLT : {k, m, n, p : Nat} ->
