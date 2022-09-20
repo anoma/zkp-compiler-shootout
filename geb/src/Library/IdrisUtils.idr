@@ -4,6 +4,8 @@ import public Data.Maybe
 import public Data.List
 import public Data.List.Reverse
 import public Data.Nat
+import public Data.Nat.Order.Properties
+import public Data.Nat.Division
 import public Data.Vect
 import public Data.HVect
 import public Data.Fin
@@ -279,9 +281,23 @@ toIsYes x {dx=(Yes y)} = Refl
 toIsYes x {dx=(No n)} = void $ n x
 
 public export
+fstEq : {a, b : Type} -> {x, y : (a, b)} -> x = y -> fst x = fst y
+fstEq Refl = Refl
+
+public export
+sndEq : {a, b : Type} -> {x, y : (a, b)} -> x = y -> snd x = snd y
+sndEq Refl = Refl
+
+public export
 fromLteSuccYes : {m, n : Nat} ->
   IsYesTrue (isLT (S m) (S n)) -> IsYesTrue (isLT m n)
 fromLteSuccYes y = toIsYes (fromLteSucc $ fromIsYes y)
+
+public export
+finToNatLT : {m : Nat} -> (i : Fin m) -> LT (finToNat i) m
+finToNatLT {m=Z} i = absurd i
+finToNatLT {m=(S m)} FZ = LTESucc LTEZero
+finToNatLT {m=(S m)} (FS i) = LTESucc $ finToNatLT {m} i
 
 public export
 indexN : {0 a : Type} -> {n : Nat} ->
@@ -329,13 +345,59 @@ indexToFinLTS {n} {i} {okS} {ok} {x} {v} =
   indexToFinS {a} {m=i} {n=n} {ltS=(fromIsYes okS)} {lt=(fromIsYes ok)} {x} {v}
 
 public export
-finFTrunc : {0 a : Type} -> {n : Nat} -> (Fin (S n) -> a) -> Fin n -> a
-finFTrunc {a} {n} f = f . weaken
-
-public export
 finFToVect : {0 a : Type} -> {n : Nat} -> (Fin n -> a) -> Vect n a
 finFToVect {a} {n=Z} f = []
-finFToVect {a} {n=(S n)} f = f (last {n}) :: (finFToVect {n} $ finFTrunc {n} f)
+finFToVect {a} {n=(S n)} f = f FZ :: finFToVect {n} (f . FS)
+
+public export
+finHFToHVect : {n : Nat} -> {t : Fin n -> Type} -> ((i : Fin n) -> t i) ->
+  HVect (finFToVect t)
+finHFToHVect {n=Z} {t} f = []
+finHFToHVect {n=(S n)} {t} f = f FZ :: finHFToHVect {n} (\i => f (FS i))
+
+public export
+finFGet : {0 n : Nat} ->
+  (i : Fin n) -> {f : Fin n -> Type} -> HVect (finFToVect f) -> f i
+finFGet {n=Z} i {f} [] = absurd i
+finFGet {n=(S n)} FZ {f} (ty :: hv) = ty
+finFGet {n=(S n)} (FS i) {f} (ty :: hv) = finFGet {n} i {f=(f . FS)} hv
+
+public export
+vectRepeat : (a : Nat) -> {b, c : Nat} ->
+  Vect b (Fin c) -> Vect (mult a b) (Fin c)
+vectRepeat Z {b} {c} v = []
+vectRepeat (S a) {b} {c} v = v ++ vectRepeat a {b} {c} v
+
+public export
+powerOneIsOne : (n : Nat) -> power 1 n = 1
+powerOneIsOne Z = Refl
+powerOneIsOne (S n) = rewrite powerOneIsOne n in Refl
+
+public export
+finPlus : {m, n : Nat} -> Fin m -> Fin n -> Fin (m + n)
+finPlus {m=Z} {n} FZ j impossible
+finPlus {m=(S m)} {n} FZ j =
+  rewrite plusCommutative m n in
+  rewrite plusSuccRightSucc n m in
+  weakenN (S m) j
+finPlus {m=(S m)} {n} (FS i) j = FS $ finPlus i j
+
+public export
+finMul : (m, n : Nat) -> Fin m -> Fin (S n * m)
+finMul Z n i = absurd i
+finMul (S m) Z i = rewrite plusZeroRightNeutral (S m) in i
+finMul (S m) (S n) i =
+  weaken $ replace {p=Fin} (plusCommutative (mult (S n) (S m)) m) $
+    weakenN m $ finMul (S m) n i
+
+public export
+finPow : (m, n : Nat) -> Fin m -> Fin (power m n)
+finPow m Z i = FZ
+finPow Z (S n) i = absurd i
+finPow (S Z) (S n) FZ = rewrite powerOneIsOne n in FZ
+finPow (S (S m)) (S n) i =
+  let fp = finPow (S (S m)) n i in
+  finPlus fp $ finMul _ m fp
 
 public export
 foldrNat : (a -> a) -> a -> Nat -> a
@@ -375,24 +437,157 @@ powerZeroOne : (0 n : Nat) -> power n 0 = 1
 powerZeroOne n = Refl
 
 public export
+powerOneOne : (n : Nat) -> power 1 n = 1
+powerOneOne Z = Refl
+powerOneOne (S n) = rewrite powerOneOne n in Refl
+
+public export
 mulPowerZeroRightNeutral : {0 m, n : Nat} -> m * (power n 0) = m
 mulPowerZeroRightNeutral {m} {n} = rewrite multOneRightNeutral m in Refl
 
 public export
 powerOfSum : (x, y, z : Nat) -> power x (y + z) = power x y * power x z
-powerOfSum x y z = ?powerOfSum_hole
+powerOfSum x Z z = rewrite plusZeroRightNeutral (power x z) in Refl
+powerOfSum x (S y) z =
+  trans (cong (mult x) (powerOfSum x y z)) $
+    multAssociative x (power x y) (power x z)
+
+public export
+mulToPower : (x, y, z : Nat) -> power (x * y) z = power x z * power y z
+mulToPower x y Z = Refl
+mulToPower x y (S z) =
+  rewrite mulToPower x y z in
+  rewrite sym (multAssociative x y (mult (power x z) (power y z))) in
+  rewrite sym (multAssociative x (power x z) (mult y (power y z))) in
+  cong (mult x) $
+    trans
+      (trans
+        (multAssociative y (power x z) (power y z))
+        (rewrite multCommutative y (power x z) in Refl))
+      (sym $ multAssociative (power x z) y (power y z))
 
 public export
 powerOfMul : (x, y, z : Nat) -> power x (y * z) = power (power x y) z
-powerOfMul x y z = ?powerOfMul_hole
+powerOfMul x Z z = sym (powerOneOne z)
+powerOfMul x (S y) Z = rewrite multZeroRightZero y in Refl
+powerOfMul x (S y) (S z) =
+  rewrite powerOfSum x (S z) (y * (S z)) in
+  rewrite multRightSuccPlus y z in
+  rewrite powerOfSum x y (y * z) in
+  rewrite sym
+    (multAssociative x (power x z) (mult (power x y) (power x (mult y z)))) in
+  rewrite sym (multAssociative x (power x y) (power (mult x (power x y)) z)) in
+  rewrite powerOfMul x y z in
+  rewrite multAssociative (power x z) (power x y) (power (power x y) z) in
+  rewrite multCommutative (power x z) (power x y) in
+  rewrite sym (multAssociative (power x y) (power x z) (power (power x y) z)) in
+  cong (mult x) $ cong (mult (power x y)) $
+    sym $ mulToPower x (power x y) z
 
 public export
 powerOfMulSym : (x, y, z : Nat) -> power x (y * z) = power (power x z) y
 powerOfMulSym x y z = rewrite multCommutative y z in powerOfMul x z y
 
 public export
+LTEReflectsLte : {k, n : Nat} -> k `LTE` n -> lte k n = True
+LTEReflectsLte LTEZero = Refl
+LTEReflectsLte (LTESucc lte) = LTEReflectsLte lte
+
+public export
+notLTEReflectsLte : {k, n : Nat} -> Not (k `LTE` n) -> lte k n = False
+notLTEReflectsLte nlte with (lte k n) proof ltekn
+  notLTEReflectsLte nlte | True = void $ nlte $ lteReflectsLTE _ _ ltekn
+  notLTEReflectsLte nlte | False = Refl
+
+public export
+notLteReflectsLTE : {k, n : Nat} -> lte k n = False -> Not (k `LTE` n)
+notLteReflectsLTE nlte with (isLTE k n)
+  notLteReflectsLTE nlte | Yes yLTE =
+    case trans (sym nlte) (LTEReflectsLte yLTE) of Refl impossible
+  notLteReflectsLTE nlte | No notLTE = notLTE
+
+public export
+gteTogt : {m, n : Nat} -> Not (LTE (S m) n) -> Not (m = n) -> Not (LT m (S n))
+gteTogt {m} {n=Z} gt neq (LTESucc lte) = neq $ sym (lteZeroIsZero lte)
+gteTogt {m=Z} {n=(S n)} gt neq (LTESucc lte) = gt $ LTESucc LTEZero
+gteTogt {m=(S m)} {n=(S n)} gt neq (LTESucc lte) =
+  gt $ LTESucc $ lteTolt (fromLteSucc lte) $ \ eqmn => neq $ cong S eqmn
+
+public export
+mod'Z : (m : Nat) -> mod' m m Z = Z
+mod'Z Z = Refl
+mod'Z (S m) = rewrite minusZeroRight m in mod'Z m
+
+public export
+div'One : (k : Nat) -> div' k k 0 = k
+div'One Z = Refl
+div'One (S k) = rewrite minusZeroRight k in cong S (div'One k)
+
+public export
+div'LT : (k, k' : Nat) -> LTE (div' k k' 0) k
+div'LT Z Z = LTEZero
+div'LT (S k) Z = LTEZero
+div'LT Z (S k') = LTEZero
+div'LT (S k) (S k') = LTESucc $ rewrite minusZeroRight k' in div'LT k k'
+
+public export
+multDiv'LT : {k, k', m, n : Nat} ->
+  LT k (m * (S n)) -> LTE k' k -> LT (div' k k' n) m
+multDiv'LT {k=Z} {k'} {m} {n=Z} lt ltk = rewrite sym (multOneRightNeutral m) in lt
+multDiv'LT {k=Z} {k'} {m=Z} {n=(S n)} lt ltk = lt
+multDiv'LT {k=Z} {k'} {m=(S m)} {n=(S n)} lt ltk = LTESucc LTEZero
+multDiv'LT {k=(S k)} {k'} {m=Z} {n} lt ltk = void $ succNotLTEzero lt
+multDiv'LT {k=(S k)} {k'=Z} {m=(S m)} {n=Z} lt ltk = LTESucc LTEZero
+multDiv'LT {k=(S k)} {k'=(S k')} {m=(S m)} {n=Z} lt ltk =
+  LTESucc $
+    let
+      lt' = fromLteSucc lt
+      lt'' = replace {p=(\q => LTE (S k) (Z + q))} (multOneRightNeutral m) lt'
+    in
+    rewrite minusZeroRight k' in
+    transitive (LTESucc $ div'LT k k') lt''
+multDiv'LT {k=(S k)} {k'=Z} {m=(S m)} {n=(S n)} lt ltk = LTESucc LTEZero
+multDiv'LT {k=(S k)} {k'=(S k')} {m=(S m)} {n=(S n)} lt ltk with (lte k' n)
+    proof ltekn
+  multDiv'LT {k=(S k)} {k'=(S k')} {m=(S m)} {n=(S n)} lt ltk | True =
+    LTESucc $ LTEZero
+  multDiv'LT {k=(S k)} {k'=(S k')} {m=(S m)} {n=(S n)}
+      (LTESucc lt) (LTESucc ltk) | False =
+    let
+      mlt = multDiv'LT {k} {k'=(minus k' (S n))} {m} {n=(S n)}
+      mpl = minusPosLT (S n) k' (LTESucc LTEZero)
+    in
+    LTESucc $
+      mlt ?multDivLT'_hole_1
+      $ lteSuccLeft $ transitive (mpl ?multDivLT'_hole_2) ltk
+
+public export
+multDivLT : {k, m, n : Nat} ->
+  LT k (m * (S n)) -> LT (divNatNZ k (S n) SIsNonZero) m
+multDivLT {k} {m} {n} lt = multDiv'LT {k} {k'=k} {m} {n} lt reflexive
+
+public export
+multAddLT : {k, m, n, p : Nat} ->
+  LT k n -> LT m p -> LT (p * k + m) (n * p)
+multAddLT {k} {m} {n=Z} {p} ltkn ltmp = void $ succNotLTEzero ltkn
+multAddLT {k} {m} {n=(S n)} {p=Z} ltkn ltmp = void $ succNotLTEzero ltmp
+multAddLT {k} {m} {n=(S n)} {p=(S p)} (LTESucc ltkn) (LTESucc ltmp) =
+  LTESucc $
+    rewrite multRightSuccPlus n p in
+    rewrite plusCommutative p (plus n (mult n p)) in
+    let mpk = multCommutative k p in
+    plusLteMonotone
+      (plusLteMonotone ltkn $
+        replace {p=(\q => LTE q (n * p))} mpk $ multLteMonotoneLeft _ _ _ ltkn)
+      ltmp
+
+public export
+modLTDivisor : (m, n : Nat) -> LT (modNatNZ m (S n) SIsNonZero) (S n)
+modLTDivisor m n = boundModNatNZ m (S n) SIsNonZero
+
+public export
 modLtDivisor : (m, n : Nat) -> IsTrue $ gt (S n) $ modNatNZ m (S n) SIsNonZero
-modLtDivisor = ?mod_lt_divisor_correct
+modLtDivisor m n = LTEReflectsLte $ fromLteSucc $ modLTDivisor m n
 
 public export
 minusModulo : (modulus, m, n : Integer) -> Integer

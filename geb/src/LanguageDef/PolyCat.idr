@@ -372,14 +372,13 @@ pfnFold : {p : PolyFuncN} -> {0 a : Type} -> PFNAlg p a -> PolyFuncNMu p -> a
 pfnFold {p=p@(pos ** dir)} {a} alg = pfnFold' id where
   mutual
     pfnFold' : (a -> a) -> PolyFuncNMu p -> a
-    pfnFold' cont (InPFM i da) with (dir i) proof ndir
-      pfnFold' cont (InPFM i da) | pdi =
-        pfnFoldMap pdi (\v => cont $ alg i $ rewrite ndir in v) $ finFToVect da
+    pfnFold' cont (InPFM i da) =
+      pfnFoldMap (dir i) (\v => cont $ alg i v) da
 
-    pfnFoldMap : (n : Nat) -> (Vect n a -> a) -> Vect n (PolyFuncNMu p) -> a
-    pfnFoldMap Z cont [] = cont []
-    pfnFoldMap (S n) cont (e :: v) =
-      pfnFoldMap n (\v' => cont $ (pfnFold' id e) :: v') v
+    pfnFoldMap : (n : Nat) -> (Vect n a -> a) -> (Fin n -> PolyFuncNMu p) -> a
+    pfnFoldMap Z cont _ = cont []
+    pfnFoldMap (S n) cont v =
+      pfnFoldMap n (\v' => cont $ (pfnFold' id $ v FZ) :: v') $ v . FS
 
 ----------------------------------
 ---- Polynomial (free) monads ----
@@ -2560,13 +2559,9 @@ freeS0DepSet alg subst depsubst (InFreeM (InCom (S0ProductF x y))) =
 ------------------------
 
 public export
-listFoldCont : {0 a, b : Type} -> (b -> b) -> (a -> b -> b) -> b -> List a -> b
-listFoldCont cont f z [] = cont z
-listFoldCont cont f z (x :: xs) = listFoldCont (cont . f x) f z xs
-
-public export
-listFoldCPS : {0 a, b : Type} -> (a -> b -> b) -> b -> List a -> b
-listFoldCPS {a} {b} = listFoldCont {a} {b} id
+listFoldTailRec : {0 a, b : Type} -> (a -> b -> b) -> b -> List a -> b
+listFoldTailRec op x [] = x
+listFoldTailRec op x (x' :: xs) = listFoldTailRec op (op x' x) xs
 
 ---------------------
 ---------------------
@@ -2744,25 +2739,17 @@ public export
 polyMax : Polynomial -> Nat -> Nat
 polyMax = psMax . shape
 
--- XXX arenas w/bijections (unless I can implement all formulas without this)
-
--- XXX lenses / natural transformations w/bijections
-
--- XXX horizontal & vertical composition of NTs
-
--- XXX eval (i.e. for exponential)
-
--- XXX equalizer
-
--- XXX coequalizer
-
--- XXX eval for parallel product
-
--- XXX derivative (as one-hole context)
-
--- XXX plugging in (to one-hole context)
-
--- XXX p-p0, and iteration of it
+-- Possible future developments:
+  -- arenas w/bijections (unless I can implement all formulas without this)
+  -- lenses / natural transformations w/bijections
+  -- horizontal & vertical composition of NTs
+  -- eval (i.e. for exponential)
+  -- equalizer
+  -- coequalizer
+  -- eval for parallel product
+  -- derivative (as one-hole context)
+  -- plugging in (to one-hole context)
+  -- p-p0, and iteration of it
 
 -----------------------------------
 ---- Arithmetic on polynomials ----
@@ -2953,13 +2940,13 @@ addPoly (Element0 p pvalid) (Element0 q qvalid) =
 
 public export
 addPolyShapeList : List PolyShape -> PolyShape
-addPolyShapeList = listFoldCPS addPolyShape initialPolyShape
+addPolyShapeList = listFoldTailRec addPolyShape initialPolyShape
 
 public export
 addMapPolyShapeList :
   (PolyTerm -> PolyShape -> PolyShape) -> PolyShape -> PolyShape -> PolyShape
 addMapPolyShapeList op p =
-  listFoldCPS (addPolyShape . flip op p) initialPolyShape
+  listFoldTailRec (addPolyShape . flip op p) initialPolyShape
 
 public export
 mulPolyShape : PolyShape -> PolyShape -> PolyShape
@@ -2977,7 +2964,7 @@ mulPoly (Element0 p pvalid) (Element0 q qvalid) =
 
 public export
 mulPolyShapeList : List PolyShape -> PolyShape
-mulPolyShapeList = listFoldCPS mulPolyShape terminalPolyShape
+mulPolyShapeList = listFoldTailRec mulPolyShape terminalPolyShape
 
 public export
 parProdPolyShape : PolyShape -> PolyShape -> PolyShape
@@ -2995,7 +2982,7 @@ parProdPoly (Element0 p pvalid) (Element0 q qvalid) =
 
 public export
 parProdPolyShapeList : List PolyShape -> PolyShape
-parProdPolyShapeList = listFoldCPS parProdPolyShape idPolyShape
+parProdPolyShapeList = listFoldTailRec parProdPolyShape idPolyShape
 
 public export
 expNPolyShape : Nat -> PolyShape -> PolyShape
@@ -5293,6 +5280,11 @@ PolyExp = flip PolyHomObj
 
 public export
 data PolyMuNT : PolyMu -> PolyMu -> Type where
+  PNTFrom0 : (p : PolyMu) -> PolyMuNT Poly0 p
+  PNTFromCop : {p, q, r : PolyMu} ->
+    PolyMuNT p r -> PolyMuNT q r -> PolyMuNT (p $+ q) r
+  PNTFromProd : {p, q, r : PolyMu} ->
+    PolyMuNT p (PolyHomObj q r) -> PolyMuNT (p $* q) r
 
 ----------------------------------------
 ---- Polynomial monads and comonads ----
