@@ -536,21 +536,9 @@ divMinusMono : (fuel, k, n : Nat) ->
 divMinusMono fuel k n gtkn = rewrite gtkn in reflexive
 
 public export
-multDivLT' : {fuel, k, m, n : Nat} ->
-  LT k (m * (S n)) -> LT (div' fuel k n) m
-multDivLT' {fuel=Z} {k} {m=Z} {n} lt = void $ succNotLTEzero lt
-multDivLT' {fuel=Z} {k} {m=(S m)} {n} lt = LTESucc LTEZero
-multDivLT' {fuel=(S fuel)} {k} {m=Z} {n} lt = void $ succNotLTEzero lt
-multDivLT' {fuel=(S fuel)} {k} {m=(S m)} {n} lt with (lte k n) proof ltekn
-  multDivLT' {fuel=(S fuel)} {k} {m=(S m)} {n} lt | True = LTESucc LTEZero
-  multDivLT' {fuel=(S fuel)} {k} {m=(S m)} {n} lt | False =
-    transitive (LTESucc $ divMinusMono fuel k n ltekn) $
-      ?multDivLT'_hole
-
-public export
 multDivLT : {k, m, n : Nat} ->
   LT k (m * (S n)) -> LT (divNatNZ k (S n) SIsNonZero) m
-multDivLT {k} {m} {n} lt = multDivLT' {fuel=k} {k} {m} {n} lt
+multDivLT {k} {m} {n} lt = ?multDivLT_hole
 
 public export
 multAddLT : {k, m, n, p : Nat} ->
