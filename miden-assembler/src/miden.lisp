@@ -26,14 +26,35 @@
 ;;; User Facing Abstractions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmacro defproc (name local &rest body)
+(defmacro defproc (name local stack-effect &rest body)
   "defines a miden procedure"
   (let ((keyword (intern (symbol-name name) 'keyword)))
     `(progn
        (add-function ,keyword
-                     (make-procedure :name ,keyword :block (begin ,@body) :locals ,local))
+                     (make-procedure :name ,keyword
+                                     :block (begin ,@body)
+                                     :locals ,local
+                                     :com (com (format nil "~{~A~^ ~}"
+                                                       ',stack-effect))))
        (defun ,name ()
          (exec ,keyword)))))
+
+(defun com (string)
+  (make-com :com string))
+
+(defun nop ()
+  "Acts as a no instruction in a block"
+  (begin))
+
+(-> repeat-inst (fixnum t) instruction)
+(defun repeat-inst (num value)
+  (apply #'begin
+         (make-list num :initial-element value)))
+
+(defun top-n-are-true (n)
+  "Checks if the top n values of the stack are true
+STACK EFFECT: (b₁ … bₙ -- b)"
+  (repeat-inst n (mand)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Control Flow
@@ -41,8 +62,14 @@
 
 (defmacro defbegin (name arguments &body body)
   "Defines a miden block that takes common lisp arguments."
-  `(defun ,name ,arguments
-     (begin ,@body)))
+  (let ((docstring (car (remove-if-not #'stringp body)))
+        (body      (remove-if #'stringp body)))
+    (if docstring
+        `(defun ,name ,arguments
+           ,docstring
+           (begin ,@body))
+        `(defun ,name ,arguments
+           (begin ,@body)))))
 
 (-> repeat (fixnum &rest instruction) repeat)
 (defun repeat (count &rest insturctions)
@@ -75,9 +102,22 @@ value is given"
 (defun push (item)
   (make-opcode :name :push :constant item))
 
+(-> padw () opcode)
+(defun padw ()
+  "Pushes four 0 values onto the stack. Note: simple pad is not
+provided because push.0 does the same thing.
+STACK EFFECT: ( -- 0 0 0 0 )"
+  (make-opcode :name :padw))
+
 (-> drop () opcode)
 (defun drop ()
   (make-opcode :name :drop))
+
+(-> dropw () opcode)
+(defun dropw ()
+  "Deletes a word (4 elements) from the top of the stack.
+STACK EFFECT: (A -- )"
+  (make-opcode :name :dropw))
 
 (-> swap (&optional fixnum) opcode)
 (defun swap (&optional num)
@@ -96,12 +136,63 @@ value is given"
       (make-opcode :name :movdn :constant num)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Input loading
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun loc-load (i)
+  "Reads a word (4 elements) from local memory at index i, and pushes
+the first element of the word onto the stack."
+  (make-opcode :name :loc_load :constant i))
+
+(defun loc-loadw (i)
+  "Reads a word from local memory at index i and overwrites top four
+stack elements with it."
+  (make-opcode :name :loc_loadw :constant i))
+
+(defun loc-store (i)
+  (make-opcode :name :loc_store :constant i))
+
+(defun loc-storew (i)
+  (make-opcode :name :loc_storew :constant i))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Non deterministic Inputs
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(-> push-adv (fixnum) opcode)
+(defun adv-push (n)
+  "Removes the next n values from advice tape and pushes them onto the stack.
+Valid for n ∈ {1,...,16}. Fails if the advice tape has fewer than n
+values."
+  (make-opcode :name :adv_push :constant n))
+
+(-> loadw-adv () opcode)
+(defun adv-loadw ()
+  "Removes the next word (4 elements) from the advice tape and
+overwrites the top four stack elements with it. Fails if the advice
+tape has fewer than 4 values.
+STACK EFFECT: (A -- B)"
+  (make-opcode :name :adv_loadw))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Merkle Operations
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun mtree-get ()
+  (make-opcode :name :mtree.get))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(-> add-n (fixnum) instruction)
+(defun add-n (num)
+  "Adds the n values ontop of the stack"
+  (repeat-inst num (add)))
 
 (-> add (&optional fixnum) opcode)
 (defun add (&optional num)
   (make-opcode :name :add :constant num))
+
+(-> mand () opcode)
+(defun mand ()
+  (make-opcode :name :and))
 
 (-> sub (&optional fixnum) opcode)
 (defun sub (&optional num)

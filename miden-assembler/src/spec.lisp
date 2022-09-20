@@ -6,7 +6,7 @@
 ;; Sum Type Declarations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (deftype instruction ()
-  `(or opcode repeat block while))
+  `(or opcode repeat block while com))
 
 (deftype constant ()
   `(or fixnum null symbol))
@@ -20,14 +20,17 @@
          :accessor name
          :documentation "Name of the procedure")
    (locals :initarg  :locals
-          :type     fixnum
-          :accessor locals
-          :initform 0
-          :documentation
-          "number of memory locals")
+           :type     fixnum
+           :accessor locals
+           :initform 0
+           :documentation
+           "number of memory locals")
    (block :initarg :block
           :accessor block
-          :type     block)))
+          :type     block)
+   (com :initarg :com
+        :accessor comm
+        :type     (or null com))))
 
 (defclass block ()
   ((body :initarg :body
@@ -62,6 +65,16 @@
           :type     block))
   (:documentation "A conditional controlled loop in Miden"))
 
+(defclass com ()
+  ((com :initarg :com
+        :accessor comm
+        :type     string))
+  (:documentation "A comment in Miden"))
+
+(defclass mif ()
+  ()
+  (:documentation "An if expression in Miden"))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Constructors for the base types
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -71,10 +84,11 @@
   (values
    (make-instance 'block :body body)))
 
-(-> make-procedure  (&key (:name keyword) (:locals fixnum) (:block block)) procedure)
-(defun make-procedure (&key name block locals)
+(-> make-procedure (&key (:name keyword) (:locals fixnum) (:block block) (:com (or null com)))
+    procedure)
+(defun make-procedure (&key name block locals com)
   (values
-   (make-instance 'procedure :block block :name name :locals locals)))
+   (make-instance 'procedure :block block :name name :locals locals :com com)))
 
 (-> make-opcode (&key (:name keyword) (:constant constant)) opcode)
 (defun make-opcode (&key name (constant nil))
@@ -90,3 +104,8 @@
 (defun make-while (&key block)
   (values
    (make-instance 'while :block block)))
+
+(-> make-com (&key (:com string)) com)
+(defun make-com (&key com)
+  (values
+   (make-instance 'com :com com)))

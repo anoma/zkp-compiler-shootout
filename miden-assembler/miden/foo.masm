@@ -1,0 +1,7 @@
+begin
+  push.1
+  push.1
+  add
+  push.2
+  asert_eq
+end

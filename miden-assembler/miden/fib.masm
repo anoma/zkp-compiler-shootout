@@ -1,8 +1,11 @@
+# STACK EFFECT
+# ITERATION-AMOUNT -- FIB-ANSWER #
 proc.fib_iter
   push.0
   push.1
   dup.2
   neq.0
+  # Looks about 8 cyles every loop #
   while.true
     swap dup.1 add movup.2 sub.1 dup movdn.3 neq.0
   end

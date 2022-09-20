@@ -49,7 +49,11 @@
 
 (defmethod print-object ((obj procedure) stream)
   (pprint-logical-block (stream nil)
-    (format stream "proc.~(~A~)~2I~:@_" (name obj))
+    (format stream "# STACK EFFECT ~:@_~A~:@_" (comm obj))
+    (format stream "proc.~(~A~)" (name obj))
+    (unless (zerop (locals obj))
+      (format stream ".~A" (locals obj)))
+    (format stream "~2I~:@_")
     (block-as-list (block obj) stream)
     (format stream "~0I~:@_end")))
 
@@ -64,6 +68,10 @@
     (format stream "while.true~2I~:@_")
     (block-as-list (block obj) stream)
     (format stream "~0I~:@_end")))
+
+(defmethod print-object ((obj com) stream)
+  (pprint-logical-block (stream nil :per-line-prefix "# " :suffix " #")
+    (format stream "~A" (comm obj))))
 
 (defun block-as-list (block stream)
   (pprint-logical-block (stream nil)
