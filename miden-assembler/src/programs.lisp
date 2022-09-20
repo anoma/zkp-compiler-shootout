@@ -46,23 +46,22 @@
 (defun load-advice-into-locals (n &key (start 0))
   "loads n advice values off the input reel into the local argument
 STACK EFFECT: (--)"
-  (labels ((build-up (n current acc)
-             (cond ((>= 0 n)
-                    acc)
+  (labels ((build-up (n current)
+             (cond ((>= 0 n) (nop))
                    ;; due to this, we may wish to pad our values to
                    ;; the nearest mod 4. However we will wave that for now!
-                   (t
-                    (build-up (- n 4)
-                              (+ current 4)
-                              (list* (adv-loadw) (loc-storew current) acc))))))
+                   (t (begin
+                       (adv-loadw)
+                       (loc-storew current)
+                       (build-up (- n 4) (+ current 4)))))))
     (begin
      ;; prepend the stack to be overwritten
      (padw)
-     (apply #'begin (reverse (build-up n start nil)))
+     (build-up n start)
      (dropw))))
 
-(-> check-row (fixnum &key (:pad boolean) (:size fixnum)) instruction)
-(defun check-row (i &key (pad nil) (size 9))
+(-> rows-add-up (fixnum &key (:pad boolean) (:size fixnum)) instruction)
+(defun rows-add-up (i &key (pad nil) (size 9))
   "Checks if the row `i' adds to the expected value
 STACK EFFECT: pad    = ( -- answer p1 p2 p3 p4)
               no-pad = (d1 d2 d3 d4 -- answer p1 p2 p3 p4)"
@@ -87,8 +86,8 @@ STACK EFFECT: pad    = ( -- answer p1 p2 p3 p4)
      ;; check if they are equal to the expected answer
      (meq (apply #'+ (alexandria:iota size :start 1))))))
 
-(-> check-column (fixnum &key (:size fixnum)) instruction)
-(defun check-column (i &key (size 9))
+(-> columns-add-up (fixnum &key (:size fixnum)) instruction)
+(defun columns-add-up (i &key (size 9))
   "Check of the column `i' adds to the epxected value
 STACK EFFECT: pad    = ( -- answer p1 p2 p3 p4)
               no-pad = (d1 d2 d3 d4 -- answer p1 p2 p3 p4)"
@@ -99,7 +98,7 @@ STACK EFFECT: pad    = ( -- answer p1 p2 p3 p4)
    (push 0)
    ))
 
-(defun check (n check &key (needs-padding t))
+(defun check (check &key ((:size n) 9) (needs-padding t))
   "Takes a check function that overwrites the top of the stack and
 checks if the conditions hold. The function returns a boolean whether
 it passed or not. `needs-padding' determines if the function needs a
@@ -118,8 +117,8 @@ STACK EFFECT: (-- b)"
    (top-n-are-true (1- n))))
 
 ;; Inefficiencies List
-;; 1. We do 27 `loc-loadw' values, when we can get away with 21 in `check-row'
-;; 2. we could avoid `check-row' by just duping the top word and doing
+;; 1. We do 27 `loc-loadw' values, when we can get away with 21 in `rows-add-up'
+;; 2. we could avoid `rows-add-up' by just duping the top word and doing
 ;;    column check there.
 ;; Trade Off Notes:
 ;; 1. We prefer live sudoku puzzles. Meaning we pay extra for false
@@ -131,10 +130,10 @@ STACK EFFECT: (-- b)"
 ;; `load-advice-into-locals' can serve as the read-column check
 (defproc sudoku 84 (-- verfied?)
   (load-advice-into-locals 81)
-  (com "we do our 27 loads for the check-row")
-  (check 9 #'check-row :needs-padding t)
-  (com "we do 81 loads for the check-column")
-  (check 9 #'check-column :needs-padding nil))
+  (com "we do our 27 loads for the rows adding up to the correct number")
+  (check #'rows-add-up :needs-padding t :size 9)
+  (com "we do 81 loads for the columns adding up to the correct number")
+  (check #'columns-add-up :needs-padding nil :size 9))
 
 (defun dump ()
   (extract

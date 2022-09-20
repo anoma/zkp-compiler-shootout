@@ -2,6 +2,7 @@
 # -- VERFIED? #
 proc.sudoku.84
   padw
+  adv_loadw
   loc_storew.0
   adv_loadw
   loc_storew.4
@@ -43,9 +44,8 @@ proc.sudoku.84
   loc_storew.76
   adv_loadw
   loc_storew.80
-  adv_loadw
   dropw
-  # we do our 27 loads for the check-row #
+  # we do our 27 loads for the rows-add-up #
   padw
   push.0
   movdn.4
@@ -237,7 +237,7 @@ proc.sudoku.84
   and
   and
   and
-  # we do 81 loads for the check-column #
+  # we do 81 loads for the columns-add-up #
   push.0
   push.0
   push.0
