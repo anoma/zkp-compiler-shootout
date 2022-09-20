@@ -531,40 +531,26 @@ div'LT Z (S k') = LTEZero
 div'LT (S k) (S k') = LTESucc $ rewrite minusZeroRight k' in div'LT k k'
 
 public export
-multDiv'LT : {k, k', m, n : Nat} ->
-  LT k (m * (S n)) -> LTE k' k -> LT (div' k k' n) m
-multDiv'LT {k=Z} {k'} {m} {n=Z} lt ltk = rewrite sym (multOneRightNeutral m) in lt
-multDiv'LT {k=Z} {k'} {m=Z} {n=(S n)} lt ltk = lt
-multDiv'LT {k=Z} {k'} {m=(S m)} {n=(S n)} lt ltk = LTESucc LTEZero
-multDiv'LT {k=(S k)} {k'} {m=Z} {n} lt ltk = void $ succNotLTEzero lt
-multDiv'LT {k=(S k)} {k'=Z} {m=(S m)} {n=Z} lt ltk = LTESucc LTEZero
-multDiv'LT {k=(S k)} {k'=(S k')} {m=(S m)} {n=Z} lt ltk =
-  LTESucc $
-    let
-      lt' = fromLteSucc lt
-      lt'' = replace {p=(\q => LTE (S k) (Z + q))} (multOneRightNeutral m) lt'
-    in
-    rewrite minusZeroRight k' in
-    transitive (LTESucc $ div'LT k k') lt''
-multDiv'LT {k=(S k)} {k'=Z} {m=(S m)} {n=(S n)} lt ltk = LTESucc LTEZero
-multDiv'LT {k=(S k)} {k'=(S k')} {m=(S m)} {n=(S n)} lt ltk with (lte k' n)
-    proof ltekn
-  multDiv'LT {k=(S k)} {k'=(S k')} {m=(S m)} {n=(S n)} lt ltk | True =
-    LTESucc $ LTEZero
-  multDiv'LT {k=(S k)} {k'=(S k')} {m=(S m)} {n=(S n)}
-      (LTESucc lt) (LTESucc ltk) | False =
-    let
-      mlt = multDiv'LT {k} {k'=(minus k' (S n))} {m} {n=(S n)}
-      mpl = minusPosLT (S n) k' (LTESucc LTEZero)
-    in
-    LTESucc $
-      mlt ?multDivLT'_hole_1
-      $ lteSuccLeft $ transitive (mpl ?multDivLT'_hole_2) ltk
+divMinusMono : (fuel, k, n : Nat) ->
+  lte k n = False -> LT (div' fuel (minus k (S n)) n) (div' fuel k n)
+divMinusMono gtkn k n = ?divMinusMono_hole
+
+public export
+multDivLT' : {fuel, k, m, n : Nat} ->
+  LT k (m * (S n)) -> LT (div' fuel k n) m
+multDivLT' {fuel=Z} {k} {m=Z} {n} lt = void $ succNotLTEzero lt
+multDivLT' {fuel=Z} {k} {m=(S m)} {n} lt = LTESucc LTEZero
+multDivLT' {fuel=(S fuel)} {k} {m=Z} {n} lt = void $ succNotLTEzero lt
+multDivLT' {fuel=(S fuel)} {k} {m=(S m)} {n} lt with (lte k n) proof ltekn
+  multDivLT' {fuel=(S fuel)} {k} {m=(S m)} {n} lt | True = LTESucc LTEZero
+  multDivLT' {fuel=(S fuel)} {k} {m=(S m)} {n} lt | False =
+    transitive (LTESucc $ divMinusMono fuel k n ltekn) $
+      multDivLT' {fuel} {k} {m=(S m)} {n} lt
 
 public export
 multDivLT : {k, m, n : Nat} ->
   LT k (m * (S n)) -> LT (divNatNZ k (S n) SIsNonZero) m
-multDivLT {k} {m} {n} lt = multDiv'LT {k} {k'=k} {m} {n} lt reflexive
+multDivLT {k} {m} {n} lt = multDivLT' {fuel=k} {k} {m} {n} lt
 
 public export
 multAddLT : {k, m, n, p : Nat} ->
