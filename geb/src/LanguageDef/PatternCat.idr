@@ -400,6 +400,8 @@ FSSliceMorphToType {n} {sl} {sl'} m i d = Vect.index d $ finFGet i m
 ---- Natural transformations between polynomial endofunctors on FinSet ----
 ---------------------------------------------------------------------------
 
+-- XXX Vect rather than function representation
+
 public export
 FSPNatTrans : FSPolyF -> FSPolyF -> Type
 FSPNatTrans p q =
