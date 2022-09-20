@@ -62,7 +62,7 @@ STACK EFFECT: (--)"
      (dropw))))
 
 (-> check-row (fixnum &key (:pad boolean) (:size fixnum)) instruction)
-(defun check-row (i &key (pad t) (size 9))
+(defun check-row (i &key (pad nil) (size 9))
   "Checks if the row `i' adds to the expected value
 STACK EFFECT: pad    = ( -- answer p1 p2 p3 p4)
               no-pad = (d1 d2 d3 d4 -- answer p1 p2 p3 p4)"
@@ -129,11 +129,10 @@ STACK EFFECT: (-- b)"
 ;; our algorithm given our tools.  Namely we re-read many locations,
 ;; where we can instead just do computation faster. Like
 ;; `load-advice-into-locals' can serve as the read-column check
-(defproc sudoku (* 4 (ceiling 81 4)) (-- verfied?)
+(defproc sudoku 84 (-- verfied?)
   (load-advice-into-locals 81)
   (com "we do our 27 loads for the check-row")
-  (padw)
-  (check 9 (lambda (i) (check-row i :pad nil)) :needs-padding t)
+  (check 9 #'check-row :needs-padding t)
   (com "we do 81 loads for the check-column")
   (check 9 #'check-column :needs-padding nil))
 
@@ -141,6 +140,11 @@ STACK EFFECT: (-- b)"
   (extract
    "miden/fib.masm"
    (lookup-function :fib_iter)
+   (begin
+    (fib_iter)))
+  (extract
+   "miden/sudoku.masm"
+   (lookup-function :sudoku)
    (begin
     (fib_iter)))
   (extract

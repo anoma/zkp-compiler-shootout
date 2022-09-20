@@ -47,7 +47,6 @@ proc.sudoku.84
   dropw
   # we do our 27 loads for the check-row #
   padw
-  padw
   push.0
   movdn.4
   loc_loadw.0
