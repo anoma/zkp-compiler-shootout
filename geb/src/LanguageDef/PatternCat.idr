@@ -39,12 +39,12 @@ FSCompose : {a, b, c : FSObj} -> FSMorph b c -> FSMorph a b -> FSMorph a c
 FSCompose g f = finFToVect (FSApply g . FSApply f)
 
 public export
-FSInit : FSObj
-FSInit = 0
+FSInitial : FSObj
+FSInitial = 0
 
 public export
-fsFromInit : (a : FSObj) -> FSMorph FSInit a
-fsFromInit _ = []
+fsFromInitial : (a : FSObj) -> FSMorph FSInitial a
+fsFromInitial _ = []
 
 public export
 FSTerminal : FSObj
@@ -271,6 +271,22 @@ FSEqualizerPred : {a, b : FSObj} -> FSMorph a b -> FSMorph a b -> FSPred a
 FSEqualizerPred {a} {b} f g =
   finFToVect $ \i => if FSApply f i == FSApply g i then FSTrue else FSFalse
 
+--------------
+---- ADTs ----
+--------------
+
+public export
+FSCoproductList : List FSObj -> FSObj
+FSCoproductList = foldl FSCoproduct FSInitial
+
+public export
+FSProductList : List FSObj -> FSObj
+FSProductList = foldl FSProduct FSTerminal
+
+public export
+FSFoldConstructor : FSObj -> FSObj -> FSObj -> FSObj
+FSFoldConstructor type adt nfields = FSCoproduct adt (FSExpObj type nfields)
+
 ------------------------
 ------------------------
 ---- Fin as a topos ----
@@ -395,6 +411,10 @@ fsPolyNDir (FSPArena a) i = index' a i
 public export
 fsPolyDir : (p : FSPolyF) -> fsPolyPos p -> Type
 fsPolyDir p i = FSElem (fsPolyNDir p i)
+
+public export
+FSPolyApply : FSPolyF -> FSObj -> FSObj
+FSPolyApply (FSPArena a) n = foldl (FSFoldConstructor n) FSInitial a
 
 public export
 fspPF : FSPolyF -> PolyFunc
