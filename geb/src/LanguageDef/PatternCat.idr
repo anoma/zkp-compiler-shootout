@@ -210,16 +210,16 @@ FSDepSumType {m} {n} f fam fam' =
   (i : FSElem m ** j : FSTypeFamType fam i ** FSTypeFamType fam' (FSApply f i))
 
 public export
-FSDepMorph : {m, n : FSObj} ->
+FSIndexedMorph : {m, n : FSObj} ->
   FSMorph m n -> FSTypeFam m -> FSTypeFam n -> FSElem m -> Type
-FSDepMorph f fam fam' i =
+FSIndexedMorph f fam fam' i =
   FSMorph (FSTypeFamObj fam i) (FSTypeFamObj fam' $ FSApply f i)
 
 public export
 FSDepProductType : {m, n : FSObj} ->
   FSMorph m n -> FSTypeFam m -> FSTypeFam n -> Type
 FSDepProductType {m} {n} f fam fam' =
-  HVect {k=m} $ finFToVect $ FSDepMorph f fam fam'
+  HVect {k=m} $ finFToVect $ FSIndexedMorph f fam fam'
 
 ---------------------------------
 ---------------------------------
