@@ -53,16 +53,13 @@
 (defbegin fold-n-locals (binary-function local-location n)
   "Folds `n' locals at the given `local-location' with the given `binary-function'
 Note that the top four stack eleemnts are overwritten by the locals
-STACK EFFECT: (a₁ a₂ a₃ a₄ -- answer b₁ b₂ b₃ b₄)"
+STACK EFFECT: (a₁ a₂ a₃ a₄ acc -- answer b₁ b₂ b₃ b₄)"
   (loc-loadw local-location)
   (if (>= 4 n)
       (begin (repeat-inst (1- n) binary-function)
              (movup (- 4 (1- n)))
              binary-function
-             ;; we could just dup n times instead! would remove the
-             ;; moveup call!
-             (repeat-inst n (push 0))
-             (movup n))
+             (repeat-inst n (dup)))
       (begin (repeat-inst 4 binary-function)
              (padw)
              (fold-n-locals binary-function (+ 4 local-location) (- n 4)))))
@@ -96,25 +93,31 @@ STACK EFFECT: ( -- answer)"
 (defun find-starting-index (i size)
   (mvlet ((square-size   (sqrt size))
           (div remainder (floor i (sqrt size))))
-    (+ (round (* div (expt square-size square-size)))
-       (* square-size remainder))))
+    (round
+     (+ (* div (* square-size size))
+        (* square-size remainder)))))
 
 ;; TODO make size matter in the terms of loads!
 (-> rows-add-up (unsigned-byte &key (:pad boolean) (:size unsigned-byte)) instruction)
-(defun squares-add-up (i &key (size 9))
+(defun squares-add-up (i &key (size 9) (pad nil))
   "Checks if the square `i' adds to the expected value
 STACK EFFECT: pad    = ( -- answer p1 p2 p3 p4)
               no-pad = (d1 d2 d3 d4 -- answer p1 p2 p3 p4)"
   (let ((starting-index (find-starting-index i size)))
     starting-index
     (begin
-     )))
+     ;; Start the accumulator at 0
+     (push 0)
+     (if pad (padw) (nop))
+     (mapcar (lambda (index) (list (movdn 4) (fold-n-locals (add) index 3)))
+             (alexandria:iota 3 :start starting-index :step size))
+     (sudoku-should-add-up-to size))))
 
 (defun check (check &key ((:size n) 9) (needs-padding t))
   "Takes a check function that overwrites the top of the stack and
 checks if the conditions hold. The function returns a boolean whether
 it passed or not. `needs-padding' determines if the function needs a
-padding of words to operate efficiently or not.
+word of padding to operate efficiently or not.
 STACK EFFECT: (-- b)"
   (assert (= (expt (round (sqrt n)) 2) n))
   (begin
@@ -149,8 +152,10 @@ STACK EFFECT: (-- b)"
   (check #'rows-add-up :needs-padding t :size 9)
   (com "we do 81 loads for the columns adding up to the correct number")
   (check #'columns-add-up :needs-padding nil :size 9)
-  (com "we do our 27 loads for the columns adding up to the correct number")
-  )
+  (mand)
+  (com "we do our 27 loads for the squares adding up to the correct number")
+  (check #'squares-add-up :needs-padding t :size 9)
+  (mand))
 
 (defun dump ()
   (extract

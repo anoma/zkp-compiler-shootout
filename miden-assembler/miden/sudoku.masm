@@ -64,8 +64,7 @@ proc.sudoku.84
   loc_loadw.8
   movup.4
   add
-  push.0
-  swap
+  dup
   eq.45
   movdn.4
   push.0
@@ -85,8 +84,7 @@ proc.sudoku.84
   loc_loadw.17
   movup.4
   add
-  push.0
-  swap
+  dup
   eq.45
   movdn.4
   push.0
@@ -106,8 +104,7 @@ proc.sudoku.84
   loc_loadw.26
   movup.4
   add
-  push.0
-  swap
+  dup
   eq.45
   movdn.4
   push.0
@@ -127,8 +124,7 @@ proc.sudoku.84
   loc_loadw.35
   movup.4
   add
-  push.0
-  swap
+  dup
   eq.45
   movdn.4
   push.0
@@ -148,8 +144,7 @@ proc.sudoku.84
   loc_loadw.44
   movup.4
   add
-  push.0
-  swap
+  dup
   eq.45
   movdn.4
   push.0
@@ -169,8 +164,7 @@ proc.sudoku.84
   loc_loadw.53
   movup.4
   add
-  push.0
-  swap
+  dup
   eq.45
   movdn.4
   push.0
@@ -190,8 +184,7 @@ proc.sudoku.84
   loc_loadw.62
   movup.4
   add
-  push.0
-  swap
+  dup
   eq.45
   movdn.4
   push.0
@@ -211,8 +204,7 @@ proc.sudoku.84
   loc_loadw.71
   movup.4
   add
-  push.0
-  swap
+  dup
   eq.45
   movdn.4
   push.0
@@ -232,8 +224,7 @@ proc.sudoku.84
   loc_loadw.80
   movup.4
   add
-  push.0
-  swap
+  dup
   eq.45
   movdn.4
   dropw
@@ -418,7 +409,290 @@ proc.sudoku.84
   and
   and
   and
-  # we do our 27 loads for the columns adding up to the correct number #
+  and
+  # we do our 27 loads for the squares adding up to the correct number #
+  padw
+  push.0
+  movdn.4
+  loc_loadw.0
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  movdn.4
+  loc_loadw.9
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  movdn.4
+  loc_loadw.18
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  eq.45
+  movdn.4
+  push.0
+  movdn.4
+  loc_loadw.3
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  movdn.4
+  loc_loadw.12
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  movdn.4
+  loc_loadw.21
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  eq.45
+  movdn.4
+  push.0
+  movdn.4
+  loc_loadw.6
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  movdn.4
+  loc_loadw.15
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  movdn.4
+  loc_loadw.24
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  eq.45
+  movdn.4
+  push.0
+  movdn.4
+  loc_loadw.27
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  movdn.4
+  loc_loadw.36
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  movdn.4
+  loc_loadw.45
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  eq.45
+  movdn.4
+  push.0
+  movdn.4
+  loc_loadw.30
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  movdn.4
+  loc_loadw.39
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  movdn.4
+  loc_loadw.48
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  eq.45
+  movdn.4
+  push.0
+  movdn.4
+  loc_loadw.33
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  movdn.4
+  loc_loadw.42
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  movdn.4
+  loc_loadw.51
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  eq.45
+  movdn.4
+  push.0
+  movdn.4
+  loc_loadw.54
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  movdn.4
+  loc_loadw.63
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  movdn.4
+  loc_loadw.72
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  eq.45
+  movdn.4
+  push.0
+  movdn.4
+  loc_loadw.57
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  movdn.4
+  loc_loadw.66
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  movdn.4
+  loc_loadw.75
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  eq.45
+  movdn.4
+  push.0
+  movdn.4
+  loc_loadw.60
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  movdn.4
+  loc_loadw.69
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  movdn.4
+  loc_loadw.78
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  eq.45
+  movdn.4
+  dropw
+  # let us check the values are all true! #
+  and
+  and
+  and
+  and
+  and
+  and
+  and
+  and
+  and
 end
 
 begin
