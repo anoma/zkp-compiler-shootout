@@ -376,14 +376,6 @@ FSSlice : FSObj -> Type
 FSSlice n = Vect n Nat
 
 public export
-FSSliceToMorph : {n : FSObj} -> (sl : FSSlice n) -> FSMorph n (S (vectMax sl))
-FSSliceToMorph {n} sl = finFToVect $ vectMaxGet sl
-
-public export
-FSMorphToSlice : {m, n : FSObj} -> FSMorph m n -> FSSlice m
-FSMorphToSlice {m} {n} v = map finToNat v
-
-public export
 FSSliceToType : {n : FSObj} -> FSSlice n -> SliceObj (FSElem n)
 FSSliceToType {n} sl i = FSElem (index i sl)
 
@@ -407,6 +399,31 @@ public export
 FSSliceMorphToType : {n : FSObj} -> {sl, sl' : FSSlice n} ->
   FSSliceMorphism sl sl' -> SliceMorphism (FSSliceToType sl) (FSSliceToType sl')
 FSSliceMorphToType {n} {sl} {sl'} m i d = Vect.index d $ finFGet i m
+
+------------------------------------------------------------------
+---- FinSet slices, and polynomial endofunctors, as morphisms ----
+------------------------------------------------------------------
+
+-- A slice object over `Fin n` in the category of finite prefixes of the natural
+-- numbers may be viewed as a morphism in that category from `Fin n` to another
+-- prefix of the natural numbers `Fin m` for some natural number `m` --
+-- specifically, where `m` is the successor of the maximum cardinality of the
+-- types in the type family which corresponds to the dependent-type view of the
+-- slice object.  (The dependet-type view is that a slice object over `Fin n`
+-- is a type family indexed by `Fin n`, where the dependent sum of the family is
+-- the "total space" -- the domain of the morphism which defines the slice
+-- object -- in the category-theoretic view.)  Note that the category-theoretic
+-- definition of "slice object" uses a morphism _to_ `Fin n`, whereas this
+-- type-theoretic view gives us an interpretation of that same slice object
+-- as a morphism _from_ `Fin n`.
+
+public export
+FSSliceToMorph : {n : FSObj} -> (sl : FSSlice n) -> FSMorph n (S (vectMax sl))
+FSSliceToMorph {n} sl = finFToVect $ vectMaxGet sl
+
+public export
+FSMorphToSlice : {m, n : FSObj} -> FSMorph m n -> FSSlice m
+FSMorphToSlice {m} {n} v = map finToNat v
 
 ---------------------------------------------------------------------------
 ---- Natural transformations between polynomial endofunctors on FinSet ----
