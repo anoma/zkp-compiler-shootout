@@ -81,7 +81,7 @@ fsProdIntro : {a, b, c : FSObj} ->
 fsProdIntro {a} {b} {c} f g =
   finFToVect $ \i =>
     natToFinLT
-      {prf=(multAddLT (finToNatLT (index i f)) (finToNatLT (index i g)))}
+      {prf=(multAddLT (finToNatLT (FSApply f i)) (finToNatLT (FSApply g i)))}
       (c * finToNat (FSApply f i) + finToNat (FSApply g i))
 
 public export
@@ -192,12 +192,34 @@ FSTypeFam : FSObj -> Type
 FSTypeFam n = Vect n FSObj
 
 public export
-FSTypeFamType : {n : FSObj} -> FSTypeFam n -> Fin n -> Type
-FSTypeFamType {n} fam i = FSElem (index i fam)
+FSTypeFamObj : {n : FSObj} -> FSTypeFam n -> FSElem n -> FSObj
+FSTypeFamObj fam i = index i fam
+
+public export
+FSTypeFamType : {n : FSObj} -> FSTypeFam n -> FSElem n -> Type
+FSTypeFamType fam i = FSElem (FSTypeFamObj fam i)
 
 public export
 FSTypeFamTypes : {n : FSObj} -> FSTypeFam n -> Vect n Type
 FSTypeFamTypes {n} = finFToVect . FSTypeFamType {n}
+
+public export
+FSDepSumType : {m, n : FSObj} ->
+  FSMorph m n -> FSTypeFam m -> FSTypeFam n -> Type
+FSDepSumType {m} {n} f fam fam' =
+  (i : FSElem m ** j : FSTypeFamType fam i ** FSTypeFamType fam' (FSApply f i))
+
+public export
+FSDepMorph : {m, n : FSObj} ->
+  FSMorph m n -> FSTypeFam m -> FSTypeFam n -> FSElem m -> Type
+FSDepMorph f fam fam' i =
+  FSMorph (FSTypeFamObj fam i) (FSTypeFamObj fam' $ FSApply f i)
+
+public export
+FSDepProductType : {m, n : FSObj} ->
+  FSMorph m n -> FSTypeFam m -> FSTypeFam n -> Type
+FSDepProductType {m} {n} f fam fam' =
+  HVect {k=m} $ finFToVect $ FSDepMorph f fam fam'
 
 ---------------------------------
 ---------------------------------
@@ -401,7 +423,7 @@ public export
 
 public export
 FSSlice : FSObj -> Type
-FSSlice n = Vect n Nat
+FSSlice = FSTypeFam
 
 public export
 FSSliceToType : {n : FSObj} -> FSSlice n -> SliceObj (FSElem n)
