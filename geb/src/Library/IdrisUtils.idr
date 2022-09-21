@@ -537,8 +537,8 @@ divMinusMono fuel k n gtkn = rewrite gtkn in reflexive
 
 public export
 multDivLT : {k, m, n : Nat} ->
-  LT k (m * (S n)) -> LT (divNatNZ k (S n) SIsNonZero) m
-multDivLT {k} {m} {n} lt = ?multDivLT_hole
+  LT k (m * n) -> (nz : NonZero n) -> LT (divNatNZ k n nz) m
+multDivLT {k} {m} {n} lt nz = ?multDivLT_hole
 
 public export
 multAddLT : {k, m, n, p : Nat} ->

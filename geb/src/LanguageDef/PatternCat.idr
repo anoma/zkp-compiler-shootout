@@ -90,7 +90,7 @@ fsProdElimLeft a Z = rewrite multZeroRightZero a in []
 fsProdElimLeft a (S b) =
   finFToVect $ \i =>
     natToFinLT
-      {prf=(multDivLT (finToNatLT i))}
+      {prf=(multDivLT (finToNatLT i) SIsNonZero)}
       (divNatNZ (finToNat i) (S b) SIsNonZero)
 
 public export
