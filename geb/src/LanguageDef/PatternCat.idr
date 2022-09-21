@@ -376,6 +376,14 @@ FSSlice : FSObj -> Type
 FSSlice n = Vect n Nat
 
 public export
+FSSliceToMorph : {n : FSObj} -> (sl : FSSlice n) -> FSMorph n (S (vectMax sl))
+FSSliceToMorph {n} sl = finFToVect $ vectMaxGet sl
+
+public export
+FSMorphToSlice : {m, n : FSObj} -> FSMorph m n -> FSSlice m
+FSMorphToSlice {m} {n} v = map finToNat v
+
+public export
 FSSliceToType : {n : FSObj} -> FSSlice n -> SliceObj (FSElem n)
 FSSliceToType {n} sl i = FSElem (index i sl)
 
