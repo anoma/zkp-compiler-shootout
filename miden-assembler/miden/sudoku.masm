@@ -62,6 +62,7 @@ proc.sudoku.84
   add
   padw
   loc_loadw.8
+  movup.4
   add
   push.0
   swap
@@ -82,6 +83,7 @@ proc.sudoku.84
   add
   padw
   loc_loadw.17
+  movup.4
   add
   push.0
   swap
@@ -102,6 +104,7 @@ proc.sudoku.84
   add
   padw
   loc_loadw.26
+  movup.4
   add
   push.0
   swap
@@ -122,6 +125,7 @@ proc.sudoku.84
   add
   padw
   loc_loadw.35
+  movup.4
   add
   push.0
   swap
@@ -142,6 +146,7 @@ proc.sudoku.84
   add
   padw
   loc_loadw.44
+  movup.4
   add
   push.0
   swap
@@ -162,6 +167,7 @@ proc.sudoku.84
   add
   padw
   loc_loadw.53
+  movup.4
   add
   push.0
   swap
@@ -182,6 +188,7 @@ proc.sudoku.84
   add
   padw
   loc_loadw.62
+  movup.4
   add
   push.0
   swap
@@ -202,6 +209,7 @@ proc.sudoku.84
   add
   padw
   loc_loadw.71
+  movup.4
   add
   push.0
   swap
@@ -222,6 +230,7 @@ proc.sudoku.84
   add
   padw
   loc_loadw.80
+  movup.4
   add
   push.0
   swap
@@ -409,6 +418,7 @@ proc.sudoku.84
   and
   and
   and
+  # we do our 27 loads for the columns adding up to the correct number #
 end
 
 begin

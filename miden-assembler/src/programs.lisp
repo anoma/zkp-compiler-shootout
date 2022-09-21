@@ -50,48 +50,65 @@
 ;; Let us make the complicated Sudoku program. we can do it the simple
 ;; way by providing the data in the advice tape, which is the private
 ;; input set. We are going to store the values in the locals
-
 (defbegin fold-n-locals (binary-function local-location n)
   "Folds `n' locals at the given `local-location' with the given `binary-function'
 Note that the top four stack eleemnts are overwritten by the locals
 STACK EFFECT: (a₁ a₂ a₃ a₄ -- answer b₁ b₂ b₃ b₄)"
   (loc-loadw local-location)
   (if (>= 4 n)
-      (begin (repeat-inst n binary-function)
+      (begin (repeat-inst (1- n) binary-function)
+             (movup (- 4 (1- n)))
+             binary-function
+             ;; we could just dup n times instead! would remove the
+             ;; moveup call!
              (repeat-inst n (push 0))
              (movup n))
       (begin (repeat-inst 4 binary-function)
              (padw)
              (fold-n-locals binary-function (+ 4 local-location) (- n 4)))))
 
-(-> rows-add-up (fixnum &key (:pad boolean) (:size fixnum)) instruction)
-(defun rows-add-up (i &key (pad nil) (size 9))
+(-> rows-add-up (unsigned-byte &key (:pad boolean) (:size unsigned-byte)) instruction)
+(defbegin rows-add-up (i &key (pad nil) (size 9))
   "Checks if the row `i' adds to the expected value
 STACK EFFECT: pad    = ( -- answer p1 p2 p3 p4)
               no-pad = (d1 d2 d3 d4 -- answer p1 p2 p3 p4)"
-  (assert (> size 0))
-  (begin
-   ;; Start the accumulator at 0
-   (push 0)
-   (if pad (padw) (movdn 4))
-   ;; grab the row values and reduce them
-   (fold-n-locals (add) (* size i) size)
-   ;; check if they are equal to the expected answer
-   (sudoku-should-add-up-to size)))
+  ;; Start the accumulator at 0
+  (push 0)
+  (if pad (padw) (movdn 4))
+  ;; grab the row values and reduce them
+  (fold-n-locals (add) (* size i) size)
+  ;; check if they are equal to the expected answer
+  (sudoku-should-add-up-to size))
 
 (defun sudoku-should-add-up-to (size)
   "Checks if the sudoku values add up given the `size' of the board"
   (meq (apply #'+ (alexandria:iota size :start 1))))
 
 (-> columns-add-up (fixnum &key (:size fixnum)) instruction)
-(defun columns-add-up (i &key (size 9))
+(defbegin columns-add-up (i &key (size 9))
   "Check of the column `i' adds to the epxected value
 STACK EFFECT: ( -- answer)"
-  ;; This will be inefficient
-  (begin
-   (mapcar #'loc-load (alexandria:iota size :start i :step size))
-   (repeat-inst (1- size) (add))
-   (sudoku-should-add-up-to size)))
+  ;; This will be inefficient, as we are doing 9 separate 4 instruction loads.
+  (mapcar #'loc-load (alexandria:iota size :start i :step size))
+  (repeat-inst (1- size) (add))
+  (sudoku-should-add-up-to size))
+
+(defun find-starting-index (i size)
+  (mvlet ((square-size   (sqrt size))
+          (div remainder (floor i (sqrt size))))
+    (+ (round (* div (expt square-size square-size)))
+       (* square-size remainder))))
+
+;; TODO make size matter in the terms of loads!
+(-> rows-add-up (unsigned-byte &key (:pad boolean) (:size unsigned-byte)) instruction)
+(defun squares-add-up (i &key (size 9))
+  "Checks if the square `i' adds to the expected value
+STACK EFFECT: pad    = ( -- answer p1 p2 p3 p4)
+              no-pad = (d1 d2 d3 d4 -- answer p1 p2 p3 p4)"
+  (let ((starting-index (find-starting-index i size)))
+    starting-index
+    (begin
+     )))
 
 (defun check (check &key ((:size n) 9) (needs-padding t))
   "Takes a check function that overwrites the top of the stack and
@@ -116,7 +133,7 @@ STACK EFFECT: (-- b)"
 ;;    column check there.
 ;; 3. we write into locals which are 3-4 cycles each.
 ;;   whereas if I tried it with memory addresses it would be 1
-;;   cycle instead, however Ι would maybe leak the data if I
+;;   cycle instead of 3-4, however Ι would maybe leak the data if I
 ;;   did? I need to test both versions I think.
 ;; Trade Off Notes:
 ;; 1. We prefer live sudoku puzzles. Meaning we pay extra for false
@@ -131,7 +148,9 @@ STACK EFFECT: (-- b)"
   (com "we do our 27 loads for the rows adding up to the correct number")
   (check #'rows-add-up :needs-padding t :size 9)
   (com "we do 81 loads for the columns adding up to the correct number")
-  (check #'columns-add-up :needs-padding nil :size 9))
+  (check #'columns-add-up :needs-padding nil :size 9)
+  (com "we do our 27 loads for the columns adding up to the correct number")
+  )
 
 (defun dump ()
   (extract
