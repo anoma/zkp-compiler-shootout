@@ -39,9 +39,14 @@
        (defun ,name ()
          (exec ,keyword)))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Additional standard library functions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defun com (string)
   (make-com :com string))
 
+(-> nop () instruction)
 (defun nop ()
   "Acts as a no instruction in a block"
   (begin))
@@ -55,6 +60,24 @@
   "Checks if the top n values of the stack are true
 STACK EFFECT: (b₁ … bₙ -- b)"
   (repeat-inst n (mand)))
+
+(-> load-advice-into-locals (fixnum &key (:start fixnum)) instruction)
+(defun load-advice-into-locals (n &key (start 0))
+  "loads n advice values off the input reel into the local argument
+STACK EFFECT: (--)"
+  (labels ((build-up (n current)
+             (cond ((>= 0 n) (nop))
+                   ;; due to this, we may wish to pad our values to
+                   ;; the nearest mod 4. However we will wave that for now!
+                   (t (begin
+                       (adv-loadw)
+                       (loc-storew current)
+                       (build-up (- n 4) (+ current 4)))))))
+    (begin
+     ;; prepend the stack to be overwritten
+     (padw)
+     (build-up n start)
+     (dropw))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Control Flow
@@ -79,14 +102,17 @@ STACK EFFECT: (b₁ … bₙ -- b)"
 (defun while (&rest instructions)
   (make-while :block (apply #'begin instructions)))
 
-(-> begin (&rest instruction) block)
+(-> begin (&rest (or list instruction)) block)
 (defun begin (&rest instructions)
-  (make-block
-   :body (mapcan (lambda (x)
-                   (if (typep x 'block)
-                       (block-to-list x)
-                       (list x)))
-                 instructions)))
+  ;; give me alambda, or give me death
+  (labels ((recursive (x)
+             (cond ((typep x 'block)
+                    (block-to-list x))
+                   ((typep x 'list)
+                    (mapcan #'recursive x))
+                   (t
+                    (list x)))))
+    (make-block :body (mapcan #'recursive instructions))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Stack Operations
