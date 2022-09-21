@@ -323,23 +323,27 @@ record FSPolyF where
   -- is the set of natural numbers less than the length of the list),
   -- and each element is the number of directions at the corresponding position
   -- (so the direction set is the set of natural numbers less than the element).
-  fspArena : List Nat
+  fspArena : List FSObj
 
 public export
-fsPolyNPos : FSPolyF -> Nat
+fsPolyNPos : FSPolyF -> FSObj
 fsPolyNPos = length . fspArena
 
 public export
 fsPolyPos : FSPolyF -> Type
-fsPolyPos p = Fin (fsPolyNPos p)
+fsPolyPos p = FSElem (fsPolyNPos p)
 
 public export
-fsPolyNDir : (p : FSPolyF) -> fsPolyPos p -> Nat
+fsPolyNDir : (p : FSPolyF) -> fsPolyPos p -> FSObj
 fsPolyNDir (FSPArena a) i = index' a i
 
 public export
 fsPolyDir : (p : FSPolyF) -> fsPolyPos p -> Type
-fsPolyDir p i = Fin (fsPolyNDir p i)
+fsPolyDir p i = FSElem (fsPolyNDir p i)
+
+public export
+fspPF : FSPolyF -> PolyFunc
+fspPF p = (fsPolyPos p ** fsPolyDir p)
 
 public export
 fsPolyProd : (p : FSPolyF) -> fsPolyPos p -> Type -> Type
@@ -368,31 +372,31 @@ public export
 -- arrow category.)
 
 public export
-FSSlice : Nat -> Type
+FSSlice : FSObj -> Type
 FSSlice n = Vect n Nat
 
 public export
-FSSliceToType : {n : Nat} -> FSSlice n -> SliceObj (Fin n)
-FSSliceToType {n} sl i = Fin (index i sl)
+FSSliceToType : {n : FSObj} -> FSSlice n -> SliceObj (FSElem n)
+FSSliceToType {n} sl i = FSElem (index i sl)
 
 public export
 FSPolyFToSlice : (p : FSPolyF) -> FSSlice (fsPolyNPos p)
 FSPolyFToSlice p = fromList (fspArena p)
 
 public export
-SliceToFSPolyF : {n : Nat} -> FSSlice n -> FSPolyF
+SliceToFSPolyF : {n : FSObj} -> FSSlice n -> FSPolyF
 SliceToFSPolyF {n} sl = FSPArena (toList sl)
 
 public export
-FSSliceFiberMap : {n : Nat} -> FSSlice n -> FSSlice n -> Fin n -> Type
-FSSliceFiberMap sl sl' i = Vect (index i sl) (Fin (index i sl'))
+FSSliceFiberMap : {n : FSObj} -> FSSlice n -> FSSlice n -> FSElem n -> Type
+FSSliceFiberMap sl sl' i = FSMorph (index i sl) (index i sl')
 
 public export
-FSSliceMorphism : {n : Nat} -> FSSlice n -> FSSlice n -> Type
+FSSliceMorphism : {n : FSObj} -> FSSlice n -> FSSlice n -> Type
 FSSliceMorphism {n} sl sl' = HVect $ finFToVect (FSSliceFiberMap sl sl')
 
 public export
-FSSliceMorphToType : {n : Nat} -> {sl, sl' : FSSlice n} ->
+FSSliceMorphToType : {n : FSObj} -> {sl, sl' : FSSlice n} ->
   FSSliceMorphism sl sl' -> SliceMorphism (FSSliceToType sl) (FSSliceToType sl')
 FSSliceMorphToType {n} {sl} {sl'} m i d = Vect.index d $ finFGet i m
 
@@ -400,19 +404,45 @@ FSSliceMorphToType {n} {sl} {sl'} m i d = Vect.index d $ finFGet i m
 ---- Natural transformations between polynomial endofunctors on FinSet ----
 ---------------------------------------------------------------------------
 
--- XXX Vect rather than function representation
+public export
+FSPosMap : FSPolyF -> FSPolyF -> Type
+FSPosMap p q = FSMorph (fsPolyNPos p) (fsPolyNPos q)
+
+public export
+FSPosDirMap : (p, q : FSPolyF) -> FSPosMap p q -> fsPolyPos p -> Type
+FSPosDirMap p q onPos i =
+  FSMorph (fsPolyNDir q $ FSApply onPos i) (fsPolyNDir p i)
+
+public export
+FSDirMap : (p, q : FSPolyF) -> FSPosMap p q -> Vect (fsPolyNPos p) Type
+FSDirMap p q onPos = finFToVect $ FSPosDirMap p q onPos
+
+public export
+FSOnDirT : (p, q : FSPolyF) -> FSPosMap p q -> Type
+FSOnDirT p q onPos = HVect $ FSDirMap p q onPos
 
 public export
 FSPNatTrans : FSPolyF -> FSPolyF -> Type
-FSPNatTrans p q =
-  (onPos : fsPolyPos p -> fsPolyPos q **
-   SliceMorphism (fsPolyDir q . onPos) (fsPolyDir p))
+FSPNatTrans p q = (onPos : FSPosMap p q ** FSOnDirT p q onPos)
 
 public export
-fspOnPos : {0 p, q : FSPolyF} -> FSPNatTrans p q -> fsPolyPos p -> fsPolyPos q
+fspOnPos : {0 p, q : FSPolyF} -> FSPNatTrans p q -> FSPosMap p q
 fspOnPos = fst
 
 public export
 fspOnDir : {0 p, q : FSPolyF} -> (alpha : FSPNatTrans p q) ->
-  (i : fsPolyPos p) -> fsPolyDir q (fspOnPos {p} {q} alpha i) -> fsPolyDir p i
+  FSOnDirT p q (fspOnPos {p} {q} alpha)
 fspOnDir = snd
+
+public export
+fspOnPosF : {p, q : FSPolyF} -> FSPNatTrans p q -> fsPolyPos p -> fsPolyPos q
+fspOnPosF (onPos ** onDir) = FSApply onPos
+
+public export
+fspOnDirF : {p, q : FSPolyF} -> (alpha : FSPNatTrans p q) ->
+  (i : fsPolyPos p) -> fsPolyDir q (fspOnPosF {p} {q} alpha i) -> fsPolyDir p i
+fspOnDirF (onPos ** onDir) i = FSApply $ finFGet i onDir
+
+public export
+fspNT : {p, q : FSPolyF} -> FSPNatTrans p q -> PolyNatTrans (fspPF p) (fspPF q)
+fspNT alpha = (fspOnPosF alpha ** fspOnDirF alpha)
