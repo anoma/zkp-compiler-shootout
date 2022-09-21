@@ -181,6 +181,16 @@ FSMorphToHomElem {x} {y} t =
   in
   case ct of [t''] => t''
 
+---------------------------------
+---------------------------------
+---- Derived types in FinSet ----
+---------------------------------
+---------------------------------
+
+------------------
+---- Booleans ----
+------------------
+
 public export
 FSBool : FSObj
 FSBool = FSCoproduct FSTerminal FSTerminal
