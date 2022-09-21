@@ -181,6 +181,24 @@ FSMorphToHomElem {x} {y} t =
   in
   case ct of [t''] => t''
 
+-----------------------------------
+-----------------------------------
+---- Dependent types in FinSet ----
+-----------------------------------
+-----------------------------------
+
+public export
+FSTypeFam : FSObj -> Type
+FSTypeFam n = Vect n FSObj
+
+public export
+FSTypeFamType : {n : FSObj} -> FSTypeFam n -> Fin n -> Type
+FSTypeFamType {n} fam i = FSElem (index i fam)
+
+public export
+FSTypeFamTypes : {n : FSObj} -> FSTypeFam n -> Vect n Type
+FSTypeFamTypes {n} = finFToVect . FSTypeFamType {n}
+
 ---------------------------------
 ---------------------------------
 ---- Derived types in FinSet ----
@@ -387,7 +405,7 @@ FSSlice n = Vect n Nat
 
 public export
 FSSliceToType : {n : FSObj} -> FSSlice n -> SliceObj (FSElem n)
-FSSliceToType {n} sl i = FSElem (index i sl)
+FSSliceToType = FSTypeFamType
 
 public export
 FSPolyFToSlice : (p : FSPolyF) -> FSSlice (fsPolyNPos p)
