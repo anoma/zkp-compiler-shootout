@@ -563,3 +563,16 @@ fspOnDirF (onPos ** onDir) i = FSApply $ finFGet i onDir
 public export
 fspNT : {p, q : FSPolyF} -> FSPNatTrans p q -> PolyNatTrans (fspPF p) (fspPF q)
 fspNT alpha = (fspOnPosF alpha ** fspOnDirF alpha)
+
+public export
+FSPNTApply : {0 p, q : FSPolyF} ->
+  (alpha : FSPNatTrans p q) -> (n : FSObj) ->
+  FSMorph (FSPolyApply p n) (FSPolyApply q n)
+FSPNTApply {p=(FSPArena ap)} {q=(FSPArena aq)} (onPos ** onDir) n =
+  ?FSPNTApply_hole
+
+public export
+InterpFSPNT : {0 p, q : FSPolyF} -> FSPNatTrans p q ->
+  SliceMorphism {a=Type} (InterpFSPolyF p) (InterpFSPolyF q)
+InterpFSPNT {p=(FSPArena ap)} {q=(FSPArena aq)} (onPos ** onDir) x elem =
+  ?FSPNtoType_hole
