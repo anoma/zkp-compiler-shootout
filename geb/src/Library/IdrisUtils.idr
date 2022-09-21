@@ -369,6 +369,89 @@ vectRepeat Z {b} {c} v = []
 vectRepeat (S a) {b} {c} v = v ++ vectRepeat a {b} {c} v
 
 public export
+vectMaxAcc : {0 n : Nat} -> Nat -> Vect n Nat -> Nat
+vectMaxAcc m [] = m
+vectMaxAcc m (x :: xs) = vectMaxAcc (maximum m x) xs
+
+public export
+vectMax : {0 n : Nat} -> Vect n Nat -> Nat
+vectMax = vectMaxAcc 0
+
+public export
+0 maximumMonotoneRight : (x, m, m' : Nat) -> LTE m m' ->
+  LTE (maximum x m) (maximum x m')
+maximumMonotoneRight Z m m' lte = lte
+maximumMonotoneRight (S x) Z m' lte = maximumLeftUpperBound (S x) m'
+maximumMonotoneRight (S x) (S m) Z lte = void $ succNotLTEzero lte
+maximumMonotoneRight (S x) (S m) (S m') (LTESucc lte) =
+  LTESucc $ maximumMonotoneRight x m m' lte
+
+public export
+0 maximumMonotoneLeft : (m, m', x : Nat) -> LTE m m' ->
+  LTE (maximum m x) (maximum m' x)
+maximumMonotoneLeft m m' x lte =
+  rewrite maximumCommutative m x in
+  rewrite maximumCommutative m' x in
+  maximumMonotoneRight x m m' lte
+
+public export
+0 vectMaxGetAccMonotoneMax : {n : Nat} -> (m : Nat) -> (v : Vect n Nat) ->
+  LTE m (vectMaxAcc {n} m v)
+vectMaxGetAccMonotoneMax {n=Z} m [] = reflexive
+vectMaxGetAccMonotoneMax {n=(S n)} m (x :: xs) =
+  transitive
+    (maximumLeftUpperBound m x)
+    (vectMaxGetAccMonotoneMax {n} (maximum m x) xs)
+
+public export
+0 vectMaxGetAccMonotoneVect : {n : Nat} -> (m, m' : Nat) -> (v : Vect n Nat) ->
+  LTE m m' -> LTE (vectMaxAcc {n} m v) (vectMaxAcc {n} m' v)
+vectMaxGetAccMonotoneVect {n=Z} m m' [] lte = lte
+vectMaxGetAccMonotoneVect {n=(S n)} m m' (x :: xs) lte =
+  vectMaxGetAccMonotoneVect
+    {n} (maximum m x) (maximum m' x) xs (maximumMonotoneLeft m m' x lte)
+
+public export
+0 vectMaxGetAccBoundHead : {n : Nat} -> (m : Nat) ->
+  (x : Nat) -> (v : Vect n Nat) ->
+  LTE x (vectMaxAcc {n=(S n)} m (x :: v))
+vectMaxGetAccBoundHead {n} m x v =
+  transitive
+    (maximumRightUpperBound m x)
+    (vectMaxGetAccMonotoneMax {n} (maximum m x) v)
+
+public export
+0 vectMaxGetAccBoundTail : {n : Nat} -> (m : Nat) ->
+  (x : Nat) -> (v : Vect n Nat) ->
+  LTE (vectMaxAcc {n} m v) (vectMaxAcc {n=(S n)} m (x :: v))
+vectMaxGetAccBoundTail {n} m x v =
+  vectMaxGetAccMonotoneVect {n} m (maximum m x) v (maximumLeftUpperBound m x)
+
+public export
+0 vectMaxGetAccCorrect : {n : Nat} -> (m : Nat) -> (v : Vect n Nat) ->
+  (i : Fin n) -> LTE (index i v) (vectMaxAcc m v)
+vectMaxGetAccCorrect {n=Z} m [] i = absurd i
+vectMaxGetAccCorrect {n=(S n)} m (x :: xs) FZ =
+  vectMaxGetAccBoundHead {n} m x xs
+vectMaxGetAccCorrect {n=(S n)} m (x :: xs) (FS i) =
+  transitive
+    (vectMaxGetAccCorrect {n} m xs i)
+    (vectMaxGetAccBoundTail {n} m x xs)
+
+public export
+vectMaxGetAcc : {0 n : Nat} ->
+  (0 m : Nat) -> (v : Vect n Nat) -> Fin n -> Fin (S (vectMaxAcc m v))
+vectMaxGetAcc {n} m v i =
+  natToFinLT
+    {n=(S (vectMaxAcc m v))}
+    {prf=(LTESucc $ vectMaxGetAccCorrect {n} m v i)}
+    (index i v)
+
+public export
+vectMaxGet : {0 n : Nat} -> (v : Vect n Nat) -> Fin n -> Fin (S (vectMax v))
+vectMaxGet {n} v i = vectMaxGetAcc {n} 0 v i
+
+public export
 powerOneIsOne : (n : Nat) -> power 1 n = 1
 powerOneIsOne Z = Refl
 powerOneIsOne (S n) = rewrite powerOneIsOne n in Refl
