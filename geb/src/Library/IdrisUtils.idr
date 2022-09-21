@@ -619,9 +619,31 @@ divMinusMono : (fuel, k, n : Nat) ->
 divMinusMono fuel k n gtkn = rewrite gtkn in reflexive
 
 public export
+lteToDiff : {m, n : Nat} -> LTE m n -> (k : Nat ** k + m = n)
+lteToDiff {m} {n} lte = (minus n m ** plusMinusLte m n lte)
+
+public export
+diffToLte : {m, n, k : Nat} -> k + m = n -> LTE m n
+diffToLte {m} {k=Z} Refl = reflexive
+diffToLte {m} {n} {k=(S k)} pleq =
+  lteSuccLeft $ diffToLte {m=(S m)} {n} {k} $
+    rewrite sym (plusSuccRightSucc k m) in
+    pleq
+
+public export
+multDivLTLemma : (k, m, n, mnk : Nat) ->
+  mnk + S k = m * S n -> (divk : Nat ** divk + S (div' k k n) = m)
+multDivLTLemma k m n mnk mkneq = ?multDivLTLemma_hole
+
+public export
 multDivLT : {k, m, n : Nat} ->
   LT k (m * n) -> (nz : NonZero n) -> LT (divNatNZ k n nz) m
-multDivLT {k} {m} {n} lt nz = ?multDivLT_hole
+multDivLT {k} {m} {n=(S n)} lt SIsNonZero =
+  let
+    (mnk ** mnkeq) = lteToDiff lt
+    (divk ** divkeq) = multDivLTLemma k m n mnk mnkeq
+  in
+  diffToLte {m=(S (divNatNZ k (S n) SIsNonZero))} {n=m} {k=divk} divkeq
 
 public export
 multAddLT : {k, m, n, p : Nat} ->
