@@ -367,7 +367,7 @@ public export
 ----------------------------------------------
 
 -- A polynomial endofunctor may also be viewed as a slice object
--- (in the slice category of its type of positions).
+-- (in the slice category over its type of positions).
 -- (Similarly, it may also be viewed as an object of the
 -- arrow category.)
 
@@ -424,6 +424,23 @@ FSSliceToMorph {n} sl = finFToVect $ vectMaxGet sl
 public export
 FSMorphToSlice : {m, n : FSObj} -> FSMorph m n -> FSSlice m
 FSMorphToSlice {m} {n} v = map finToNat v
+
+-- Because we may view a slice object in the category of finite prefixes of the
+-- natural numbers as a morphism in that category, and we may view a
+-- polynomial endofunctor on that category as a slice object over that
+-- endofunctor's positions, we may view a polynomial endofunctor as a morphism.
+
+public export
+FSPolyDirMax : FSPolyF -> Nat
+FSPolyDirMax p = vectMax (FSPolyFToSlice p)
+
+public export
+FSPolyToMorph : (p : FSPolyF) -> FSMorph (fsPolyNPos p) (S (FSPolyDirMax p))
+FSPolyToMorph p = FSSliceToMorph (FSPolyFToSlice p)
+
+public export
+FSMorphToPoly : {m, n : FSObj} -> FSMorph m n -> FSPolyF
+FSMorphToPoly v = SliceToFSPolyF (FSMorphToSlice v)
 
 ---------------------------------------------------------------------------
 ---- Natural transformations between polynomial endofunctors on FinSet ----
