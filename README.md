@@ -1,24 +1,18 @@
 # zkp-compiler-shootout
 Evaluating &amp; benchmarking ZKP compilation strategies.
 
-## RISC0
-We have a RISC0 implementation of a program that verifies that a Sudoku solution is indeed valid.
+Currently we are testing the following Zero Knowledge machines
 
-### How to run it
-1. navigate to the `sudoku` folder
-2. in your terminal, `cargo run`
-3. to view the RISC0 log, `RISC0_LOG=2 cargo run`
+1. [RISC0](https://github.com/risc0/risc0)
+2. [Miden](https://github.com/maticnetwork/miden)
+3. [Plonk](https://github.com/ZK-Garage/plonk)
+4. [Halo](https://github.com/zcash/halo2)
 
-### Benchmarks
-
-#### Native
-Cloning the [RISC0 official repo](github.com/risc0/risc0) and running `bazelisk run risc0/zkvm/prove/bench:bench` gives a set of quick benchmarks.
-
-#### Criterion
-For our sudoku example, we use a rust package called [criterion](https://github.com/bheisler/criterion.rs) for benchmarking. 
-1. in the `shootout` folder, run `cargo bench`
-2. analysis of the results can be found in `sudoku/target/criterion/report/index.html`.
-
+### How to get benchmark results
+1. navigate to the `shoout` folder
+2. run `cargo bench`
+3. sit back and watch your CPU spin
+4. load the HTML file  in `/shootout/target/criterion/report/index.html`
 
 ## Alucard/VAMP-IR
 Please see the offical [Alucard repository](https://github.com/anoma/juvix-circuits).
