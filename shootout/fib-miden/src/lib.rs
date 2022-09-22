@@ -35,13 +35,13 @@ pub fn verify_from_start(
     miden::verify(program.hash(), inputs, answer, proof)
 }
 
-pub fn inputs(inputs: &[u64]) -> Result<ProgramInputs, miden::InputError> {
-    ProgramInputs::from_stack_inputs(inputs)
+pub fn inputs(inputs: &[u64], advice: &[u64]) -> Result<ProgramInputs, miden::InputError> {
+    ProgramInputs::new(inputs, advice, vec![])
 }
 
-pub fn prove_and_verify(path: &Path, answer: Option<&[u64]>, input: &[u64]) {
+pub fn prove_and_verify(path: &Path, answer: Option<&[u64]>, input: &[u64], advice: &[u64]) {
     let program = compile(path).unwrap();
-    let inputs = ProgramInputs::from_stack_inputs(input).unwrap();
+    let inputs = inputs(input, advice).unwrap();
     let (outputs, proof) = prove(&program, &inputs).unwrap();
     // might as well check the answer is what we expect in this case
     match answer {

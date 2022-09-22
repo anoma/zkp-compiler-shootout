@@ -4,13 +4,13 @@ use std::path::Path;
 pub fn bench_fib_fix(c: &mut Criterion, fib_number: &str, answer: Option<&[u64]>) {
     let name = format!("fib{}", fib_number);
     let path_str = format!("../miden-assembler/miden/{}.masm", name);
-    bench_fib_flexy(c, name, path_str, &[0, 1], answer);
+    bench_fib_flexy(c, name, path_str, &[0, 1], &[], answer);
 }
 
 pub fn bench_fib(c: &mut Criterion, fib_number: u64, answer: Option<&[u64]>) {
     let name = format!("fib-iter-{}", fib_number);
     let path_str = String::from("../miden-assembler/miden/fib.masm");
-    bench_fib_flexy(c, name, path_str, &[fib_number], answer);
+    bench_fib_flexy(c, name, path_str, &[fib_number], &[], answer);
 }
 
 // for those who prefer a more dynamic fibonacci
@@ -19,13 +19,14 @@ pub fn bench_fib_flexy(
     name: String,
     path: String,
     input_vec: &[u64],
+    advice_vec: &[u64],
     answer: Option<&[u64]>,
 ) {
     use fib_miden::*;
     let path = Path::new(&path);
     let program = compile(path).unwrap();
-    let input = inputs(input_vec).unwrap();
-    let (outputs, proof) = prove(&program, &input).unwrap();
+    let input = inputs(input_vec, advice_vec).unwrap();
+    let (outputs, _proof) = prove(&program, &input).unwrap();
 
     match answer {
         Some(answer) => assert_eq!(answer, outputs),
@@ -45,7 +46,7 @@ pub fn bench_fib_flexy(
         b.iter_batched(
             || {
                 let program = compile(path).unwrap();
-                let input = inputs(input_vec).unwrap();
+                let input = inputs(input_vec, advice_vec).unwrap();
                 let (outputs, proof) = prove(&program, &input).unwrap();
                 (program, proof, outputs)
             },
@@ -56,6 +57,6 @@ pub fn bench_fib_flexy(
         )
     });
     c.bench_function(&format!("Miden: {}", name), |b| {
-        b.iter(|| prove_and_verify(path, answer, input_vec))
+        b.iter(|| prove_and_verify(path, answer, input_vec, advice_vec))
     });
 }
