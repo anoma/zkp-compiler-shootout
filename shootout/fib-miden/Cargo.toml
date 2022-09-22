@@ -9,5 +9,5 @@ edition = "2021"
 
 [dependencies]
 
-miden      = { git = "https://github.com/maticnetwork/miden", brnach="next" }
-miden-core = { git = "https://github.com/maticnetwork/miden", branch="next" }
+miden      = { git = "https://github.com/maticnetwork/miden", rev="38fff3c08b97ffaaa03450003995b1ccb049aa90" }
+miden-core = { git = "https://github.com/maticnetwork/miden", rev="38fff3c08b97ffaaa03450003995b1ccb049aa90" }

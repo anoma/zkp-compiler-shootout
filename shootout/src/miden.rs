@@ -29,7 +29,7 @@ pub fn bench_fib_flexy(
     let (outputs, _proof) = prove(&program, &input).unwrap();
 
     match answer {
-        Some(answer) => assert_eq!(answer, outputs),
+        Some(answer) => assert_eq!(answer, outputs.stack()),
         None => (),
     };
 
@@ -50,9 +50,7 @@ pub fn bench_fib_flexy(
                 let (outputs, proof) = prove(&program, &input).unwrap();
                 (program, proof, outputs)
             },
-            |(program, proof, outputs)| {
-                verify_from_start(&program, &outputs as &[u64], proof, input_vec)
-            },
+            |(program, proof, outputs)| verify_from_start(&program, &outputs, proof, input_vec),
             criterion::BatchSize::SmallInput,
         )
     });

@@ -47,7 +47,7 @@ pub fn prove_and_verify(path: &Path, answer: Option<&[u64]>, input: &[u64], advi
     // might as well check the answer is what we expect in this case
     match answer {
         Some(answer) => assert_eq!(answer, outputs.stack()),
-        None         => (),
+        None => (),
     };
     println!("ANSWERS: {:?}", outputs);
     verify_from_start(&program, &outputs, proof, input).unwrap();
