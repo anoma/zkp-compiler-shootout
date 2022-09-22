@@ -47,6 +47,12 @@
 ;; Sudoku
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; TODO ∷ Memory isn't continuous like I'd expect, thus Ι have to
+;;        treat each load like a vector, rather than a memory address
+;;        offset. Thus
+
+;; NOTE ∷ The data must be padded to the nearest word with 0's
+
 ;; Let us make the complicated Sudoku program. we can do it the simple
 ;; way by providing the data in the advice tape, which is the private
 ;; input set. We are going to store the values in the locals
@@ -54,24 +60,23 @@
 ;; 1. we do a `(movup (- 4 (1- n)))', we can do (- 4 (- n 2)) for
 ;;    commutative operations and save a cycle
 
-(defbegin fold-n-locals (binary-function local-location n)
-  "Folds `n' locals at the given `local-location' with the given `binary-function'
-Note that the top four stack elements are overwritten by the locals
-STACK EFFECT: (a₁ a₂ a₃ a₄ acc -- answer b₁ b₂ b₃ b₄)"
-  ;; the loading happens not as you would think.  Thus when we read
-  ;; from tape that is [1,2,3,4], we get back [4,3,2,1]
-  (loc-loadw local-location)
-  (if (>= 4 n)
-      (begin (repeat-inst (- 4 n) (drop))
-             (repeat-inst (1- n) binary-function)
-             binary-function
-             (repeat-inst 4 (dup)))
-      (begin (repeat-inst 4 binary-function)
-             (padw)
-             (fold-n-locals binary-function (+ 4 local-location) (- n 4)))))
+(defbegin fold-n-local-words (binary-function local-location n)
+  "Folds `n' local words at the given `local-location' with the given
+`binary-function' Note that the top word of the stack are overwritten
+by the loads.
+STACK EFFECT: (a₁ a₂ a₃ a₄ acc -- answer 0 0 0 0)"
+  ;; we could make this faster by duping instead of padding, as it
+  ;; removes a movup
+  (mapcar (lambda (i)
+            (begin
+             (loc-loadw i)
+             (repeat-inst 4 binary-function)
+             (padw)))
+          (alexandria:iota n :start local-location))
+  (movup 4))
 
 (-> rows-add-up (unsigned-byte &key (:pad boolean) (:size unsigned-byte)) instruction)
-(defbegin rows-add-up (i &key (pad nil) (size 9))
+(defbegin rows-add-up (i &key (pad nil) (size 3))
   "Checks if the row `i' adds to the expected value
 STACK EFFECT: pad    = ( -- answer p1 p2 p3 p4)
               no-pad = (d1 d2 d3 d4 -- answer p1 p2 p3 p4)"
@@ -79,19 +84,25 @@ STACK EFFECT: pad    = ( -- answer p1 p2 p3 p4)
   (push 0)
   (if pad (padw) (movdn 4))
   ;; grab the row values and reduce them
-  (fold-n-locals (add) (* size i) size)
+  (fold-n-local-words (add) (* size i) size)
   ;; check if they are equal to the expected answer
   (sudoku-should-add-up-to size))
 
 (defun sudoku-should-add-up-to (size)
   "Checks if the sudoku values add up given the `size' of the board"
-  (meq (apply #'+ (alexandria:iota size :start 1))))
+  (meq (apply #'+ (alexandria:iota (expt size 2) :start 1))))
+
+(defun loc-loadw-single (location)
+  "Looks at the ")
 
 (-> columns-add-up (fixnum &key (:size fixnum)) instruction)
-(defbegin columns-add-up (i &key (size 9))
+(defbegin columns-add-up (i &key (size 3))
   "Check of the column `i' adds to the epxected value
 STACK EFFECT: ( -- answer)"
-  ;; This will be inefficient, as we are doing 9 separate 4 instruction loads.
+  ;; This will be inefficient, as we are doing 9 separate 4 word
+  ;; loads, to pick out what we need!.
+  ;; We could save this by doing this in batches of 3, and having 3
+  ;; answers
   (mapcar #'loc-load (alexandria:iota size :start i :step size))
   (repeat-inst (1- size) (add))
   (sudoku-should-add-up-to size))
@@ -115,7 +126,7 @@ STACK EFFECT: pad    = ( -- answer p1 p2 p3 p4)
      (push 0)
      (if pad (padw) (nop))
      (mapcar (lambda (index)
-               (list (movdn 4) (fold-n-locals (add) index 3)))
+               (list (movdn 4) (fold-n-local-words (add) index 3)))
              (alexandria:iota 3 :start starting-index :step size))
      (sudoku-should-add-up-to size))))
 
@@ -137,13 +148,14 @@ STACK EFFECT: (-- b)"
    (top-n-are-true (1- n))))
 
 ;; _INEFFICIENCIES LIST_:
-;; 1. We do 27 `loc-loadw' values, when we can get away with 21 in `rows-add-up'
-;; 2. we could avoid `rows-add-up' by just duping the top word and doing
-;;    column check there.
+;; 1. We do 27 `loc-loadw' values, when we can get away with 21 in
+;;    `rows-add-up' if we didn't pad
+;; 2. We could make the `columns-add-up' more efficient, by going 3 at
+;;    a time, in order to economize on word loading from locals
 ;; 3. we write into locals which are 3-4 cycles each.
-;;   whereas if I tried it with memory addresses it would be 1
-;;   cycle instead of 3-4, however Ι would maybe leak the data if I
-;;   did? I need to test both versions I think.
+;;    whereas if I tried it with memory addresses it would be 1
+;;    cycle instead of 3-4, however Ι would maybe leak the data if I
+;;    did? I need to test both versions I think.
 ;; Trade Off Notes:
 ;; 1. We prefer live sudoku puzzles. Meaning we pay extra for false
 ;;    ones, as we always compute the full checks without returing early
@@ -152,27 +164,32 @@ STACK EFFECT: (-- b)"
 ;; our algorithm given our tools.  Namely we re-read many locations,
 ;; where we can instead just do computation faster. Like
 ;; `load-advice-into-locals' can serve as the read-column check
-(defproc sudoku 84 (-- verfied?)
-  (load-advice-into-locals 81)
-  (com "we do our 27 loads for the rows adding up to the correct number")
+(defproc sudoku 27 (-- verfied?)
+  (loadw-advice-into-locals 27)
+  (com "we do our 27 word loads for the rows adding up to the correct number")
   (check #'rows-add-up :needs-padding t :size 9)
-  (com "we do 81 loads for the columns adding up to the correct number")
+  (com "we do 81 word loads for the columns adding up to the correct number")
   (check #'columns-add-up :needs-padding nil :size 9)
-  (mand)
-  (com "we do our 27 loads for the squares adding up to the correct number")
-  (check #'squares-add-up :needs-padding t :size 9)
-  (mand)
+  ;; (mand)
+  ;; (com "we do our 27 loads for the squares adding up to the correct number")
+  ;; (check #'squares-add-up :needs-padding t :size 9)
+  ;; (mand)
   )
 
-(defproc trying 84 (A -- A)
+(defproc trying 27 (A -- A)
   ;; loads don't work like you think
-  (load-advice-into-locals 84)
+  (loadw-advice-into-locals 1)
   (com "they are in reverse order than you would think!")
-  (push 100)
-  (movdn 4)
-  (fold-n-locals (add) 0 5)
+  (loc-loadw 0)
+  ;; (push 100)
+  ;; (movdn 4)
+  ;; (fold-n-local-words (add) 0 5)
   ;; idk why I need these to satisfy the stack, as it should be 16
-  ;; after fold-n-locals, since it pads for you.
+  ;; after fold-n-local-words, since it pads for you.
+  ;; (loc-load 0)
+  ;; (loc-load 4)
+  ;; (loc-load 3)
+  ;; (loc-loadw 0)
   )
 
 (defun dump ()
@@ -184,7 +201,7 @@ STACK EFFECT: (-- b)"
   (extract
    "miden/sudoku.masm"
    (lookup-function :sudoku)
-   (begin (sudoku) (swap) (drop)))
+   (begin (sudoku)))
   (extract
    "miden/trying.masm"
    (lookup-function :trying)

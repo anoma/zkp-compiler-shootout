@@ -61,23 +61,16 @@
 STACK EFFECT: (b₁ … bₙ -- b)"
   (repeat-inst n (mand)))
 
-(-> load-advice-into-locals (fixnum &key (:start fixnum)) instruction)
-(defun load-advice-into-locals (n &key (start 0))
-  "loads n advice values off the input reel into the local argument
+(-> loadw-advice-into-locals (fixnum &key (:start fixnum)) instruction)
+(defun loadw-advice-into-locals (n &key (start 0))
+  "loads n advice words off the input reel into the local argument
 STACK EFFECT: (--)"
-  (labels ((build-up (n current)
-             (cond ((>= 0 n) (nop))
-                   ;; due to this, we may wish to pad our values to
-                   ;; the nearest mod 4. However we will wave that for now!
-                   (t (begin
-                       (adv-loadw)
-                       (loc-storew current)
-                       (build-up (- n 4) (+ current 4)))))))
-    (begin
-     ;; prepend the stack to be overwritten
-     (padw)
-     (build-up n start)
-     (dropw))))
+  (begin
+   ;; prepend the stack to be overwritten
+   (padw)
+   (mapcar (lambda (i) (begin (adv-loadw) (loc-storew i)))
+           (alexandria:iota n :start start))
+   (dropw)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Control Flow
