@@ -142,17 +142,23 @@ STACK EFFECT: (A -- )"
 (defun swap (&optional num)
   (make-opcode :name :swap :constant num))
 
-(-> movup (fixnum) opcode)
+(-> movup (unsigned-byte) (or instruction opcode))
 (defun movup (num)
-  (if (= num 1)
-      (swap)
-      (make-opcode :name :movup :constant num)))
+  (cond ((= num 0)
+         (nop))
+        ((= num 1)
+          (swap))
+        (t
+         (make-opcode :name :movup :constant num))))
 
-(-> movdn (fixnum) opcode)
+(-> movdn (fixnum) (or instruction opcode))
 (defun movdn (num)
-  (if (= num 1)
-      (swap)
-      (make-opcode :name :movdn :constant num)))
+  (cond ((= num 0)
+         (nop))
+        ((= num 1)
+         (swap))
+        (t
+         (make-opcode :name :movdn :constant num))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Input loading

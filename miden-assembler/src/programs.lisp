@@ -92,19 +92,38 @@ STACK EFFECT: pad    = ( -- answer p1 p2 p3 p4)
   "Checks if the sudoku values add up given the `size' of the board"
   (meq (apply #'+ (alexandria:iota (expt size 2) :start 1))))
 
-(defun loc-loadw-single (location)
-  "Looks at the ")
+;; (defun  (location)
+;;   "Looks at the ")
 
-(-> columns-add-up (fixnum &key (:size fixnum)) instruction)
-(defbegin columns-add-up (i &key (size 3))
+(-> columns-add-up (fixnum &key (:pad boolean) (:size fixnum)) instruction)
+(defbegin columns-add-up (i &key (pad nil) (size 3))
   "Check of the column `i' adds to the epxected value
-STACK EFFECT: ( -- answer)"
+STACK EFFECT: pad    = ( -- answer p1 p2 p3 p4)
+              no-pad = (d1 d2 d3 d4 -- answer p1 p2 p3 p4)"
   ;; This will be inefficient, as we are doing 9 separate 4 word
   ;; loads, to pick out what we need!.
   ;; We could save this by doing this in batches of 3, and having 3
   ;; answers
-  (mapcar #'loc-load (alexandria:iota size :start i :step size))
-  (repeat-inst (1- size) (add))
+  (push 0)
+  (if pad (padw) (movdn 4))
+  (mapcar (lambda (i)
+            (mvlet* ((div word-offset-normal-order (floor i size))
+                     ;; remember words are storred in the opposite order!
+                     (word-offest-big-endian-order (- 3 word-offset-normal-order)))
+              (begin
+               ;; load the word
+               (loc-loadw div)
+               ;; now move the accumulator and the word down
+               (movup word-offest-big-endian-order)
+               (movup 4)
+               (add)
+               (movdn 3)
+               (push 100))))
+          (alexandria:iota (expt size 2) :start i :step (expt size 2)))
+  ;; we can avoid this last movup if we did the loop by hand.
+  ;; but since it only wastes 7 cycles it's not that big of a deal
+  ;; 7 * 9 total cycles wasted
+  (movup 4)
   (sudoku-should-add-up-to size))
 
 (defun find-starting-index (i size)
@@ -169,8 +188,8 @@ STACK EFFECT: (-- b)"
   (com "we do our 27 word loads for the rows adding up to the correct number")
   (check #'rows-add-up :needs-padding t :size 9)
   (com "we do 81 word loads for the columns adding up to the correct number")
-  (check #'columns-add-up :needs-padding nil :size 9)
-  ;; (mand)
+  (check #'columns-add-up :needs-padding t :size 9)
+  (mand)
   ;; (com "we do our 27 loads for the squares adding up to the correct number")
   ;; (check #'squares-add-up :needs-padding t :size 9)
   ;; (mand)
