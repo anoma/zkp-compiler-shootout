@@ -39,12 +39,12 @@ FSCompose : {a, b, c : FSObj} -> FSMorph b c -> FSMorph a b -> FSMorph a c
 FSCompose g f = finFToVect (FSApply g . FSApply f)
 
 public export
-FSInit : FSObj
-FSInit = 0
+FSInitial : FSObj
+FSInitial = 0
 
 public export
-fsFromInit : (a : FSObj) -> FSMorph FSInit a
-fsFromInit _ = []
+fsFromInitial : (a : FSObj) -> FSMorph FSInitial a
+fsFromInitial _ = []
 
 public export
 FSTerminal : FSObj
@@ -81,7 +81,7 @@ fsProdIntro : {a, b, c : FSObj} ->
 fsProdIntro {a} {b} {c} f g =
   finFToVect $ \i =>
     natToFinLT
-      {prf=(multAddLT (finToNatLT (index i f)) (finToNatLT (index i g)))}
+      {prf=(multAddLT (finToNatLT (FSApply f i)) (finToNatLT (FSApply g i)))}
       (c * finToNat (FSApply f i) + finToNat (FSApply g i))
 
 public export
@@ -90,7 +90,7 @@ fsProdElimLeft a Z = rewrite multZeroRightZero a in []
 fsProdElimLeft a (S b) =
   finFToVect $ \i =>
     natToFinLT
-      {prf=(multDivLT (finToNatLT i))}
+      {prf=(multDivLT (finToNatLT i) SIsNonZero)}
       (divNatNZ (finToNat i) (S b) SIsNonZero)
 
 public export
@@ -181,6 +181,61 @@ FSMorphToHomElem {x} {y} t =
   in
   case ct of [t''] => t''
 
+-----------------------------------
+-----------------------------------
+---- Dependent types in FinSet ----
+-----------------------------------
+-----------------------------------
+
+public export
+FSTypeFam : FSObj -> Type
+FSTypeFam n = Vect n FSObj
+
+public export
+FSTypeFamObj : {n : FSObj} -> FSTypeFam n -> FSElem n -> FSObj
+FSTypeFamObj fam i = index i fam
+
+public export
+FSTypeFamType : {n : FSObj} -> FSTypeFam n -> FSElem n -> Type
+FSTypeFamType fam i = FSElem (FSTypeFamObj fam i)
+
+public export
+FSTypeFamTypes : {n : FSObj} -> FSTypeFam n -> Vect n Type
+FSTypeFamTypes {n} = finFToVect . FSTypeFamType {n}
+
+public export
+FSIndexedPair : {m, n : FSObj} ->
+  FSMorph m n -> FSTypeFam m -> FSTypeFam n -> FSElem m -> Type
+FSIndexedPair f fam fam' i =
+  (FSTypeFamType fam i, FSTypeFamType fam' (FSApply f i))
+
+public export
+FSDepSumType : {m, n : FSObj} ->
+  FSMorph m n -> FSTypeFam m -> FSTypeFam n -> Type
+FSDepSumType {m} {n} f fam fam' = (i : FSElem m ** FSIndexedPair f fam fam' i)
+
+public export
+FSIndexedMorph : {m, n : FSObj} ->
+  FSMorph m n -> FSTypeFam m -> FSTypeFam n -> FSElem m -> Type
+FSIndexedMorph f fam fam' i =
+  FSMorph (FSTypeFamObj fam i) (FSTypeFamObj fam' $ FSApply f i)
+
+public export
+FSDepProductType : {m, n : FSObj} ->
+  FSMorph m n -> FSTypeFam m -> FSTypeFam n -> Type
+FSDepProductType {m} {n} f fam fam' =
+  HVect {k=m} $ finFToVect $ FSIndexedMorph f fam fam'
+
+---------------------------------
+---------------------------------
+---- Derived types in FinSet ----
+---------------------------------
+---------------------------------
+
+------------------
+---- Booleans ----
+------------------
+
 public export
 FSBool : FSObj
 FSBool = FSCoproduct FSTerminal FSTerminal
@@ -215,6 +270,22 @@ public export
 FSEqualizerPred : {a, b : FSObj} -> FSMorph a b -> FSMorph a b -> FSPred a
 FSEqualizerPred {a} {b} f g =
   finFToVect $ \i => if FSApply f i == FSApply g i then FSTrue else FSFalse
+
+--------------
+---- ADTs ----
+--------------
+
+public export
+FSCoproductList : List FSObj -> FSObj
+FSCoproductList = foldl FSCoproduct FSInitial
+
+public export
+FSProductList : List FSObj -> FSObj
+FSProductList = foldl FSProduct FSTerminal
+
+public export
+FSFoldConstructor : FSObj -> FSObj -> FSObj -> FSObj
+FSFoldConstructor type adt nfields = FSCoproduct adt (FSExpObj type nfields)
 
 ------------------------
 ------------------------
@@ -323,23 +394,31 @@ record FSPolyF where
   -- is the set of natural numbers less than the length of the list),
   -- and each element is the number of directions at the corresponding position
   -- (so the direction set is the set of natural numbers less than the element).
-  fspArena : List Nat
+  fspArena : List FSObj
 
 public export
-fsPolyNPos : FSPolyF -> Nat
+fsPolyNPos : FSPolyF -> FSObj
 fsPolyNPos = length . fspArena
 
 public export
 fsPolyPos : FSPolyF -> Type
-fsPolyPos p = Fin (fsPolyNPos p)
+fsPolyPos p = FSElem (fsPolyNPos p)
 
 public export
-fsPolyNDir : (p : FSPolyF) -> fsPolyPos p -> Nat
+fsPolyNDir : (p : FSPolyF) -> fsPolyPos p -> FSObj
 fsPolyNDir (FSPArena a) i = index' a i
 
 public export
 fsPolyDir : (p : FSPolyF) -> fsPolyPos p -> Type
-fsPolyDir p i = Fin (fsPolyNDir p i)
+fsPolyDir p i = FSElem (fsPolyNDir p i)
+
+public export
+FSPolyApply : FSPolyF -> FSObj -> FSObj
+FSPolyApply (FSPArena a) n = foldl (FSFoldConstructor n) FSInitial a
+
+public export
+fspPF : FSPolyF -> PolyFunc
+fspPF p = (fsPolyPos p ** fsPolyDir p)
 
 public export
 fsPolyProd : (p : FSPolyF) -> fsPolyPos p -> Type -> Type
@@ -363,56 +442,137 @@ public export
 ----------------------------------------------
 
 -- A polynomial endofunctor may also be viewed as a slice object
--- (in the slice category of its type of positions).
+-- (in the slice category over its type of positions).
 -- (Similarly, it may also be viewed as an object of the
 -- arrow category.)
 
 public export
-FSSlice : Nat -> Type
-FSSlice n = Vect n Nat
+FSSlice : FSObj -> Type
+FSSlice = FSTypeFam
 
 public export
-FSSliceToType : {n : Nat} -> FSSlice n -> SliceObj (Fin n)
-FSSliceToType {n} sl i = Fin (index i sl)
+FSSliceToType : {n : FSObj} -> FSSlice n -> SliceObj (FSElem n)
+FSSliceToType = FSTypeFamType
 
 public export
 FSPolyFToSlice : (p : FSPolyF) -> FSSlice (fsPolyNPos p)
 FSPolyFToSlice p = fromList (fspArena p)
 
 public export
-SliceToFSPolyF : {n : Nat} -> FSSlice n -> FSPolyF
+SliceToFSPolyF : {n : FSObj} -> FSSlice n -> FSPolyF
 SliceToFSPolyF {n} sl = FSPArena (toList sl)
 
 public export
-FSSliceFiberMap : {n : Nat} -> FSSlice n -> FSSlice n -> Fin n -> Type
-FSSliceFiberMap sl sl' i = Vect (index i sl) (Fin (index i sl'))
+FSSliceFiberMap : {n : FSObj} -> FSSlice n -> FSSlice n -> FSElem n -> Type
+FSSliceFiberMap sl sl' i = FSMorph (index i sl) (index i sl')
 
 public export
-FSSliceMorphism : {n : Nat} -> FSSlice n -> FSSlice n -> Type
+FSSliceMorphism : {n : FSObj} -> FSSlice n -> FSSlice n -> Type
 FSSliceMorphism {n} sl sl' = HVect $ finFToVect (FSSliceFiberMap sl sl')
 
 public export
-FSSliceMorphToType : {n : Nat} -> {sl, sl' : FSSlice n} ->
+FSSliceMorphToType : {n : FSObj} -> {sl, sl' : FSSlice n} ->
   FSSliceMorphism sl sl' -> SliceMorphism (FSSliceToType sl) (FSSliceToType sl')
 FSSliceMorphToType {n} {sl} {sl'} m i d = Vect.index d $ finFGet i m
+
+------------------------------------------------------------------
+---- FinSet slices, and polynomial endofunctors, as morphisms ----
+------------------------------------------------------------------
+
+-- A slice object over `Fin n` in the category of finite prefixes of the natural
+-- numbers may be viewed as a morphism in that category from `Fin n` to another
+-- prefix of the natural numbers `Fin m` for some natural number `m` --
+-- specifically, where `m` is the successor of the maximum cardinality of the
+-- types in the type family which corresponds to the dependent-type view of the
+-- slice object.  (The dependet-type view is that a slice object over `Fin n`
+-- is a type family indexed by `Fin n`, where the dependent sum of the family is
+-- the "total space" -- the domain of the morphism which defines the slice
+-- object -- in the category-theoretic view.)  Note that the category-theoretic
+-- definition of "slice object" uses a morphism _to_ `Fin n`, whereas this
+-- type-theoretic view gives us an interpretation of that same slice object
+-- as a morphism _from_ `Fin n`.
+
+public export
+FSSliceToMorph : {n : FSObj} -> (sl : FSSlice n) -> FSMorph n (S (vectMax sl))
+FSSliceToMorph {n} sl = finFToVect $ vectMaxGet sl
+
+public export
+FSMorphToSlice : {m, n : FSObj} -> FSMorph m n -> FSSlice m
+FSMorphToSlice {m} {n} v = map finToNat v
+
+-- Because we may view a slice object in the category of finite prefixes of the
+-- natural numbers as a morphism in that category, and we may view a
+-- polynomial endofunctor on that category as a slice object over that
+-- endofunctor's positions, we may view a polynomial endofunctor as a morphism.
+
+public export
+FSPolyDirMax : FSPolyF -> Nat
+FSPolyDirMax p = vectMax (FSPolyFToSlice p)
+
+public export
+FSPolyToMorph : (p : FSPolyF) -> FSMorph (fsPolyNPos p) (S (FSPolyDirMax p))
+FSPolyToMorph p = FSSliceToMorph (FSPolyFToSlice p)
+
+public export
+FSMorphToPoly : {m, n : FSObj} -> FSMorph m n -> FSPolyF
+FSMorphToPoly v = SliceToFSPolyF (FSMorphToSlice v)
 
 ---------------------------------------------------------------------------
 ---- Natural transformations between polynomial endofunctors on FinSet ----
 ---------------------------------------------------------------------------
 
--- XXX Vect rather than function representation
+public export
+FSPosMap : FSPolyF -> FSPolyF -> Type
+FSPosMap p q = FSMorph (fsPolyNPos p) (fsPolyNPos q)
+
+public export
+FSPosDirMap : (p, q : FSPolyF) -> FSPosMap p q -> fsPolyPos p -> Type
+FSPosDirMap p q onPos i =
+  FSMorph (fsPolyNDir q $ FSApply onPos i) (fsPolyNDir p i)
+
+public export
+FSDirMap : (p, q : FSPolyF) -> FSPosMap p q -> Vect (fsPolyNPos p) Type
+FSDirMap p q onPos = finFToVect $ FSPosDirMap p q onPos
+
+public export
+FSOnDirT : (p, q : FSPolyF) -> FSPosMap p q -> Type
+FSOnDirT p q onPos = HVect $ FSDirMap p q onPos
 
 public export
 FSPNatTrans : FSPolyF -> FSPolyF -> Type
-FSPNatTrans p q =
-  (onPos : fsPolyPos p -> fsPolyPos q **
-   SliceMorphism (fsPolyDir q . onPos) (fsPolyDir p))
+FSPNatTrans p q = (onPos : FSPosMap p q ** FSOnDirT p q onPos)
 
 public export
-fspOnPos : {0 p, q : FSPolyF} -> FSPNatTrans p q -> fsPolyPos p -> fsPolyPos q
+fspOnPos : {0 p, q : FSPolyF} -> FSPNatTrans p q -> FSPosMap p q
 fspOnPos = fst
 
 public export
 fspOnDir : {0 p, q : FSPolyF} -> (alpha : FSPNatTrans p q) ->
-  (i : fsPolyPos p) -> fsPolyDir q (fspOnPos {p} {q} alpha i) -> fsPolyDir p i
+  FSOnDirT p q (fspOnPos {p} {q} alpha)
 fspOnDir = snd
+
+public export
+fspOnPosF : {p, q : FSPolyF} -> FSPNatTrans p q -> fsPolyPos p -> fsPolyPos q
+fspOnPosF (onPos ** onDir) = FSApply onPos
+
+public export
+fspOnDirF : {p, q : FSPolyF} -> (alpha : FSPNatTrans p q) ->
+  (i : fsPolyPos p) -> fsPolyDir q (fspOnPosF {p} {q} alpha i) -> fsPolyDir p i
+fspOnDirF (onPos ** onDir) i = FSApply $ finFGet i onDir
+
+public export
+fspNT : {p, q : FSPolyF} -> FSPNatTrans p q -> PolyNatTrans (fspPF p) (fspPF q)
+fspNT alpha = (fspOnPosF alpha ** fspOnDirF alpha)
+
+public export
+FSPNTApply : {0 p, q : FSPolyF} ->
+  (alpha : FSPNatTrans p q) -> (n : FSObj) ->
+  FSMorph (FSPolyApply p n) (FSPolyApply q n)
+FSPNTApply {p=(FSPArena ap)} {q=(FSPArena aq)} (onPos ** onDir) n =
+  ?FSPNTApply_hole
+
+public export
+InterpFSPNT : {0 p, q : FSPolyF} -> FSPNatTrans p q ->
+  SliceMorphism {a=Type} (InterpFSPolyF p) (InterpFSPolyF q)
+InterpFSPNT {p=(FSPArena ap)} {q=(FSPArena aq)} (onPos ** onDir) x elem =
+  ?FSPNtoType_hole

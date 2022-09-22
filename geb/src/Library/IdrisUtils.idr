@@ -369,6 +369,89 @@ vectRepeat Z {b} {c} v = []
 vectRepeat (S a) {b} {c} v = v ++ vectRepeat a {b} {c} v
 
 public export
+vectMaxAcc : {0 n : Nat} -> Nat -> Vect n Nat -> Nat
+vectMaxAcc m [] = m
+vectMaxAcc m (x :: xs) = vectMaxAcc (maximum m x) xs
+
+public export
+vectMax : {0 n : Nat} -> Vect n Nat -> Nat
+vectMax = vectMaxAcc 0
+
+public export
+0 maximumMonotoneRight : (x, m, m' : Nat) -> LTE m m' ->
+  LTE (maximum x m) (maximum x m')
+maximumMonotoneRight Z m m' lte = lte
+maximumMonotoneRight (S x) Z m' lte = maximumLeftUpperBound (S x) m'
+maximumMonotoneRight (S x) (S m) Z lte = void $ succNotLTEzero lte
+maximumMonotoneRight (S x) (S m) (S m') (LTESucc lte) =
+  LTESucc $ maximumMonotoneRight x m m' lte
+
+public export
+0 maximumMonotoneLeft : (m, m', x : Nat) -> LTE m m' ->
+  LTE (maximum m x) (maximum m' x)
+maximumMonotoneLeft m m' x lte =
+  rewrite maximumCommutative m x in
+  rewrite maximumCommutative m' x in
+  maximumMonotoneRight x m m' lte
+
+public export
+0 vectMaxGetAccMonotoneMax : {n : Nat} -> (m : Nat) -> (v : Vect n Nat) ->
+  LTE m (vectMaxAcc {n} m v)
+vectMaxGetAccMonotoneMax {n=Z} m [] = reflexive
+vectMaxGetAccMonotoneMax {n=(S n)} m (x :: xs) =
+  transitive
+    (maximumLeftUpperBound m x)
+    (vectMaxGetAccMonotoneMax {n} (maximum m x) xs)
+
+public export
+0 vectMaxGetAccMonotoneVect : {n : Nat} -> (m, m' : Nat) -> (v : Vect n Nat) ->
+  LTE m m' -> LTE (vectMaxAcc {n} m v) (vectMaxAcc {n} m' v)
+vectMaxGetAccMonotoneVect {n=Z} m m' [] lte = lte
+vectMaxGetAccMonotoneVect {n=(S n)} m m' (x :: xs) lte =
+  vectMaxGetAccMonotoneVect
+    {n} (maximum m x) (maximum m' x) xs (maximumMonotoneLeft m m' x lte)
+
+public export
+0 vectMaxGetAccBoundHead : {n : Nat} -> (m : Nat) ->
+  (x : Nat) -> (v : Vect n Nat) ->
+  LTE x (vectMaxAcc {n=(S n)} m (x :: v))
+vectMaxGetAccBoundHead {n} m x v =
+  transitive
+    (maximumRightUpperBound m x)
+    (vectMaxGetAccMonotoneMax {n} (maximum m x) v)
+
+public export
+0 vectMaxGetAccBoundTail : {n : Nat} -> (m : Nat) ->
+  (x : Nat) -> (v : Vect n Nat) ->
+  LTE (vectMaxAcc {n} m v) (vectMaxAcc {n=(S n)} m (x :: v))
+vectMaxGetAccBoundTail {n} m x v =
+  vectMaxGetAccMonotoneVect {n} m (maximum m x) v (maximumLeftUpperBound m x)
+
+public export
+0 vectMaxGetAccCorrect : {n : Nat} -> (m : Nat) -> (v : Vect n Nat) ->
+  (i : Fin n) -> LTE (index i v) (vectMaxAcc m v)
+vectMaxGetAccCorrect {n=Z} m [] i = absurd i
+vectMaxGetAccCorrect {n=(S n)} m (x :: xs) FZ =
+  vectMaxGetAccBoundHead {n} m x xs
+vectMaxGetAccCorrect {n=(S n)} m (x :: xs) (FS i) =
+  transitive
+    (vectMaxGetAccCorrect {n} m xs i)
+    (vectMaxGetAccBoundTail {n} m x xs)
+
+public export
+vectMaxGetAcc : {0 n : Nat} ->
+  (0 m : Nat) -> (v : Vect n Nat) -> Fin n -> Fin (S (vectMaxAcc m v))
+vectMaxGetAcc {n} m v i =
+  natToFinLT
+    {n=(S (vectMaxAcc m v))}
+    {prf=(LTESucc $ vectMaxGetAccCorrect {n} m v i)}
+    (index i v)
+
+public export
+vectMaxGet : {0 n : Nat} -> (v : Vect n Nat) -> Fin n -> Fin (S (vectMax v))
+vectMaxGet {n} v i = vectMaxGetAcc {n} 0 v i
+
+public export
 powerOneIsOne : (n : Nat) -> power 1 n = 1
 powerOneIsOne Z = Refl
 powerOneIsOne (S n) = rewrite powerOneIsOne n in Refl
@@ -531,40 +614,36 @@ div'LT Z (S k') = LTEZero
 div'LT (S k) (S k') = LTESucc $ rewrite minusZeroRight k' in div'LT k k'
 
 public export
-multDiv'LT : {k, k', m, n : Nat} ->
-  LT k (m * (S n)) -> LTE k' k -> LT (div' k k' n) m
-multDiv'LT {k=Z} {k'} {m} {n=Z} lt ltk = rewrite sym (multOneRightNeutral m) in lt
-multDiv'LT {k=Z} {k'} {m=Z} {n=(S n)} lt ltk = lt
-multDiv'LT {k=Z} {k'} {m=(S m)} {n=(S n)} lt ltk = LTESucc LTEZero
-multDiv'LT {k=(S k)} {k'} {m=Z} {n} lt ltk = void $ succNotLTEzero lt
-multDiv'LT {k=(S k)} {k'=Z} {m=(S m)} {n=Z} lt ltk = LTESucc LTEZero
-multDiv'LT {k=(S k)} {k'=(S k')} {m=(S m)} {n=Z} lt ltk =
-  LTESucc $
-    let
-      lt' = fromLteSucc lt
-      lt'' = replace {p=(\q => LTE (S k) (Z + q))} (multOneRightNeutral m) lt'
-    in
-    rewrite minusZeroRight k' in
-    transitive (LTESucc $ div'LT k k') lt''
-multDiv'LT {k=(S k)} {k'=Z} {m=(S m)} {n=(S n)} lt ltk = LTESucc LTEZero
-multDiv'LT {k=(S k)} {k'=(S k')} {m=(S m)} {n=(S n)} lt ltk with (lte k' n)
-    proof ltekn
-  multDiv'LT {k=(S k)} {k'=(S k')} {m=(S m)} {n=(S n)} lt ltk | True =
-    LTESucc $ LTEZero
-  multDiv'LT {k=(S k)} {k'=(S k')} {m=(S m)} {n=(S n)}
-      (LTESucc lt) (LTESucc ltk) | False =
-    let
-      mlt = multDiv'LT {k} {k'=(minus k' (S n))} {m} {n=(S n)}
-      mpl = minusPosLT (S n) k' (LTESucc LTEZero)
-    in
-    LTESucc $
-      mlt ?multDivLT'_hole_1
-      $ lteSuccLeft $ transitive (mpl ?multDivLT'_hole_2) ltk
+divMinusMono : (fuel, k, n : Nat) ->
+  lte k n = False -> LT (div' fuel (minus k (S n)) n) (div' (S fuel) k n)
+divMinusMono fuel k n gtkn = rewrite gtkn in reflexive
+
+public export
+lteToDiff : {m, n : Nat} -> LTE m n -> (k : Nat ** k + m = n)
+lteToDiff {m} {n} lte = (minus n m ** plusMinusLte m n lte)
+
+public export
+diffToLte : {m, n, k : Nat} -> k + m = n -> LTE m n
+diffToLte {m} {k=Z} Refl = reflexive
+diffToLte {m} {n} {k=(S k)} pleq =
+  lteSuccLeft $ diffToLte {m=(S m)} {n} {k} $
+    rewrite sym (plusSuccRightSucc k m) in
+    pleq
+
+public export
+multDivLTLemma : (k, m, n, mnk : Nat) ->
+  mnk + S k = m * S n -> (divk : Nat ** divk + S (div' k k n) = m)
+multDivLTLemma k m n mnk mkneq = ?multDivLTLemma_hole
 
 public export
 multDivLT : {k, m, n : Nat} ->
-  LT k (m * (S n)) -> LT (divNatNZ k (S n) SIsNonZero) m
-multDivLT {k} {m} {n} lt = multDiv'LT {k} {k'=k} {m} {n} lt reflexive
+  LT k (m * n) -> (nz : NonZero n) -> LT (divNatNZ k n nz) m
+multDivLT {k} {m} {n=(S n)} lt SIsNonZero =
+  let
+    (mnk ** mnkeq) = lteToDiff lt
+    (divk ** divkeq) = multDivLTLemma k m n mnk mnkeq
+  in
+  diffToLte {m=(S (divNatNZ k (S n) SIsNonZero))} {n=m} {k=divk} divkeq
 
 public export
 multAddLT : {k, m, n, p : Nat} ->

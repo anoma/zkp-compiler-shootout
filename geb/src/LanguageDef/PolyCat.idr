@@ -11,6 +11,9 @@ import Library.IdrisCategories
 ---------------------------------------
 ---------------------------------------
 
+-- Objects of the slice category `Type` over `a`.
+-- If we treat `a` as a discrete category, then we could also view
+-- a slice object over `a` as a functor from `a` to `Type`.
 public export
 SliceObj : Type -> Type
 SliceObj a = a -> Type
@@ -19,10 +22,36 @@ public export
 SliceFunctor : Type -> Type -> Type
 SliceFunctor a b = SliceObj a -> SliceObj b
 
+-- The base change functor induced by the given morphism.
+-- Also sometimes called the pullback functor.
+public export
+BaseChangeF : {a, b : Type} -> (b -> a) -> SliceFunctor a b
+BaseChangeF f sla elemb = sla $ f elemb
+
+-- The dependent product functor induced by the given morphism.
+-- Right adjoint to the base change functor.
+public export
+DepProdF : {a, b : Type} -> (a -> b) -> SliceFunctor a b
+DepProdF {a} {b} f sla elemb = (elema : a) -> f elema = elemb -> sla elema
+
+-- The dependent coproduct functor induced by the given morphism.
+-- Left adjoint to the base change functor.
+public export
+DepCoprodF : {a, b : Type} -> (a -> b) -> SliceFunctor a b
+DepCoprodF {a} {b} f sla elemb = (elema : a ** (f elema = elemb, sla elema))
+
+-- A special case of `DepProdF` where `b` is the terminal object and
+-- `f` is the unique morphism into it.  A slice object over the terminal
+-- object is isomorphic to its domain, so the slice category of a category
+-- over its terminal object is isomorphic to the category itself.
+-- That is, `SliceObj ()` is effectively just `Type`.
 public export
 Pi : {a : Type} -> SliceObj a -> Type
 Pi {a} p = (x : a) -> p x
 
+-- We can view this as the total space of a bundle represented by
+-- a slice object.  It is a special case of `DepCoprodF` where `b` is
+-- the terminal object and `f` is the unique morphism into it.
 public export
 Sigma : {a : Type} -> SliceObj a -> Type
 Sigma {a} p = (x : a ** p x)
