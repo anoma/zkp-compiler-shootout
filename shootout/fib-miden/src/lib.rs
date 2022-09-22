@@ -1,5 +1,6 @@
 #![feature(allocator_api)]
 use miden::{Assembler, ExecutionError, Program, ProgramInputs, ProofOptions};
+use miden_core::ProgramOutputs;
 use std::alloc::Global;
 
 use std::path::Path;
@@ -22,13 +23,13 @@ pub fn trace(
 pub fn prove(
     program: &Program,
     inputs: &ProgramInputs,
-) -> Result<(Vec<u64, Global>, miden::StarkProof), ExecutionError> {
-    miden::prove(program, inputs, 1, &ProofOptions::default())
+) -> Result<(ProgramOutputs, miden::StarkProof), ExecutionError> {
+    miden::prove(program, inputs, &ProofOptions::default())
 }
 
 pub fn verify_from_start(
     program: &Program,
-    answer: &[u64],
+    answer: &ProgramOutputs,
     proof: miden::StarkProof,
     inputs: &[u64],
 ) -> Result<(), miden::VerificationError> {
@@ -45,8 +46,9 @@ pub fn prove_and_verify(path: &Path, answer: Option<&[u64]>, input: &[u64], advi
     let (outputs, proof) = prove(&program, &inputs).unwrap();
     // might as well check the answer is what we expect in this case
     match answer {
-        Some(answer) => assert_eq!(answer, outputs),
+        Some(answer) => assert_eq!(answer, outputs.stack()),
         None         => (),
     };
-    verify_from_start(&program, &outputs as &[u64], proof, input).unwrap();
+    println!("ANSWERS: {:?}", outputs);
+    verify_from_start(&program, &outputs, proof, input).unwrap();
 }

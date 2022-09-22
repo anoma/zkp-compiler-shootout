@@ -1,0 +1,70 @@
+# STACK EFFECT
+# A -- A #
+proc.trying.84
+  padw
+  adv_loadw
+  loc_storew.0
+  adv_loadw
+  loc_storew.4
+  adv_loadw
+  loc_storew.8
+  adv_loadw
+  loc_storew.12
+  adv_loadw
+  loc_storew.16
+  adv_loadw
+  loc_storew.20
+  adv_loadw
+  loc_storew.24
+  adv_loadw
+  loc_storew.28
+  adv_loadw
+  loc_storew.32
+  adv_loadw
+  loc_storew.36
+  adv_loadw
+  loc_storew.40
+  adv_loadw
+  loc_storew.44
+  adv_loadw
+  loc_storew.48
+  adv_loadw
+  loc_storew.52
+  adv_loadw
+  loc_storew.56
+  adv_loadw
+  loc_storew.60
+  adv_loadw
+  loc_storew.64
+  adv_loadw
+  loc_storew.68
+  adv_loadw
+  loc_storew.72
+  adv_loadw
+  loc_storew.76
+  adv_loadw
+  loc_storew.80
+  dropw
+  # they are in reverse order than you would think! #
+  push.100
+  movdn.4
+  loc_loadw.0
+  add
+  add
+  add
+  add
+  padw
+  loc_loadw.4
+  drop
+  drop
+  drop
+  add
+  dup
+  dup
+  dup
+  dup
+end
+
+begin
+  exec.trying
+end

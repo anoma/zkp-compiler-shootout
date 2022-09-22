@@ -70,8 +70,8 @@ STACK EFFECT: (--)"
                    ;; due to this, we may wish to pad our values to
                    ;; the nearest mod 4. However we will wave that for now!
                    (t (begin
-                       (loadw-adv)
-                       (storew-local current)
+                       (adv-loadw)
+                       (loc-storew current)
                        (build-up (- n 4) (+ current 4)))))))
     (begin
      ;; prepend the stack to be overwritten
@@ -164,15 +164,15 @@ STACK EFFECT: (A -- )"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Input loading
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun push-local (i)
+(defun loc-load (i)
   "Reads a word (4 elements) from local memory at index i, and pushes
 the first element of the word onto the stack."
-  (make-opcode :name :push.local :constant i))
+  (make-opcode :name :loc_load :constant i))
 
-(defun loadw-local (i)
+(defun loc-loadw (i)
   "Reads a word from local memory at index i and overwrites top four
 stack elements with it."
-  (make-opcode :name :loadw.local :constant i))
+  (make-opcode :name :loc_loadw :constant i))
 
 (defun loc-store (i)
   "Stores the top element of the stack as the first element of the word
@@ -180,26 +180,26 @@ in local memory at index i. All other elements of the word are not
 affected."
   (make-opcode :name :loc_store :constant i))
 
-(defun storew-local (i)
-  (make-opcode :name :storew.local :constant i))
+(defun loc-storew (i)
+  (make-opcode :name :loc_storew :constant i))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Non deterministic Inputs
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (-> push-adv (fixnum) opcode)
-(defun push-adv (n)
+(defun adv-push (n)
   "Removes the next n values from advice tape and pushes them onto the stack.
 Valid for n ∈ {1,...,16}. Fails if the advice tape has fewer than n
 values."
-  (make-opcode :name :push.adv :constant n))
+  (make-opcode :name :adv_push :constant n))
 
 (-> loadw-adv () opcode)
-(defun loadw-adv ()
+(defun adv-loadw ()
   "Removes the next word (4 elements) from the advice tape and
 overwrites the top four stack elements with it. Fails if the advice
 tape has fewer than 4 values.
 STACK EFFECT: (A -- B)"
-  (make-opcode :name :loadw.adv))
+  (make-opcode :name :adv_loadw))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Merkle Operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
