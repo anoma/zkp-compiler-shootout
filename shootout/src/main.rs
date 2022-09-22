@@ -13,6 +13,7 @@ pub fn bench_fib(c: &mut Criterion) {
 }
 
 pub fn bench_sudoku(c: &mut Criterion) {
+    miden::bench_sudokue(c);
     plonk::bench_sudoku(c);
     risc::bench_sudoku(c);
 }

@@ -3,7 +3,7 @@ use std::path::Path;
 fn main() {
     // overflows at greater than u64, so we can only test at 93(92 in our program output).
     let path = Path::new("../../miden-assembler/miden/loads.masm");
-    let path2 = Path::new("../../miden-assembler/miden/trying.masm");
+    let path2 = Path::new("../../miden-assembler/miden/sudoku.masm");
     fib_miden::prove_and_verify(path, None, &[0, 1], &[94, 94, 94, 94, 94]);
     fib_miden::prove_and_verify(path2, None, &[0, 0, 0, 0, 0],
                                 &[7, 6, 9, 0, 5, 3, 8, 0, 1, 2, 4, 0,

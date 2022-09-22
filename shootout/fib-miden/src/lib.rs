@@ -49,6 +49,6 @@ pub fn prove_and_verify(path: &Path, answer: Option<&[u64]>, input: &[u64], advi
         Some(answer) => assert_eq!(answer, outputs.stack()),
         None => (),
     };
-    println!("ANSWERS: {:?}", outputs);
+    // println!("ANSWERS: {:?}", outputs);
     verify_from_start(&program, &outputs, proof, input).unwrap();
 }
