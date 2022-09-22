@@ -24,4 +24,5 @@ For our sudoku example, we use a rust package called [criterion](https://github.
 Please see the offical [Alucard repository](https://github.com/anoma/juvix-circuits).
 
 ## Geb
-See the [Geb README](geb/README.md).
+
+See the [Geb repository](https://github.com/anoma/geb).
