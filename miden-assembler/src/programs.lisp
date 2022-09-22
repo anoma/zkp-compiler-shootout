@@ -92,9 +92,6 @@ STACK EFFECT: pad    = ( -- answer p1 p2 p3 p4)
   "Checks if the sudoku values add up given the `size' of the board"
   (meq (apply #'+ (alexandria:iota (expt size 2) :start 1))))
 
-;; (defun  (location)
-;;   "Looks at the ")
-
 (-> columns-add-up (fixnum &key (:pad boolean) (:size fixnum)) instruction)
 (defbegin columns-add-up (i &key (pad nil) (size 3))
   "Check of the column `i' adds to the epxected value
@@ -108,45 +105,40 @@ STACK EFFECT: pad    = ( -- answer p1 p2 p3 p4)
   (if pad (padw) (movdn 4))
   (mapcar (lambda (i)
             (mvlet* ((div word-offset-normal-order (floor i size))
-                     ;; remember words are storred in the opposite order!
+                     ;; Words are the other endian so have to flip the loading
                      (word-offest-big-endian-order (- 3 word-offset-normal-order)))
               (begin
-               ;; load the word
-               (loc-loadw div)
-               ;; now move the accumulator and the word down
-               (movup word-offest-big-endian-order)
-               (movup 4)
-               (add)
-               (movdn 3)
+               (loc-loadw div)                      ; load the word
+               (movup word-offest-big-endian-order) ; move the number down
+               (movup 4)                            ; move the accumulator
+               (add)                                ; now add them!
+               (movdn 3)                            ; don't let it be overwritten
                (push 100))))
           (alexandria:iota (expt size 2) :start i :step (expt size 2)))
-  ;; we can avoid this last movup if we did the loop by hand.
-  ;; but since it only wastes 7 cycles it's not that big of a deal
-  ;; 7 * 9 total cycles wasted
-  (movup 4)
+  (movup 4)                             ; this call can be avoided
   (sudoku-should-add-up-to size))
 
-(defun find-starting-index (i size)
-  (mvlet ((square-size   (sqrt size))
-          (div remainder (floor i (sqrt size))))
-    (round
-     (+ (* div (* square-size size))
-        (* square-size remainder)))))
-
-;; TODO make size matter in the terms of loads!
 (-> rows-add-up (unsigned-byte &key (:pad boolean) (:size unsigned-byte)) instruction)
-(defun squares-add-up (i &key (size 9) (pad nil))
+(defun squares-add-up (i &key (size 3) (pad nil))
   "Checks if the square `i' adds to the expected value
 STACK EFFECT: pad    = ( -- answer p1 p2 p3 p4)
               no-pad = (d1 d2 d3 d4 -- answer p1 p2 p3 p4)"
-  (let ((starting-index (find-starting-index i size)))
+  (mvlet* ((div-col offset-row (floor i size))
+           ;; we times it by 9 because we are offsetting 3 rows of
+           ;; arrays for every 3 that we go down. the offset
+           ;; corresponds to the offset within the relative column
+           ;; area
+           (correct-square (+ (* div-col 9) offset-row)))
     (begin
      ;; Start the accumulator at 0
      (push 0)
-     (if pad (padw) (nop))
+     (if pad (padw) (movup 4))
      (mapcar (lambda (index)
-               (list (movdn 4) (fold-n-local-words (add) index 3)))
-             (alexandria:iota 3 :start starting-index :step size))
+               (begin (loc-loadw index)
+                      (repeat-inst 4 (add))
+                      (padw)))
+             (alexandria:iota size :start correct-square :step size))
+     (movup 4)
      (sudoku-should-add-up-to size))))
 
 (defun check (check &key ((:size n) 9) (needs-padding t))
@@ -167,17 +159,25 @@ STACK EFFECT: (-- b)"
    (top-n-are-true (1- n))))
 
 ;; _INEFFICIENCIES LIST_:
-;; 1. We do 27 `loc-loadw' values, when we can get away with 21 in
-;;    `rows-add-up' if we didn't pad
-;; 2. We could make the `columns-add-up' more efficient, by going 3 at
-;;    a time, in order to economize on word loading from locals
+
+;; 1. In `rows-add-up' we could go with a total of 21 load-words
+;;    instead of 27, however that requires not padding the array. It
+;;    should be investigated if that method is faster.
+;; 2. We could make the `columns-add-up' more efficient, by adding 3
+;;    rows at a time a time, we can do 1 load, and add all relevant
+;;    numbers properly.
 ;; 3. we write into locals which are 3-4 cycles each.
 ;;    whereas if I tried it with memory addresses it would be 1
 ;;    cycle instead of 3-4, however Ι would maybe leak the data if I
 ;;    did? I need to test both versions I think.
+;;
 ;; Trade Off Notes:
 ;; 1. We prefer live sudoku puzzles. Meaning we pay extra for false
 ;;    ones, as we always compute the full checks without returing early
+;; 2. We pad the array, meaning we take up more space, but makes the
+;;    logic a bit easier to implement. I'm unsure if this is more or
+;;    less efficient
+;;
 ;; Random Notes:
 ;; we can do this much more efficiently, however we need to rethink
 ;; our algorithm given our tools.  Namely we re-read many locations,
@@ -190,26 +190,15 @@ STACK EFFECT: (-- b)"
   (com "we do 81 word loads for the columns adding up to the correct number")
   (check #'columns-add-up :needs-padding t :size 9)
   (mand)
-  ;; (com "we do our 27 loads for the squares adding up to the correct number")
-  ;; (check #'squares-add-up :needs-padding t :size 9)
-  ;; (mand)
-  )
+  (com "we do our 27 word loads for the squares adding up to the correct number")
+  (check #'squares-add-up :needs-padding t :size 9)
+  (mand))
 
 (defproc trying 27 (A -- A)
   ;; loads don't work like you think
   (loadw-advice-into-locals 1)
   (com "they are in reverse order than you would think!")
-  (loc-loadw 0)
-  ;; (push 100)
-  ;; (movdn 4)
-  ;; (fold-n-local-words (add) 0 5)
-  ;; idk why I need these to satisfy the stack, as it should be 16
-  ;; after fold-n-local-words, since it pads for you.
-  ;; (loc-load 0)
-  ;; (loc-load 4)
-  ;; (loc-load 3)
-  ;; (loc-loadw 0)
-  )
+  (loc-loadw 0))
 
 (defun dump ()
   (extract
