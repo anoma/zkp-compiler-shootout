@@ -24,7 +24,7 @@
   (com "Looks about 8 cyles every loop")
   (while (swap) (dup 1) (add) (loop-check-sub :pos 2 :by 1) (neq 0))
   ;; clean up the pushes, otherwise rust throws a fit
-  (movdn 2) (drop) (drop))
+  (drop) (swap) (drop))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Fibonacci Fixed looping
@@ -50,9 +50,13 @@
 ;; Let us make the complicated Sudoku program. we can do it the simple
 ;; way by providing the data in the advice tape, which is the private
 ;; input set. We are going to store the values in the locals
+;; _INEFFICIENCIES LIST_:
+;; 1. we do a `(movup (- 4 (1- n)))', we can do (- 4 (- n 2)) for
+;;    commutative operations and save a cycle
+
 (defbegin fold-n-locals (binary-function local-location n)
   "Folds `n' locals at the given `local-location' with the given `binary-function'
-Note that the top four stack eleemnts are overwritten by the locals
+Note that the top four stack elements are overwritten by the locals
 STACK EFFECT: (a₁ a₂ a₃ a₄ acc -- answer b₁ b₂ b₃ b₄)"
   (loc-loadw local-location)
   (if (>= 4 n)
@@ -104,12 +108,12 @@ STACK EFFECT: ( -- answer)"
 STACK EFFECT: pad    = ( -- answer p1 p2 p3 p4)
               no-pad = (d1 d2 d3 d4 -- answer p1 p2 p3 p4)"
   (let ((starting-index (find-starting-index i size)))
-    starting-index
     (begin
      ;; Start the accumulator at 0
      (push 0)
      (if pad (padw) (nop))
-     (mapcar (lambda (index) (list (movdn 4) (fold-n-locals (add) index 3)))
+     (mapcar (lambda (index)
+               (list (movdn 4) (fold-n-locals (add) index 3)))
              (alexandria:iota 3 :start starting-index :step size))
      (sudoku-should-add-up-to size))))
 
@@ -130,7 +134,7 @@ STACK EFFECT: (-- b)"
    (com "let us check the values are all true!")
    (top-n-are-true (1- n))))
 
-;; Inefficiencies List
+;; _INEFFICIENCIES LIST_:
 ;; 1. We do 27 `loc-loadw' values, when we can get away with 21 in `rows-add-up'
 ;; 2. we could avoid `rows-add-up' by just duping the top word and doing
 ;;    column check there.
@@ -167,7 +171,7 @@ STACK EFFECT: (-- b)"
    "miden/sudoku.masm"
    (lookup-function :sudoku)
    (begin
-    (fib_iter)))
+    (sudoku)))
   (extract
    "miden/fib100.masm"
    (lookup-function :fib_100)

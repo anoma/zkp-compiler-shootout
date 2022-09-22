@@ -696,5 +696,5 @@ proc.sudoku.84
 end
 
 begin
-  exec.fib_iter
+  exec.sudoku
 end
