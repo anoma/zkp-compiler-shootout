@@ -58,7 +58,7 @@
   "Folds `n' locals at the given `local-location' with the given `binary-function'
 Note that the top four stack elements are overwritten by the locals
 STACK EFFECT: (a₁ a₂ a₃ a₄ acc -- answer b₁ b₂ b₃ b₄)"
-  (loc-loadw local-location)
+  (loadw-local local-location)
   (if (>= 4 n)
       (begin (repeat-inst (1- n) binary-function)
              (movup (- 4 (1- n)))
@@ -90,7 +90,7 @@ STACK EFFECT: pad    = ( -- answer p1 p2 p3 p4)
   "Check of the column `i' adds to the epxected value
 STACK EFFECT: ( -- answer)"
   ;; This will be inefficient, as we are doing 9 separate 4 instruction loads.
-  (mapcar #'loc-load (alexandria:iota size :start i :step size))
+  (mapcar #'push-local (alexandria:iota size :start i :step size))
   (repeat-inst (1- size) (add))
   (sudoku-should-add-up-to size))
 
@@ -135,7 +135,7 @@ STACK EFFECT: (-- b)"
    (top-n-are-true (1- n))))
 
 ;; _INEFFICIENCIES LIST_:
-;; 1. We do 27 `loc-loadw' values, when we can get away with 21 in `rows-add-up'
+;; 1. We do 27 `loadw-local' values, when we can get away with 21 in `rows-add-up'
 ;; 2. we could avoid `rows-add-up' by just duping the top word and doing
 ;;    column check there.
 ;; 3. we write into locals which are 3-4 cycles each.

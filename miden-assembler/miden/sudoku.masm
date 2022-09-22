@@ -2,66 +2,66 @@
 # -- VERFIED? #
 proc.sudoku.84
   padw
-  adv_loadw
-  loc_storew.0
-  adv_loadw
-  loc_storew.4
-  adv_loadw
-  loc_storew.8
-  adv_loadw
-  loc_storew.12
-  adv_loadw
-  loc_storew.16
-  adv_loadw
-  loc_storew.20
-  adv_loadw
-  loc_storew.24
-  adv_loadw
-  loc_storew.28
-  adv_loadw
-  loc_storew.32
-  adv_loadw
-  loc_storew.36
-  adv_loadw
-  loc_storew.40
-  adv_loadw
-  loc_storew.44
-  adv_loadw
-  loc_storew.48
-  adv_loadw
-  loc_storew.52
-  adv_loadw
-  loc_storew.56
-  adv_loadw
-  loc_storew.60
-  adv_loadw
-  loc_storew.64
-  adv_loadw
-  loc_storew.68
-  adv_loadw
-  loc_storew.72
-  adv_loadw
-  loc_storew.76
-  adv_loadw
-  loc_storew.80
+  loadw.adv
+  storew.local.0
+  loadw.adv
+  storew.local.4
+  loadw.adv
+  storew.local.8
+  loadw.adv
+  storew.local.12
+  loadw.adv
+  storew.local.16
+  loadw.adv
+  storew.local.20
+  loadw.adv
+  storew.local.24
+  loadw.adv
+  storew.local.28
+  loadw.adv
+  storew.local.32
+  loadw.adv
+  storew.local.36
+  loadw.adv
+  storew.local.40
+  loadw.adv
+  storew.local.44
+  loadw.adv
+  storew.local.48
+  loadw.adv
+  storew.local.52
+  loadw.adv
+  storew.local.56
+  loadw.adv
+  storew.local.60
+  loadw.adv
+  storew.local.64
+  loadw.adv
+  storew.local.68
+  loadw.adv
+  storew.local.72
+  loadw.adv
+  storew.local.76
+  loadw.adv
+  storew.local.80
   dropw
   # we do our 27 loads for the rows adding up to the correct number #
   padw
   push.0
   movdn.4
-  loc_loadw.0
+  loadw.local.0
   add
   add
   add
   add
   padw
-  loc_loadw.4
+  loadw.local.4
   add
   add
   add
   add
   padw
-  loc_loadw.8
+  loadw.local.8
   movup.4
   add
   dup
@@ -69,19 +69,19 @@ proc.sudoku.84
   movdn.4
   push.0
   movdn.4
-  loc_loadw.9
+  loadw.local.9
   add
   add
   add
   add
   padw
-  loc_loadw.13
+  loadw.local.13
   add
   add
   add
   add
   padw
-  loc_loadw.17
+  loadw.local.17
   movup.4
   add
   dup
@@ -89,19 +89,19 @@ proc.sudoku.84
   movdn.4
   push.0
   movdn.4
-  loc_loadw.18
+  loadw.local.18
   add
   add
   add
   add
   padw
-  loc_loadw.22
+  loadw.local.22
   add
   add
   add
   add
   padw
-  loc_loadw.26
+  loadw.local.26
   movup.4
   add
   dup
@@ -109,19 +109,19 @@ proc.sudoku.84
   movdn.4
   push.0
   movdn.4
-  loc_loadw.27
+  loadw.local.27
   add
   add
   add
   add
   padw
-  loc_loadw.31
+  loadw.local.31
   add
   add
   add
   add
   padw
-  loc_loadw.35
+  loadw.local.35
   movup.4
   add
   dup
@@ -129,19 +129,19 @@ proc.sudoku.84
   movdn.4
   push.0
   movdn.4
-  loc_loadw.36
+  loadw.local.36
   add
   add
   add
   add
   padw
-  loc_loadw.40
+  loadw.local.40
   add
   add
   add
   add
   padw
-  loc_loadw.44
+  loadw.local.44
   movup.4
   add
   dup
@@ -149,19 +149,19 @@ proc.sudoku.84
   movdn.4
   push.0
   movdn.4
-  loc_loadw.45
+  loadw.local.45
   add
   add
   add
   add
   padw
-  loc_loadw.49
+  loadw.local.49
   add
   add
   add
   add
   padw
-  loc_loadw.53
+  loadw.local.53
   movup.4
   add
   dup
@@ -169,19 +169,19 @@ proc.sudoku.84
   movdn.4
   push.0
   movdn.4
-  loc_loadw.54
+  loadw.local.54
   add
   add
   add
   add
   padw
-  loc_loadw.58
+  loadw.local.58
   add
   add
   add
   add
   padw
-  loc_loadw.62
+  loadw.local.62
   movup.4
   add
   dup
@@ -189,19 +189,19 @@ proc.sudoku.84
   movdn.4
   push.0
   movdn.4
-  loc_loadw.63
+  loadw.local.63
   add
   add
   add
   add
   padw
-  loc_loadw.67
+  loadw.local.67
   add
   add
   add
   add
   padw
-  loc_loadw.71
+  loadw.local.71
   movup.4
   add
   dup
@@ -209,19 +209,19 @@ proc.sudoku.84
   movdn.4
   push.0
   movdn.4
-  loc_loadw.72
+  loadw.local.72
   add
   add
   add
   add
   padw
-  loc_loadw.76
+  loadw.local.76
   add
   add
   add
   add
   padw
-  loc_loadw.80
+  loadw.local.80
   movup.4
   add
   dup
@@ -238,15 +238,15 @@ proc.sudoku.84
   and
   and
   # we do 81 loads for the columns adding up to the correct number #
-  loc_load.0
-  loc_load.9
-  loc_load.18
-  loc_load.27
-  loc_load.36
-  loc_load.45
-  loc_load.54
-  loc_load.63
-  loc_load.72
+  push.local.0
+  push.local.9
+  push.local.18
+  push.local.27
+  push.local.36
+  push.local.45
+  push.local.54
+  push.local.63
+  push.local.72
   add
   add
   add
@@ -256,15 +256,15 @@ proc.sudoku.84
   add
   add
   eq.45
-  loc_load.1
-  loc_load.10
-  loc_load.19
-  loc_load.28
-  loc_load.37
-  loc_load.46
-  loc_load.55
-  loc_load.64
-  loc_load.73
+  push.local.1
+  push.local.10
+  push.local.19
+  push.local.28
+  push.local.37
+  push.local.46
+  push.local.55
+  push.local.64
+  push.local.73
   add
   add
   add
@@ -274,15 +274,15 @@ proc.sudoku.84
   add
   add
   eq.45
-  loc_load.2
-  loc_load.11
-  loc_load.20
-  loc_load.29
-  loc_load.38
-  loc_load.47
-  loc_load.56
-  loc_load.65
-  loc_load.74
+  push.local.2
+  push.local.11
+  push.local.20
+  push.local.29
+  push.local.38
+  push.local.47
+  push.local.56
+  push.local.65
+  push.local.74
   add
   add
   add
@@ -292,15 +292,15 @@ proc.sudoku.84
   add
   add
   eq.45
-  loc_load.3
-  loc_load.12
-  loc_load.21
-  loc_load.30
-  loc_load.39
-  loc_load.48
-  loc_load.57
-  loc_load.66
-  loc_load.75
+  push.local.3
+  push.local.12
+  push.local.21
+  push.local.30
+  push.local.39
+  push.local.48
+  push.local.57
+  push.local.66
+  push.local.75
   add
   add
   add
@@ -310,15 +310,15 @@ proc.sudoku.84
   add
   add
   eq.45
-  loc_load.4
-  loc_load.13
-  loc_load.22
-  loc_load.31
-  loc_load.40
-  loc_load.49
-  loc_load.58
-  loc_load.67
-  loc_load.76
+  push.local.4
+  push.local.13
+  push.local.22
+  push.local.31
+  push.local.40
+  push.local.49
+  push.local.58
+  push.local.67
+  push.local.76
   add
   add
   add
@@ -328,15 +328,15 @@ proc.sudoku.84
   add
   add
   eq.45
-  loc_load.5
-  loc_load.14
-  loc_load.23
-  loc_load.32
-  loc_load.41
-  loc_load.50
-  loc_load.59
-  loc_load.68
-  loc_load.77
+  push.local.5
+  push.local.14
+  push.local.23
+  push.local.32
+  push.local.41
+  push.local.50
+  push.local.59
+  push.local.68
+  push.local.77
   add
   add
   add
@@ -346,15 +346,15 @@ proc.sudoku.84
   add
   add
   eq.45
-  loc_load.6
-  loc_load.15
-  loc_load.24
-  loc_load.33
-  loc_load.42
-  loc_load.51
-  loc_load.60
-  loc_load.69
-  loc_load.78
+  push.local.6
+  push.local.15
+  push.local.24
+  push.local.33
+  push.local.42
+  push.local.51
+  push.local.60
+  push.local.69
+  push.local.78
   add
   add
   add
@@ -364,15 +364,15 @@ proc.sudoku.84
   add
   add
   eq.45
-  loc_load.7
-  loc_load.16
-  loc_load.25
-  loc_load.34
-  loc_load.43
-  loc_load.52
-  loc_load.61
-  loc_load.70
-  loc_load.79
+  push.local.7
+  push.local.16
+  push.local.25
+  push.local.34
+  push.local.43
+  push.local.52
+  push.local.61
+  push.local.70
+  push.local.79
   add
   add
   add
@@ -382,15 +382,15 @@ proc.sudoku.84
   add
   add
   eq.45
-  loc_load.8
-  loc_load.17
-  loc_load.26
-  loc_load.35
-  loc_load.44
-  loc_load.53
-  loc_load.62
-  loc_load.71
-  loc_load.80
+  push.local.8
+  push.local.17
+  push.local.26
+  push.local.35
+  push.local.44
+  push.local.53
+  push.local.62
+  push.local.71
+  push.local.80
   add
   add
   add
@@ -414,7 +414,7 @@ proc.sudoku.84
   padw
   push.0
   movdn.4
-  loc_loadw.0
+  loadw.local.0
   add
   add
   movup.2
@@ -423,7 +423,7 @@ proc.sudoku.84
   dup
   dup
   movdn.4
-  loc_loadw.9
+  loadw.local.9
   add
   add
   movup.2
@@ -432,37 +432,7 @@ proc.sudoku.84
   dup
   dup
   movdn.4
-  loc_loadw.18
-  add
-  add
-  movup.2
-  add
-  dup
-  dup
-  dup
-  eq.45
-  movdn.4
-  push.0
-  movdn.4
-  loc_loadw.3
-  add
-  add
-  movup.2
-  add
-  dup
-  dup
-  dup
-  movdn.4
-  loc_loadw.12
-  add
-  add
-  movup.2
-  add
-  dup
-  dup
-  dup
-  movdn.4
-  loc_loadw.21
+  loadw.local.18
   add
   add
   movup.2
@@ -474,7 +444,7 @@ proc.sudoku.84
   movdn.4
   push.0
   movdn.4
-  loc_loadw.6
+  loadw.local.3
   add
   add
   movup.2
@@ -483,7 +453,7 @@ proc.sudoku.84
   dup
   dup
   movdn.4
-  loc_loadw.15
+  loadw.local.12
   add
   add
   movup.2
@@ -492,37 +462,7 @@ proc.sudoku.84
   dup
   dup
   movdn.4
-  loc_loadw.24
-  add
-  add
-  movup.2
-  add
-  dup
-  dup
-  dup
-  eq.45
-  movdn.4
-  push.0
-  movdn.4
-  loc_loadw.27
-  add
-  add
-  movup.2
-  add
-  dup
-  dup
-  dup
-  movdn.4
-  loc_loadw.36
-  add
-  add
-  movup.2
-  add
-  dup
-  dup
-  dup
-  movdn.4
-  loc_loadw.45
+  loadw.local.21
   add
   add
   movup.2
@@ -534,7 +474,7 @@ proc.sudoku.84
   movdn.4
   push.0
   movdn.4
-  loc_loadw.30
+  loadw.local.6
   add
   add
   movup.2
@@ -543,7 +483,7 @@ proc.sudoku.84
   dup
   dup
   movdn.4
-  loc_loadw.39
+  loadw.local.15
   add
   add
   movup.2
@@ -552,37 +492,7 @@ proc.sudoku.84
   dup
   dup
   movdn.4
-  loc_loadw.48
-  add
-  add
-  movup.2
-  add
-  dup
-  dup
-  dup
-  eq.45
-  movdn.4
-  push.0
-  movdn.4
-  loc_loadw.33
-  add
-  add
-  movup.2
-  add
-  dup
-  dup
-  dup
-  movdn.4
-  loc_loadw.42
-  add
-  add
-  movup.2
-  add
-  dup
-  dup
-  dup
-  movdn.4
-  loc_loadw.51
+  loadw.local.24
   add
   add
   movup.2
@@ -594,7 +504,7 @@ proc.sudoku.84
   movdn.4
   push.0
   movdn.4
-  loc_loadw.54
+  loadw.local.27
   add
   add
   movup.2
@@ -603,7 +513,7 @@ proc.sudoku.84
   dup
   dup
   movdn.4
-  loc_loadw.63
+  loadw.local.36
   add
   add
   movup.2
@@ -612,37 +522,7 @@ proc.sudoku.84
   dup
   dup
   movdn.4
-  loc_loadw.72
-  add
-  add
-  movup.2
-  add
-  dup
-  dup
-  dup
-  eq.45
-  movdn.4
-  push.0
-  movdn.4
-  loc_loadw.57
-  add
-  add
-  movup.2
-  add
-  dup
-  dup
-  dup
-  movdn.4
-  loc_loadw.66
-  add
-  add
-  movup.2
-  add
-  dup
-  dup
-  dup
-  movdn.4
-  loc_loadw.75
+  loadw.local.45
   add
   add
   movup.2
@@ -654,7 +534,7 @@ proc.sudoku.84
   movdn.4
   push.0
   movdn.4
-  loc_loadw.60
+  loadw.local.30
   add
   add
   movup.2
@@ -663,7 +543,7 @@ proc.sudoku.84
   dup
   dup
   movdn.4
-  loc_loadw.69
+  loadw.local.39
   add
   add
   movup.2
@@ -672,7 +552,127 @@ proc.sudoku.84
   dup
   dup
   movdn.4
-  loc_loadw.78
+  loadw.local.48
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  eq.45
+  movdn.4
+  push.0
+  movdn.4
+  loadw.local.33
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  movdn.4
+  loadw.local.42
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  movdn.4
+  loadw.local.51
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  eq.45
+  movdn.4
+  push.0
+  movdn.4
+  loadw.local.54
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  movdn.4
+  loadw.local.63
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  movdn.4
+  loadw.local.72
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  eq.45
+  movdn.4
+  push.0
+  movdn.4
+  loadw.local.57
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  movdn.4
+  loadw.local.66
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  movdn.4
+  loadw.local.75
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  eq.45
+  movdn.4
+  push.0
+  movdn.4
+  loadw.local.60
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  movdn.4
+  loadw.local.69
+  add
+  add
+  movup.2
+  add
+  dup
+  dup
+  dup
+  movdn.4
+  loadw.local.78
   add
   add
   movup.2
