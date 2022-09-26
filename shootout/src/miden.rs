@@ -2,21 +2,6 @@ use criterion::Criterion;
 use std::path::Path;
 use criterion::BenchmarkGroup;
 use criterion::measurement::WallTime;
-use crate::bench::*;
-
-pub struct Fib<'a> {
-    path: String,
-    name: String,
-    input: &'a[u64],
-    advice: &'a[u64]
-}
-
-// impl crate::bench::ZeroKnowledge for Fib<'_> {
-//     type C = Program;
-//     fn name(&self) {
-//         self.name;
-//     }
-// }
 
 pub fn bench_fib_fix(c: &mut BenchmarkGroup<WallTime>, fib_number: &str, answer: Option<&[u64]>) {
     let name = format!("fib{}", fib_number);

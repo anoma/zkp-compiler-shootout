@@ -2,7 +2,6 @@ use criterion::{criterion_group, criterion_main, Criterion};
 mod miden;
 mod plonk;
 mod risc;
-mod bench;
 // TODO Put the plonk code by itself and make it runable standalone!
 
 pub fn bench_fib(c: &mut Criterion) {
