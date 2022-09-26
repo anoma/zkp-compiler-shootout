@@ -1,7 +1,9 @@
 use criterion::Criterion;
 use std::path::Path;
+use criterion::BenchmarkGroup;
+use criterion::measurement::WallTime;
 
-pub fn bench_sudoku(c: &mut Criterion) {
+pub fn bench_sudoku(c: &mut BenchmarkGroup<WallTime>) {
     use sudoku_risc::*;
     let receipt = prove(setup());
     c.bench_function("RISC0: sudoku-setup", |b| b.iter(|| setup()));
@@ -11,7 +13,7 @@ pub fn bench_sudoku(c: &mut Criterion) {
     c.bench_function("RISC0: sudoku", |b| b.iter(|| prove_and_verify()));
 }
 
-pub fn bench_fib(c: &mut Criterion) {
+pub fn bench_fib(c: &mut BenchmarkGroup<WallTime>) {
     use fib_risc::*;
     let receipt = prove(setup(93));
     c.bench_function("RISC0: fib-setup", |b| b.iter(|| setup(93)));
@@ -24,7 +26,7 @@ pub fn bench_fib(c: &mut Criterion) {
 }
 
 pub fn bench_fib_fixed(
-    c: &mut Criterion,
+    c: &mut BenchmarkGroup<WallTime>,
     method_id: &[u8],
     method_path: &dyn AsRef<Path>,
     fib_number: &str,

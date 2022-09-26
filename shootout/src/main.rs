@@ -2,20 +2,24 @@ use criterion::{criterion_group, criterion_main, Criterion};
 mod miden;
 mod plonk;
 mod risc;
+mod bench;
 // TODO Put the plonk code by itself and make it runable standalone!
 
 pub fn bench_fib(c: &mut Criterion) {
-    miden::bench_fib(c, 93, None);
-    miden::bench_fib(c, 1000, None);
-    miden::bench_fib_fix(c, "92", None);
-    miden::bench_fib_fix(c, "50", None);
-    risc::bench_fib(c);
+    // let ca = c;
+    let group = &mut c.benchmark_group("fibonacci");
+    miden::bench_fib(group, 93, None);
+    miden::bench_fib(group, 1000, None);
+    miden::bench_fib_fix(group, "92", None);
+    miden::bench_fib_fix(group, "50", None);
+    risc::bench_fib(group);
 }
 
 pub fn bench_sudoku(c: &mut Criterion) {
-    miden::bench_sudokue(c);
-    plonk::bench_sudoku(c);
-    risc::bench_sudoku(c);
+    let group = &mut c.benchmark_group("sudoku");
+    miden::bench_sudoku(group);
+    plonk::bench_sudoku(group);
+    risc::bench_sudoku(group);
 }
 
 pub fn benchmark(c: &mut Criterion) {

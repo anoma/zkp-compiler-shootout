@@ -1,7 +1,7 @@
 [workspace]
 
 [package]
-name = "fib-miden"
+name = "miden-interface"
 version = "0.1.0"
 edition = "2021"
 

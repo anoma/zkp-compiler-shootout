@@ -23,8 +23,7 @@
            :type     fixnum
            :accessor locals
            :initform 0
-           :documentation
-           "number of memory locals")
+           :documentation "number of memory locals")
    (block :initarg :block
           :accessor block
           :type     block)

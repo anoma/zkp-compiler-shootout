@@ -1,6 +1,8 @@
 use criterion::Criterion;
+use criterion::BenchmarkGroup;
+use criterion::measurement::WallTime;
 
-pub fn bench_sudoku(c: &mut Criterion) {
+pub fn bench_sudoku(c: &mut BenchmarkGroup<WallTime>) {
     use sudoku_plonk::*;
     // Halo code
     c.bench_function("PLONK: sudoku-setup", |b| b.iter(|| setup()));
