@@ -2,8 +2,36 @@
 use miden::{Assembler, ExecutionError, Program, ProgramInputs, ProofOptions};
 use miden_core::ProgramOutputs;
 use std::alloc::Global;
-
 use std::path::Path;
+
+pub struct Miden<'a> {
+    path: String,
+    name: String,
+    input: &'a[u64],
+    advice: &'a[u64]
+}
+
+impl<'a> zero_knowledge::ZeroKnowledge for Miden<'a> {
+    type C = Program;
+    type R = (ProgramOutputs, miden::StarkProof);
+    fn name(&self) -> &String {
+        &self.name
+    }
+
+    fn compile(&self) -> Self::C {
+        compile(Path::new(&self.path)).unwrap()
+    }
+
+    fn prove(&self, program : &Program) -> Self::R {
+        let inputs = inputs(self.input, self.advice).unwrap();
+        prove(program, &inputs).unwrap()
+    }
+
+    fn verify(&self, receipt: Self::R, program: &Self::C) {
+        let (outputs, proof) = receipt;
+        verify_from_start(&program, &outputs, proof, self.input);
+    }
+}
 
 pub fn compile(path: &Path) -> Result<Program, miden::AssemblyError> {
     // TODO return an assembly error instead of unwrapping
