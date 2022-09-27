@@ -14,8 +14,8 @@ pub struct Miden {
 impl zero_knowledge::ZeroKnowledge for Miden {
     type C = Program;
     type R = (ProgramOutputs, miden::StarkProof);
-    fn name(&self) -> &String {
-        &self.name
+    fn name(&self) -> String {
+        self.name.clone()
     }
 
     fn compile(&self) -> Self::C {

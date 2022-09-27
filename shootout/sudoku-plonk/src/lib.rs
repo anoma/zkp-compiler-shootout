@@ -103,6 +103,7 @@ where
     }
 }
 
+
 type PC = SonicKZG10<Bls12_381, DensePolynomial<Fr>>;
 
 type JubSudoku = SudokuCircuit<Fr, JubjubParameters>;
@@ -114,6 +115,33 @@ type SonicZKG256 = SonicKZG10<Bls12_381, DensePolynomial<Fp256<FrParameters>>>;
 type VerifierKey256 = VerifierKey<Fp256<FrParameters>, SonicZKG256>;
 
 type PublicInput256 = PublicInputs<Fp256<FrParameters>>;
+
+static name: &'static str = "Plonk: 3 by 3";
+
+impl zero_knowledge::ZeroKnowledge for SudokuCircuit<Fr, JubjubParameters> {
+    type C = (UniversalParams<Bls12_381>, (ProverKey256, VerifierKey256));
+    type R = (Proof<Fp256<FrParameters>, SonicZKG256>, PublicInput256);
+
+    fn name(&self) -> String {
+        name.to_string()
+    }
+
+    fn compile(&self) -> Self::C {
+        let pp = setup().unwrap();
+        let res = key_generation(&pp, circuit()).unwrap();
+        (pp, res)
+    }
+
+    fn prove(&self, setup: &Self::C) -> Self::R {
+        let (pp, (pk_p, _vk)) = setup;
+        proof(&pp, pk_p).unwrap()
+    }
+    fn verify(&self, receipt: Self::R, program: &Self::C) {
+        let (pp, (_pk_p, vk)) = program;
+        let (proof, pi) = receipt;
+        verify(vk, pi, &pp, proof);
+    }
+}
 
 pub fn setup() -> Result<UniversalParams<Bls12_381>, Error> {
     PC::setup(1 << 9, None, &mut OsRng).map_err(to_pc_error::<Fr, PC>)
@@ -129,7 +157,7 @@ pub fn key_generation(
 // Prover POV
 pub fn proof(
     pp: &UniversalParams<Bls12_381>,
-    pk_p: ProverKey256,
+    pk_p: &ProverKey256,
 ) -> Result<(Proof<Fp256<FrParameters>, SonicZKG256>, PublicInput256), Error> {
     {
         let mut circuit: SudokuCircuit<Fr, JubjubParameters> = SudokuCircuit {
@@ -147,18 +175,18 @@ pub fn proof(
             _marker1: PhantomData::<Fr>,
             _marker2: PhantomData::<JubjubParameters>,
         };
-        circuit.gen_proof::<PC>(&pp, pk_p, b"Test")
+        circuit.gen_proof::<PC>(&pp, pk_p.clone(), b"Test")
     }
 }
 
 // Verifier POV
 pub fn verify(
-    vk: VerifierKey256,
+    vk: &VerifierKey256,
     pi: PublicInput256,
     pp: &UniversalParams<Bls12_381>,
     proof: Proof<Fp256<FrParameters>, SonicZKG256>,
 ) -> Result<(), Error> {
-    let verifier_data = VerifierData::new(vk, pi);
+    let verifier_data = VerifierData::new(vk.clone(), pi);
     verify_proof::<Fr, JubjubParameters, PC>(
         &pp,
         verifier_data.key,
@@ -199,14 +227,14 @@ pub fn prove_and_verify() -> Result<(), Error> {
     // Prover POV
     let time = Instant::now();
 
-    let (proof, pi) = proof(&pp, pk_p)?;
+    let (proof, pi) = proof(&pp, &pk_p)?;
 
     println!("proof: \t\t\t{:?}ms", (Instant::now() - time).as_millis());
 
     // Verifier POV
     let time = Instant::now();
 
-    let res = verify(vk, pi, &pp, proof);
+    let res = verify(&vk, pi, &pp, proof);
 
     println!(
         "verification: \t\t{:?}ms",

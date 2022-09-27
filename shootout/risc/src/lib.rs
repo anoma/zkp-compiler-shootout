@@ -18,8 +18,8 @@ impl zero_knowledge::ZeroKnowledge for Risc {
     type C = Prover;
     type R = Receipt;
 
-    fn name(&self) -> &String {
-        &self.name
+    fn name(&self) -> String {
+        self.name.clone()
     }
 
     fn compile(&self) -> Self::C {

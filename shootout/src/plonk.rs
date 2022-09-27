@@ -21,7 +21,7 @@ pub fn bench_sudoku(c: &mut BenchmarkGroup<WallTime>) {
                 let (pk_p, _vk) = key_generation(&pp, circ).unwrap();
                 (pp, pk_p)
             },
-            |(pp, pk_p)| proof(&pp, pk_p),
+            |(pp, pk_p)| proof(&pp, &pk_p),
             criterion::BatchSize::SmallInput,
         )
     });
@@ -32,10 +32,10 @@ pub fn bench_sudoku(c: &mut BenchmarkGroup<WallTime>) {
                 let circ = circuit();
                 let pp = setup().unwrap();
                 let (pk_p, vk) = key_generation(&pp, circ).unwrap();
-                let (prof, pi) = proof(&pp, pk_p).unwrap();
+                let (prof, pi) = proof(&pp, &pk_p).unwrap();
                 (vk, pi, pp, prof)
             },
-            |(vk, pi, pp, prof)| verify(vk, pi, &pp, prof),
+            |(vk, pi, pp, prof)| verify(&vk, pi, &pp, prof),
             criterion::BatchSize::SmallInput,
         )
     });

@@ -3,7 +3,7 @@
 pub trait ZeroKnowledge {
     type C;
     type R;
-    fn name(&self) -> &String;
+    fn name(&self) -> String;
     fn compile(&self) -> Self::C;
     fn prove(&self, setup: &Self::C) -> Self::R;
     fn verify(&self, receipt: Self::R, program: &Self::C) -> ();
