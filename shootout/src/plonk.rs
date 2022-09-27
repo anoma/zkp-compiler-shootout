@@ -1,4 +1,3 @@
-use criterion::Criterion;
 use criterion::BenchmarkGroup;
 use criterion::measurement::WallTime;
 

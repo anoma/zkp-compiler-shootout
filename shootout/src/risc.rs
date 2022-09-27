@@ -1,4 +1,3 @@
-use criterion::Criterion;
 use std::path::Path;
 use criterion::BenchmarkGroup;
 use criterion::measurement::WallTime;
@@ -14,7 +13,7 @@ pub fn bench_sudoku(c: &mut BenchmarkGroup<WallTime>) {
 }
 
 pub fn bench_fib(c: &mut BenchmarkGroup<WallTime>) {
-    use fib_risc::*;
+    use risc::*;
     let receipt = prove(setup(93));
     c.bench_function("RISC0: fib-setup", |b| b.iter(|| setup(93)));
     c.bench_function("RISC0: fib-prove", |b| b.iter(|| prove(setup(93))));
@@ -31,7 +30,7 @@ pub fn bench_fib_fixed(
     method_path: &dyn AsRef<Path>,
     fib_number: &str,
 ) {
-    use fib_risc::*;
+    use risc::*;
     let setup = || setup_fix(method_id, method_path);
     let receipt = prove(setup());
     let name = format!("fib{}", fib_number);

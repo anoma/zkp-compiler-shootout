@@ -7,6 +7,37 @@ use risc0_zkvm_serde::from_slice;
 use risc0_zkvm_host::Receipt;
 use std::path::Path;
 
+pub struct Risc<'a> {
+    method_id: &'a[u8],
+    method_path: &'a dyn AsRef<Path>,
+    input: &'a[u32],
+    name: String
+}
+
+impl<'a> zero_knowledge::ZeroKnowledge for Risc<'a> {
+    type C = Prover;
+    type R = Receipt;
+
+    fn name(&self) -> &String {
+        &self.name
+    }
+
+    fn compile(&self) -> Self::C {
+        let file_contents = fs::read(self.method_path).unwrap();
+        let mut prover    = Prover::new(&file_contents, self.method_id).unwrap();
+        prover.add_input(self.input).unwrap();
+        prover
+    }
+
+    fn prove(&self, setup: &Self::C) -> Self::R {
+        setup.run().unwrap()
+    }
+
+    fn verify(&self, receipt: Self::R, _setup: &Self::C) {
+        receipt.verify(self.method_id).unwrap()
+    }
+}
+
 pub fn setup(up_to : u32) -> Prover {
     let file_contents = fs::read(FIB_PATH).unwrap();
     let mut prover    = Prover::new(&file_contents, FIB_ID).unwrap();

@@ -1,13 +1,14 @@
 [workspace]
 
 [package]
-name = "fib-risc"
+name = "risc"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+zero-knowledge = { path = "../zero-knowledge" }
 methods-fib = { path = "methods" }
 risc0-zkvm-core = "0.10"
 risc0-zkvm-host = "0.10"

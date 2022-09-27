@@ -1,4 +1,3 @@
-use criterion::Criterion;
 use std::path::Path;
 use criterion::BenchmarkGroup;
 use criterion::measurement::WallTime;

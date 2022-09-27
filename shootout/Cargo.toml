@@ -5,7 +5,7 @@ exclude = [
         "sudoku-plonk",
         "sudoku-halo2",
         "miden",
-        "fib-risc"
+        "risc"
 ]
 
 [package]
@@ -18,7 +18,7 @@ sudoku_risc     = { path = "sudoku-risc0" }
 sudoku_plonk    = { path = "sudoku-plonk" }
 sudoku_halo2    = { path = "sudoku-halo2" }
 miden-interface = { path = "miden"}
-fib-risc        = { path = "fib-risc"}
+risc            = { path = "risc"}
 criterion       = "0.3"
 
 [profile.release]
