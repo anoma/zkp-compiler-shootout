@@ -4,14 +4,14 @@ use miden_core::ProgramOutputs;
 use std::alloc::Global;
 use std::path::Path;
 
-pub struct Miden<'a> {
-    path: String,
-    name: String,
-    input: &'a[u64],
-    advice: &'a[u64]
+pub struct Miden {
+    pub path: String,
+    pub name: String,
+    pub input: Vec<u64>,
+    pub advice: Vec<u64>
 }
 
-impl<'a> zero_knowledge::ZeroKnowledge for Miden<'a> {
+impl zero_knowledge::ZeroKnowledge for Miden {
     type C = Program;
     type R = (ProgramOutputs, miden::StarkProof);
     fn name(&self) -> &String {
@@ -23,13 +23,20 @@ impl<'a> zero_knowledge::ZeroKnowledge for Miden<'a> {
     }
 
     fn prove(&self, program : &Program) -> Self::R {
-        let inputs = inputs(self.input, self.advice).unwrap();
+        let inputs = inputs(&self.input, &self.advice).unwrap();
         prove(program, &inputs).unwrap()
     }
 
     fn verify(&self, receipt: Self::R, program: &Self::C) {
         let (outputs, proof) = receipt;
-        verify_from_start(&program, &outputs, proof, self.input);
+        verify_from_start(&program, &outputs, proof, &self.input);
+    }
+}
+
+impl Miden {
+    fn trace(&self, program: &Program) -> Result<miden::ExecutionTrace, ExecutionError> {
+        let inputs = inputs(&self.input, &self.advice).unwrap();
+        miden::execute(program, &inputs)
     }
 }
 

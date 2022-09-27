@@ -1,6 +1,26 @@
-use std::path::Path;
-use criterion::BenchmarkGroup;
 use criterion::measurement::WallTime;
+use criterion::BenchmarkGroup;
+use risc::Risc;
+use std::path::Path;
+use std::str::FromStr;
+
+pub fn fib(input: u32) -> Risc {
+    Risc {
+        method_id: risc::FIB_ID,
+        method_path: risc::FIB_PATH,
+        input: vec![input],
+        name: format!("fib{}", input),
+    }
+}
+
+pub fn fib_fixed(name: String, method_id: &'static [u8], method_path: &'static str) -> Risc {
+    Risc {
+        method_id,
+        method_path,
+        input: vec![0, 1],
+        name: format!("fib{}", name),
+    }
+}
 
 pub fn bench_sudoku(c: &mut BenchmarkGroup<WallTime>) {
     use sudoku_risc::*;

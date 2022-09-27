@@ -7,14 +7,14 @@ use risc0_zkvm_serde::from_slice;
 use risc0_zkvm_host::Receipt;
 use std::path::Path;
 
-pub struct Risc<'a> {
-    method_id: &'a[u8],
-    method_path: &'a dyn AsRef<Path>,
-    input: &'a[u32],
-    name: String
+pub struct Risc {
+    pub method_id: &'static [u8],
+    pub method_path: &'static str,
+    pub input: Vec<u32>,
+    pub name: String
 }
 
-impl<'a> zero_knowledge::ZeroKnowledge for Risc<'a> {
+impl zero_knowledge::ZeroKnowledge for Risc {
     type C = Prover;
     type R = Receipt;
 
@@ -24,8 +24,8 @@ impl<'a> zero_knowledge::ZeroKnowledge for Risc<'a> {
 
     fn compile(&self) -> Self::C {
         let file_contents = fs::read(self.method_path).unwrap();
-        let mut prover    = Prover::new(&file_contents, self.method_id).unwrap();
-        prover.add_input(self.input).unwrap();
+        let mut prover    = Prover::new(&file_contents, &self.method_id).unwrap();
+        prover.add_input(&self.input).unwrap();
         prover
     }
 
@@ -34,7 +34,7 @@ impl<'a> zero_knowledge::ZeroKnowledge for Risc<'a> {
     }
 
     fn verify(&self, receipt: Self::R, _setup: &Self::C) {
-        receipt.verify(self.method_id).unwrap()
+        receipt.verify(&self.method_id).unwrap()
     }
 }
 

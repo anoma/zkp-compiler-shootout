@@ -1,5 +1,5 @@
-use criterion::BenchmarkGroup;
 use criterion::measurement::WallTime;
+use criterion::BenchmarkGroup;
 
 pub fn bench_sudoku(c: &mut BenchmarkGroup<WallTime>) {
     use sudoku_plonk::*;
