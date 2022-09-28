@@ -1,7 +1,6 @@
 #![feature(allocator_api)]
 use miden::{Assembler, ExecutionError, Program, ProgramInputs, ProofOptions};
 use miden_core::ProgramOutputs;
-use std::alloc::Global;
 use std::path::Path;
 
 #[derive(Clone)]
@@ -30,12 +29,12 @@ impl zero_knowledge::ZeroKnowledge for Miden {
 
     fn verify(&self, receipt: Self::R, program: &Self::C) {
         let (outputs, proof) = receipt;
-        verify_from_start(&program, &outputs, proof, &self.input);
+        verify_from_start(&program, &outputs, proof, &self.input).unwrap();
     }
 }
 
 impl Miden {
-    fn trace(&self, program: &Program) -> Result<miden::ExecutionTrace, ExecutionError> {
+    pub fn trace(&self, program: &Program) -> Result<miden::ExecutionTrace, ExecutionError> {
         let inputs = inputs(&self.input, &self.advice).unwrap();
         miden::execute(program, &inputs)
     }
@@ -47,13 +46,13 @@ pub fn compile(path: &Path) -> Result<Program, miden::AssemblyError> {
     Assembler::default().compile(&contents)
 }
 
-// we just alias this really, so Ι can remember to call it for
-// benchmarking
-pub fn trace(
-    program: &Program,
-    inputs: &ProgramInputs,
-) -> Result<miden::ExecutionTrace, ExecutionError> {
-    miden::execute(program, inputs)
+pub fn sudoku(advice: Vec<u64>) -> Miden {
+    Miden {
+        path: String::from("../../miden-assembler/miden/sudoku.masm"),
+        name: String::from("Miden"),
+        advice,
+        input: vec![],
+    }
 }
 
 pub fn prove(
@@ -74,17 +73,4 @@ pub fn verify_from_start(
 
 pub fn inputs(inputs: &[u64], advice: &[u64]) -> Result<ProgramInputs, miden::InputError> {
     ProgramInputs::new(inputs, advice, vec![])
-}
-
-pub fn prove_and_verify(path: &Path, answer: Option<&[u64]>, input: &[u64], advice: &[u64]) {
-    let program = compile(path).unwrap();
-    let inputs = inputs(input, advice).unwrap();
-    let (outputs, proof) = prove(&program, &inputs).unwrap();
-    // might as well check the answer is what we expect in this case
-    match answer {
-        Some(answer) => assert_eq!(answer, outputs.stack()),
-        None => (),
-    };
-    // println!("ANSWERS: {:?}", outputs);
-    verify_from_start(&program, &outputs, proof, input).unwrap();
 }

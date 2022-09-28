@@ -116,14 +116,14 @@ type VerifierKey256 = VerifierKey<Fp256<FrParameters>, SonicZKG256>;
 
 type PublicInput256 = PublicInputs<Fp256<FrParameters>>;
 
-static name: &'static str = "Plonk: 3 by 3";
+static NAME: &'static str = "Plonk: 3 by 3";
 
 impl zero_knowledge::ZeroKnowledge for SudokuCircuit<Fr, JubjubParameters> {
     type C = (UniversalParams<Bls12_381>, (ProverKey256, VerifierKey256));
     type R = (Proof<Fp256<FrParameters>, SonicZKG256>, PublicInput256);
 
     fn name(&self) -> String {
-        name.to_string()
+        NAME.to_string()
     }
 
     fn compile(&self) -> Self::C {
@@ -139,7 +139,7 @@ impl zero_knowledge::ZeroKnowledge for SudokuCircuit<Fr, JubjubParameters> {
     fn verify(&self, receipt: Self::R, program: &Self::C) {
         let (pp, (_pk_p, vk)) = program;
         let (proof, pi) = receipt;
-        verify(vk, pi, &pp, proof);
+        verify(vk, pi, &pp, proof).unwrap();
     }
 }
 
