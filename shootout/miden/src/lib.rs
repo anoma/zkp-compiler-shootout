@@ -4,6 +4,7 @@ use miden_core::ProgramOutputs;
 use std::alloc::Global;
 use std::path::Path;
 
+#[derive(Clone)]
 pub struct Miden {
     pub path: String,
     pub name: String,

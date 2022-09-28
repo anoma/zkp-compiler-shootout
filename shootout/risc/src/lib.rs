@@ -8,6 +8,7 @@ use risc0_zkvm_serde::from_slice;
 use risc0_zkvm_host::Receipt;
 use std::path::Path;
 
+#[derive(Clone)]
 pub struct Risc {
     pub method_id: &'static [u8],
     pub method_path: &'static str,
