@@ -3,33 +3,43 @@ mod bench;
 mod miden;
 mod plonk;
 mod risc;
-// TODO Put the plonk code by itself and make it runable standalone!
-
-pub fn bench_fib(c: &mut Criterion) {
-    // let ca = c;
-    let group = &mut c.benchmark_group("fibonacci");
-    miden::bench_fib(group, 93, None);
-    miden::bench_fib(group, 1000, None);
-    miden::bench_fib_fix(group, "92", None);
-    miden::bench_fib_fix(group, "50", None);
-    risc::bench_fib(group);
-}
+use bench::*;
+use ::risc::{FIB_FIFTY_ID, FIB_FIFTY_PATH, FIB_NINTY_TWO_ID, FIB_NINTY_TWO_PATH};
+////////////////////////////////////////
+// Hello, you can place your benchmarks
+// in each `bench_*` to_bench's vector,
+// and it'll be included in the results!
+////////////////////////////////////////
 
 pub fn bench_sudoku(c: &mut Criterion) {
-    let group = &mut c.benchmark_group("sudoku");
-    miden::bench_sudoku(group);
-    plonk::bench_sudoku(group);
-    risc::bench_sudoku(group);
+    let to_bench = vec![ZKP::Miden(miden::sudoku()),
+                        ZKP::Plonk(plonk::sudoku()),
+                        ZKP::Risc0(risc::sudoku())
+    ];
+    bench_zkp(c, String::from("Sudoku"), to_bench)
+}
+
+pub fn bench_fib(c: &mut Criterion) {
+    let to_bench = vec![ZKP::Miden(miden::fib_iter(93)),
+                        ZKP::Miden(miden::fib_fixed("92")),
+                        ZKP::Miden(miden::fib_fixed("50")),
+                        ZKP::Risc0(risc::fib(93)),
+                        ZKP::Risc0(risc::fib(50)),
+                        ZKP::Risc0(risc::fib_fixed(String::from("50"), FIB_FIFTY_ID, FIB_FIFTY_PATH)),
+                        ZKP::Risc0(risc::fib_fixed(String::from("92"), FIB_NINTY_TWO_ID, FIB_NINTY_TWO_PATH))
+    ];
+    let to_bench_large = vec![ZKP::Miden(miden::fib_iter(1000)),
+                              ZKP::Risc0(risc::fib(1000))];
+    bench_zkp(c, String::from("fibonacci"), to_bench);
+    bench_zkp(c, String::from("fibonacci large"), to_bench_large);
 }
 
 pub fn benchmark(c: &mut Criterion) {
     // the receipt is of a minimal amount of time, so it doesn't
     // matter for testing. The code has problems if we don't include
     // it!
-    bench_fib(c);
     bench_sudoku(c);
-    // let fi: Vec<Box<impl zero_knowledge::ZeroKnowledge>> =
-    //     vec![Box::new(miden::sudoku()), Box::new(risc::sudoku())];
+    bench_fib(c);
 }
 
 criterion_group!(benches, benchmark);

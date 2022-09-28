@@ -1,6 +1,5 @@
 use criterion::measurement::WallTime;
-use criterion::BenchmarkGroup;
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{BenchmarkGroup, Criterion};
 use zero_knowledge::ZeroKnowledge;
 // Rust lacks existential types, and it seems downcasting things is
 // also a pain...
@@ -31,7 +30,7 @@ pub fn bench_zkp(c: &mut Criterion, program_name: String, programs: Vec<ZKP>) {
 }
 
 // return the value as it moves, serves as a forth style move
-fn call_bench(c: &mut Criterion, nam: String, programs: Vec<ZKP>, f: ZKP_fn) -> Vec<ZKP> {
+fn call_bench(c: &mut Criterion, nam: String, programs: Vec<ZKP>, f: ZKPFn) -> Vec<ZKP> {
     let g = &mut c.benchmark_group(nam);
     programs.iter().for_each(|x| f(g, x.clone(), name(x)));
     programs
@@ -49,7 +48,7 @@ pub fn name(z: &ZKP) -> String {
     }
 }
 
-type ZKP_fn = fn(c: &mut Group, z: ZKP, name: String) -> ();
+type ZKPFn = fn(c: &mut Group, z: ZKP, name: String) -> ();
 
 pub fn compile_zkp(c: &mut Group, z: ZKP, name: String) {
     match z {
