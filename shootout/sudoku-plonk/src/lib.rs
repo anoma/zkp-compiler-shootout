@@ -43,7 +43,7 @@ pub fn field_addition_gadget<F: PrimeField, P: TEModelParameters<BaseField = F>>
 ////////////////////////////////////////////////////////////////////////////////
 
 // Implements a circuit that checks if a sudoku works.
-#[derive(derivative::Derivative)]
+#[derive(derivative::Derivative, Clone)]
 #[derivative(Debug(bound = ""), Default(bound = ""))]
 pub struct SudokuCircuit<F, P> {
     pub sudoku: [[u8; 9]; 9],

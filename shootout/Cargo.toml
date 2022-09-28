@@ -4,7 +4,8 @@ exclude = [
         "sudoku-plonk",
         "sudoku-halo2",
         "miden",
-        "risc"
+        "risc",
+        "zero-knowledge"
 ]
 
 [package]
@@ -13,6 +14,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+zero-knowledge  = { path = "zero-knowledge" }
 sudoku_plonk    = { path = "sudoku-plonk" }
 sudoku_halo2    = { path = "sudoku-halo2" }
 miden-interface = { path = "miden"}

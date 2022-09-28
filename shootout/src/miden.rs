@@ -19,19 +19,19 @@ pub fn sudoku() -> Miden {
 }
 
 pub fn bench_fib_fix(c: &mut BenchmarkGroup<WallTime>, fib_number: &str, answer: Option<&[u64]>) {
-    let name = format!("fib{}", fib_number);
+    let name = format!("Miden: fixed-{}", fib_number);
     let path_str = format!("../miden-assembler/miden/{}.masm", name);
     bench_flexy(c, name, path_str, &[0, 1], &[], answer);
 }
 
 pub fn bench_fib(c: &mut BenchmarkGroup<WallTime>, fib_number: u64, answer: Option<&[u64]>) {
-    let name = format!("fib-iter-{}", fib_number);
+    let name = format!("Miden: iter-{}", fib_number);
     let path_str = String::from("../miden-assembler/miden/fib.masm");
     bench_flexy(c, name, path_str, &[fib_number], &[], answer);
 }
 
 pub fn bench_sudoku(c: &mut BenchmarkGroup<WallTime>) {
-    let name = String::from("Sudoku");
+    let name = String::from("Miden");
     let path_str = String::from("../miden-assembler/miden/sudoku.masm");
     let advice = &[
         7, 6, 9, 0, 5, 3, 8, 0, 1, 2, 4, 0, 2, 4, 3, 0, 7, 1, 9, 0, 6, 5, 8, 0, 8, 5, 1, 0, 4, 6,

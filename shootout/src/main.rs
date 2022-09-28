@@ -1,4 +1,5 @@
 use criterion::{criterion_group, criterion_main, Criterion};
+mod bench;
 mod miden;
 mod plonk;
 mod risc;
@@ -27,6 +28,8 @@ pub fn benchmark(c: &mut Criterion) {
     // it!
     bench_fib(c);
     bench_sudoku(c);
+    // let fi: Vec<Box<impl zero_knowledge::ZeroKnowledge>> =
+    //     vec![Box::new(miden::sudoku()), Box::new(risc::sudoku())];
 }
 
 criterion_group!(benches, benchmark);
