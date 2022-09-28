@@ -1,7 +1,8 @@
 use std::fs;
 pub use methods_fib::{FIB_ID,           FIB_PATH,
                       FIB_FIFTY_ID,     FIB_FIFTY_PATH,
-                      FIB_NINTY_TWO_ID, FIB_NINTY_TWO_PATH};
+                      FIB_NINTY_TWO_ID, FIB_NINTY_TWO_PATH,
+                      SUDOKU_ID,        SUDOKU_PATH};
 use risc0_zkvm_host::Prover;
 use risc0_zkvm_serde::from_slice;
 use risc0_zkvm_host::Receipt;

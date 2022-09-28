@@ -46,9 +46,9 @@ pub fn field_addition_gadget<F: PrimeField, P: TEModelParameters<BaseField = F>>
 #[derive(derivative::Derivative)]
 #[derivative(Debug(bound = ""), Default(bound = ""))]
 pub struct SudokuCircuit<F, P> {
-    sudoku: [[u8; 9]; 9],
-    _marker1: PhantomData<F>,
-    _marker2: PhantomData<P>,
+    pub sudoku: [[u8; 9]; 9],
+    pub _marker1: PhantomData<F>,
+    pub _marker2: PhantomData<P>,
 }
 
 impl<F, P> Circuit<F, P> for SudokuCircuit<F, P>
@@ -106,7 +106,7 @@ where
 
 type PC = SonicKZG10<Bls12_381, DensePolynomial<Fr>>;
 
-type JubSudoku = SudokuCircuit<Fr, JubjubParameters>;
+pub type JubSudoku = SudokuCircuit<Fr, JubjubParameters>;
 
 type ProverKey256 = ProverKey<Fp256<FrParameters>>;
 
@@ -152,6 +152,15 @@ pub fn key_generation(
     mut circuit: JubSudoku,
 ) -> Result<(ProverKey256, VerifierKey256), Error> {
     circuit.compile::<PC>(pp)
+}
+
+
+pub fn make_circuit(input: [[u8; 9]; 9]) -> JubSudoku {
+    SudokuCircuit {
+        sudoku: input,
+        _marker1: PhantomData::<Fr>,
+        _marker2: PhantomData::<JubjubParameters>,
+    }
 }
 
 // Prover POV
