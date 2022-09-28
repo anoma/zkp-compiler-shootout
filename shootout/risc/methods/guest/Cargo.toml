@@ -10,6 +10,7 @@ risc0-build = "0.10"
 
 [dependencies]
 risc0-zkvm-guest = "0.10"
+sudoku-core = {path = "../../sudoku-core"}
 
 [profile.release]
 debug = 1

@@ -1,7 +1,6 @@
 [workspace]
 
 exclude = [
-        "sudoku-risc0",
         "sudoku-plonk",
         "sudoku-halo2",
         "miden",
@@ -14,7 +13,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-sudoku_risc     = { path = "sudoku-risc0" }
 sudoku_plonk    = { path = "sudoku-plonk" }
 sudoku_halo2    = { path = "sudoku-halo2" }
 miden-interface = { path = "miden"}
