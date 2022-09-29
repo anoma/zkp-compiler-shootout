@@ -9,7 +9,7 @@ Currently we are testing the following Zero Knowledge machines
 4. [Halo](https://github.com/zcash/halo2)
 
 ### How to get benchmark results
-1. navigate to the `shoout` folder
+1. navigate to the `shootout` folder
 2. run `cargo bench`
 3. sit back and watch your CPU spin
 4. load the HTML file  in `/shootout/target/criterion/report/index.html`
