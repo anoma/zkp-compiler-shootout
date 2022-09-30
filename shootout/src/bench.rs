@@ -33,6 +33,7 @@ pub fn bench_zkp(c: &mut Criterion, program_name: String, programs: Vec<ZKP>) {
 // return the value as it moves, serves as a forth style move
 fn call_bench(c: &mut Criterion, nam: String, programs: Vec<ZKP>, f: ZKPFn) -> Vec<ZKP> {
     let g = &mut c.benchmark_group(nam);
+    g.sample_size(20);
     programs.iter().for_each(|x| f(g, x.clone(), name(x)));
     programs
 }
