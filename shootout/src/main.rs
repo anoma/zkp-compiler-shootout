@@ -1,11 +1,11 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 mod bench;
+mod halo;
 mod miden;
 mod plonk;
 mod risc;
-mod halo;
-use bench::*;
 use ::risc::{FIB_FIFTY_ID, FIB_FIFTY_PATH, FIB_NINTY_TWO_ID, FIB_NINTY_TWO_PATH};
+use bench::*;
 ////////////////////////////////////////
 // Hello, you can place your benchmarks
 // in each `bench_*` to_bench's vector,
@@ -13,25 +13,37 @@ use ::risc::{FIB_FIFTY_ID, FIB_FIFTY_PATH, FIB_NINTY_TWO_ID, FIB_NINTY_TWO_PATH}
 ////////////////////////////////////////
 
 pub fn bench_sudoku(c: &mut Criterion) {
-    let to_bench = vec![ZKP::Miden(miden::sudoku()),
-                        ZKP::Plonk(plonk::sudoku()),
-                        ZKP::Risc0(risc::sudoku()),
-                        ZKP::Halo2(halo::sudoku())
+    let to_bench = vec![
+        ZKP::Miden(miden::sudoku()),
+        ZKP::Plonk(plonk::sudoku()),
+        ZKP::Risc0(risc::sudoku()),
+        ZKP::Halo2(halo::sudoku()),
     ];
     bench_zkp(c, String::from("Sudoku"), to_bench)
 }
 
 pub fn bench_fib(c: &mut Criterion) {
-    let to_bench = vec![ZKP::Miden(miden::fib_iter(93)),
-                        ZKP::Miden(miden::fib_fixed("92")),
-                        ZKP::Miden(miden::fib_fixed("50")),
-                        ZKP::Risc0(risc::fib(93)),
-                        ZKP::Risc0(risc::fib(50)),
-                        ZKP::Risc0(risc::fib_fixed(String::from("50"), FIB_FIFTY_ID, FIB_FIFTY_PATH)),
-                        ZKP::Risc0(risc::fib_fixed(String::from("92"), FIB_NINTY_TWO_ID, FIB_NINTY_TWO_PATH))
+    let to_bench = vec![
+        ZKP::Miden(miden::fib_iter(93)),
+        ZKP::Miden(miden::fib_fixed("92")),
+        ZKP::Miden(miden::fib_fixed("50")),
+        ZKP::Risc0(risc::fib(93)),
+        ZKP::Risc0(risc::fib(50)),
+        ZKP::Risc0(risc::fib_fixed(
+            String::from("50"),
+            FIB_FIFTY_ID,
+            FIB_FIFTY_PATH,
+        )),
+        ZKP::Risc0(risc::fib_fixed(
+            String::from("92"),
+            FIB_NINTY_TWO_ID,
+            FIB_NINTY_TWO_PATH,
+        )),
     ];
-    let to_bench_large = vec![ZKP::Miden(miden::fib_iter(1000)),
-                              ZKP::Risc0(risc::fib(1000))];
+    let to_bench_large = vec![
+        ZKP::Miden(miden::fib_iter(1000)),
+        ZKP::Risc0(risc::fib(1000)),
+    ];
     bench_zkp(c, String::from("fibonacci"), to_bench);
     bench_zkp(c, String::from("fibonacci large"), to_bench_large);
 }
