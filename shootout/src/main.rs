@@ -3,6 +3,7 @@ mod bench;
 mod miden;
 mod plonk;
 mod risc;
+mod halo;
 use bench::*;
 use ::risc::{FIB_FIFTY_ID, FIB_FIFTY_PATH, FIB_NINTY_TWO_ID, FIB_NINTY_TWO_PATH};
 ////////////////////////////////////////
@@ -14,7 +15,8 @@ use ::risc::{FIB_FIFTY_ID, FIB_FIFTY_PATH, FIB_NINTY_TWO_ID, FIB_NINTY_TWO_PATH}
 pub fn bench_sudoku(c: &mut Criterion) {
     let to_bench = vec![ZKP::Miden(miden::sudoku()),
                         ZKP::Plonk(plonk::sudoku()),
-                        ZKP::Risc0(risc::sudoku())
+                        ZKP::Risc0(risc::sudoku()),
+                        ZKP::Halo2(halo::sudoku())
     ];
     bench_zkp(c, String::from("Sudoku"), to_bench)
 }

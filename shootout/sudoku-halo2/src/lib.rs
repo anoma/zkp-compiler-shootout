@@ -9,6 +9,28 @@ use crate::sudoku::{Circuit, VerifyingKey, ProvingKey, Proof};
 pub mod circuit;
 pub mod sudoku;
 
+impl zero_knowledge::ZeroKnowledge for Circuit {
+    type C = (ProvingKey, VerifyingKey);
+    type R = Proof;
+
+    fn name(&self) -> String {
+        "Halo: 3 by 3".to_string()
+    }
+
+    fn compile(&self) -> Self::C {
+        (ProvingKey::build(), VerifyingKey::build())
+    }
+
+    fn prove(&self, (pk,_vk): &Self::C) -> Self::R {
+        let public_input = &[pallas::Base::from_u128(45 as u128); 27];
+        Proof::create(&pk, self.clone(), &[public_input], &mut OsRng).unwrap()
+    }
+
+    fn verify(&self, proof: Self::R, (_pk,vk): &Self::C) {
+        let public_input = &[pallas::Base::from_u128(45 as u128); 27];
+        proof.verify(&vk, &[public_input]).unwrap();
+    }
+}
 
 pub fn prove_and_verify() ->  Result<(), Error> {
 
@@ -29,7 +51,7 @@ pub fn prove_and_verify() ->  Result<(), Error> {
     let circuit = Circuit { sudoku };
 
     let public_input = &[pallas::Base::from_u128(45 as u128); 27];
-    
+
     println!("circuit: \t\t{:?}ms", (Instant::now() - time).as_millis());
 
     // Compile the circuit
