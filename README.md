@@ -8,9 +8,15 @@ Currently we are testing the following Zero Knowledge machines
 3. [Plonk](https://github.com/ZK-Garage/plonk)
 4. [Halo2](https://github.com/zcash/halo2)
 
-Results can be seen in the [BENCHMARKS.md](./BENCHMARKS.md) file. The
-results were collected on a `AMD Ryzen 7 5700X 8-Core @ 16x 3.4GHz`
-CPU.
+Results can be seen in the following files:
+
+- [BENCHMARKS.md](./BENCHMARKS.md)
+  + The results rendered in a mark down table
+- [anoma.github.io/zkp-compiler-shootout/](https://anoma.github.io/zkp-compiler-shootout/)
+  + The results with graphs and standard deviations, means, etc.
+
+The results were collected on a `AMD Ryzen 7 5700X 8-Core @ 16x
+3.4GHz` CPU.
 
 To see very rough notes about the languages in the benchmark and
 potential improvement points please read [my notes
