@@ -13,9 +13,9 @@ results were collected on a `AMD Ryzen 7 5700X 8-Core @ 16x 3.4GHz`
 CPU.
 
 To see very rough notes about the languages in the benchmark and
-potentinal improvmenet points please read [my notes
+potential improvement points please read [my notes
 file](./shootout/notes.org).
-### How to get benchmark results
+## How to get benchmark results
 
 There are two commands for producing results
 
@@ -45,6 +45,10 @@ Either way, the results can be seen
 3. The HTML results should be in `./shootout/target/criterion/reports/index.html`
 4. If `make table` was run, the updated benchmark results should be
    seen in `./BENCHMARKS.md`
+
+## Contributing
+
+
 
 
 ## Alucard/VAMP-IR
