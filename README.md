@@ -1,4 +1,5 @@
-# zkp-compiler-shootout
+# ZKP (circuit) compiler shootout
+
 Evaluating &amp; benchmarking ZKP compilation strategies.
 
 Currently we are testing the following Zero Knowledge machines
@@ -7,6 +8,8 @@ Currently we are testing the following Zero Knowledge machines
 2. [Miden](https://github.com/maticnetwork/miden)
 3. [Plonk](https://github.com/ZK-Garage/plonk)
 4. [Halo2](https://github.com/zcash/halo2)
+
+If you would like your machine / framework / compilation strategy to be benchmarked against the standard suite, please submit a PR! You can find instructions below.
 
 Results can be seen in the following files:
 
