@@ -39,7 +39,7 @@
 (defmethod print-object ((op opcode) stream)
   (format stream "~(~a~)" (name op))
   (when (constant op)
-    (format stream ".~(~a~)" (constant op))))
+    (format stream " ~(~a~)" (constant op))))
 
 (defmethod print-object ((label label) stream)
   (format stream "~(~a~):" (name label)))
