@@ -1,6 +1,5 @@
 (in-package :triton)
 
-
 ;; First attempt
 
 ;; Improvmenets to make
@@ -14,6 +13,10 @@
 
 ;; Note :: None of this is needed, trying to setup general recursion
 ;; technique though, this will show.
+
+(def rot
+  (begin (swap 2) (swap 1))
+  "STACK EFFECT: (n a b -- a b n)")
 
 (def fib-general
   (tagbody
@@ -30,8 +33,8 @@
    :fib-then
      ;; compute a + b, b and n -1
      (dup 1) add (swap 2) (push -1) add
-     ;; move the values such that we have (n a b -- a b n)
-     (swap 2) (swap 1) return))
+     ;; move the stack in place with a rot (n a b -- a b n)
+     rot return))
 
 (def program
   (make-program :program
