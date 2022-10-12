@@ -11,8 +11,17 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; API Functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defmacro tagbody ()
-  `())
+(defmacro tagbody (&body code)
+  `(list
+    ,@(mapcar (lambda (x)
+                (cons 'block x))
+              (group-by #'keywordp code))))
+
+(tagbody
+ :foo
+   (push 3) (push 4) add
+ :other
+   (push 10) halt)
 
 (-> block-to-list (block) opcode-list)
 (defun block-to-list (block)

@@ -8,8 +8,9 @@
   :components
   ((:file package)
    (:file spec     :depends-on (package))
+   (:file util     :depends-on (package))
    (:file printer  :depends-on (package spec))
-   (:file triton   :depends-on (package spec))
+   (:file triton   :depends-on (package spec util))
    (:file table    :depends-on (package spec))
    (:file programs :depends-on (package spec triton table)))
   :in-order-to ((asdf:test-op (asdf:test-op :triton/test))))

@@ -6,29 +6,32 @@
 ;; Sum Type Declarations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (deftype instruction ()
+  "An instruction in tritonVM"
   `(or opcode label))
 
 (deftype instructions ()
+  "one or more instructions in tritonVM"
   `(or instruction block))
 
 (deftype constant ()
   `(or fixnum null symbol))
 
 (deftype instructions-list ()
-  "A list of instructions"
+  "A list of instructions in tritonVM"
   `(satisfies instructions-list))
+
+(deftype opcode-list ()
+  "A list of opcodes in tritonVM"
+  `(satisfies opcode-list))
 
 (defun instructions-list (list)
   (and (listp list)
        (every (lambda (x) (typep x 'instructions)) list)))
 
-(deftype opcode-list ()
-  "A list of opcodes"
-  `(satisfies opcode-list))
-
 (defun opcode-list (list)
   (and (listp list)
        (every (lambda (x) (typep x 'opcode)) list)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Dumpable Program
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
