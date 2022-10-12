@@ -1,8 +1,14 @@
 (defpackage #:triton
   (:documentation "Provides a quick and dirty assembler for MidenVM")
   (:use #:common-lisp #:serapeum)
-  (:shadow :block :count :repeat :push :drop)
+  (:shadow :block :count :repeat :push :drop :tagbody :assert :return :pop)
   (:export
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   ;; API
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   :tagbody
+   :block
+   :begin
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    ;; Types
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -30,6 +36,6 @@
    :lookup-function
 
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-   ;; API Operations
+   ;; Trion VM Opcodes
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-))
+   :halt :push :drop))

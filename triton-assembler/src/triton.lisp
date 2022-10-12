@@ -8,6 +8,36 @@
 
 ;; However, using plane words may be more idiomatic from a stack POV
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; API Functions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defmacro tagbody ()
+  `())
+
+(-> block-to-list (block) opcode-list)
+(defun block-to-list (block)
+  "Turns the block into a list"
+  (opcodes block))
+
+(-> block ((or keyword label) &rest (or list instructions)) block)
+(defun block (label &rest instructions)
+  (make-block :label   (if (keywordp label) (make-label :name label) label)
+              :opcodes (opcodes (apply #'begin instructions))))
+
+(-> begin (&rest (or list instruction block)) block)
+(defun begin (&rest instructions)
+  (labels ((recursive (x)
+             (cond ((and (typep x 'block) (null (label x)))
+                    (block-to-list x))
+                   ((typep x 'list)
+                    (mapcan #'recursive x))
+                   (t
+                    (list x)))))
+    (make-block :opcodes (mapcan #'recursive instructions))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; OpCodes from the Triton Specification
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Stack Operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -28,6 +58,7 @@
 
 (def pop (make-opcode :name :pop)
   "Pops top element from stack.")
+
 (def divine (make-opcode :name :divine)
   "Pushes a non-deterministic element a to the stack. Interface for secret input.")
 

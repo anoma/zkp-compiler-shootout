@@ -47,3 +47,9 @@
 (defmethod print-object ((pro program) stream)
   (pprint-logical-block (stream nil)
     (format stream "~{~A~^ ~_~}" (program pro))))
+
+(defmethod print-object ((block block) stream)
+  (pprint-logical-block (stream nil)
+    (when (label block)
+      (format stream "~2I~A ~_" (label block)))
+    (format stream "~{~A~^ ~_~}" (opcodes block))))
