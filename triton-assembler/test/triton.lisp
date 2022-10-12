@@ -27,9 +27,18 @@
    :other
      (push 10) halt))
 
+(def body-entry-point-no-tag
+  (tagbody
+     (push 3)
+     (push 4)
+     add
+   :other
+     (push 10) halt))
+
 (test tagbody-works-as-expected
   (is (equal (name (label (car body))) :foo))
-  (is (equal (name (label (cadr body))) :other)))
+  (is (equal (name (label (cadr body))) :other))
+  (is (equal (label (car body-entry-point-no-tag)) nil)))
 
 (test printer-works-as-expected
   (let ((*print-pretty* t))
@@ -38,9 +47,12 @@
   pop
   halt
   push 3
-  bar: pop halt push 3
-  bar: pop halt push 3
-  bar: pop halt push 3
+  bar:
+    pop halt push 3
+  bar:
+    pop halt push 3
+  bar:
+    pop halt push 3
   faz:
     pop
     halt

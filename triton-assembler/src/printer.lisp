@@ -50,6 +50,9 @@
 
 (defmethod print-object ((block block) stream)
   (pprint-logical-block (stream nil)
-    (when (label block)
-      (format stream "~2I~A ~_" (label block)))
-    (format stream "~{~A~^ ~_~}" (opcodes block))))
+    (if (label block)
+        (progn
+          (format stream "~2I~A ~@:_" (label block))
+          (pprint-logical-block (stream nil)
+            (format stream "~{~A~^ ~_~}" (opcodes block))))
+        (format stream "~{~A~^ ~_~}" (opcodes block)))))

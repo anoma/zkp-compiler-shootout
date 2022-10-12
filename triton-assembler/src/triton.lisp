@@ -9,19 +9,30 @@
 ;; However, using plane words may be more idiomatic from a stack POV
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Extracting functionality
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(-> extract ((or string pathname) &rest t) t)
+(defun extract (file-name &rest instructions)
+  (let ((*print-pretty*      t))
+      (with-open-file (file file-name :direction :output
+                                      :if-exists :supersede
+                                      :if-does-not-exist :create)
+        (format file "~{~A~^~:@_~:@_~}"
+                instructions))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; API Functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmacro tagbody (&body code)
+  "Creates jump tables for triton code. The idiomatic way to create
+blocks and labels."
   `(list
     ,@(mapcar (lambda (x)
-                (cons 'block x))
+                (if (keywordp (car x))
+                    (cons 'block x)
+                    (cons 'begin x)))
               (group-by #'keywordp code))))
-
-(tagbody
- :foo
-   (push 3) (push 4) add
- :other
-   (push 10) halt)
 
 (-> block-to-list (block) opcode-list)
 (defun block-to-list (block)
@@ -107,3 +118,6 @@ graceful shutdown of the VM.")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def add (make-opcode :name :add))
+(def mul (make-opcode :name :mul))
+
+(def eq (make-opcode :name :eq))
