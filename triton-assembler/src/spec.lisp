@@ -5,13 +5,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Sum Type Declarations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(deftype instructions ()
+  "instructions and their groups"
+  `(or instruction block tlabels))
+
 (deftype instruction ()
   "An instruction in tritonVM"
   `(or opcode label))
-
-(deftype instructions ()
-  "one or more instructions in tritonVM"
-  `(or instruction block tlabels))
 
 (deftype constant ()
   `(or fixnum null symbol))
@@ -49,6 +49,25 @@
             :accessor program
             :type     list
             :initform nil)))
+
+(defclass procedure ()
+  ((calls :initarg :calls
+          :type    list
+          :accessor calls
+          :documentation "The call graph of the procedure")
+   (name :initarg :name
+         :type    keyword
+         :accessor name
+         :documentation "Name of the procedure")
+   (tlabels :initarg :blocks
+            :type    tlabels
+            :accessor tlabels
+            :initform (make-labels)
+            :documentation "the labels of the procedure")))
+
+;; another lens into the procedure
+(defmethod blocks ((proc procedure))
+  (blocks (tlabels proc)))
 
 ;; change the representation to get better speed, it's sad that we do
 ;; O(n) operations for this.
@@ -120,7 +139,6 @@
   (values
    (make-instance 'tlabels :blocks blocks)))
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helper functions to manipulate the types
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -139,8 +157,6 @@
 (defun no-label-on-front-blockp (lb)
   "returns true if the front block exists and there is no label for it"
   (and (blocks lb) (not (label (car (blocks lb))))))
-
-(defun add-label-to-front-block)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helper functions to Cons multiple instructions onto a structure
@@ -161,6 +177,7 @@
                            (t                  (cons (append-blocks insts (car blks))
                                                      (cdr blks))))))))))
 
+(-> append-blocks (block block) block)
 (defun append-blocks (b1 b2)
   "Appends two blocks, assuming the right block does not have a label"
   (when (label b2)
@@ -168,7 +185,6 @@
   (make-block :label (label b1)
               :opcodes (append (opcodes b1)
                                (opcodes b2))))
-(-> append-blocks (block block) block)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helper functions to Cons a single instructions onto a structure
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
