@@ -1,5 +1,4 @@
-push 50
-call fib-entry
+push 50 call fib-entry
 fib-entry:
   push 1 push 0 call fib-body return
 fib-body:

@@ -22,7 +22,10 @@
   (tagbody
    :fib-entry
      ;; setup the fib accumulator values and call then return
-     (push 1) (push 0) (call :fib-body) return
+     (push 1)
+     (push 0)
+     (call :fib-body)
+     return
    :fib-body
      ;; dup the n from the top of the stack and check against 0
      (dup 2)
@@ -33,16 +36,17 @@
    :fib-then
      ;; compute a + b, b and n -1
      (dup 1) add (swap 2) (push -1) add
-     ;; move the stack in place with a rot (n a b -- a b n)
+     ;; move the stack back how we found it (n a b -- a b n)
      rot return))
 
 (def program
   (make-program :program
-                (list*
-                 ;; let's just take the input as public for now
-                 (push 50)
-                 (call :fib-entry)
-                 fib-general)))
+                (list
+                 (begin
+                  ;; let's just take the input as public for now
+                  (push 50)
+                  (call :fib-entry)
+                  fib-general))))
 
 ;; control function
 (defun fibonacci (n &optional (a 0) (b 1))
@@ -50,6 +54,36 @@
       a
       (fibonacci (1- n) b (+ a b))))
 
-
 (defun dump ()
   (extract "triton/fib.tasm" program))
+
+;; Leaving this code in. This will be useful if we get gotos in
+;; triton. Even if not, this can hopefully inspire another strategy
+;; for getting if's working like I'd want. Maybe we can flip it, and
+;; have a way to get recrusion on one side working without gotos.
+;; Further this nudges us into properly defining label combination see
+;; #16
+
+;; (defun if (then else)
+;;   (let ((name-then (intern (symbol-name (gensym)) :keyword))
+;;         (name-else (intern (symbol-name (gensym)) :keyword))
+;;         (name-cont (intern (symbol-name (gensym)) :keyword)))
+;;     (begin
+;;      skiz
+;;      (goto name-then)
+;;      (goto name-else)
+;;      (add-label name-then then)
+;;      (goto name-cont)
+;;      (add-label name-else else)
+;;      (goto name-cont)
+;;      (make-label :name name-cont))))
+
+;; ;; defproc will just place an implicit label to the whole block, so
+;; ;; the return goes to it
+;; (defproc fib (n -- n)
+;;   (push 1) (push 0) (call fib-general) return)
+
+;; (defproc fib-general (a b n -- n)
+;;   (dup 2)
+;;   (if (begin (dup 1) add (swap 2) (push -1) add rot recruse)
+;;       return))

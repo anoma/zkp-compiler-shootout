@@ -36,36 +36,34 @@
      (push 10) halt))
 
 (test tagbody-works-as-expected
-  (is (equal (name (label (car body))) :foo))
-  (is (equal (name (label (cadr body))) :other))
-  (is (equal (label (car body-entry-point-no-tag)) nil)))
+  (is (equal (name (label (car (blocks body)))) :foo))
+  (is (equal (name (label (cadr (blocks body)))) :other))
+  (is (equal (label (car (blocks body-entry-point-no-tag))) nil)))
 
 (test printer-works-as-expected
   (let ((*print-pretty* t))
     (is (equalp (format nil "~A" printer-test)
 "foo:
+  pop halt push 3
+bar:
+  pop halt push 3
+bar:
+  pop halt push 3
+bar:
+  pop halt push 3
+faz:
   pop
   halt
   push 3
-  bar:
-    pop halt push 3
-  bar:
-    pop halt push 3
-  bar:
-    pop halt push 3
-  faz:
-    pop
-    halt
-    push 3
-    pop
-    halt
-    push 3
-    pop
-    halt
-    push 3
-    pop
-    halt
-    push 3
-    pop
-    halt
-    push 3"))))
+  pop
+  halt
+  push 3
+  pop
+  halt
+  push 3
+  pop
+  halt
+  push 3
+  pop
+  halt
+  push 3"))))
