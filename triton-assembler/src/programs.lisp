@@ -19,25 +19,25 @@
   "STACK EFFECT: (n a b -- a b n)")
 
 (def fib-general
-  (tagbody
-   :fib-entry
-     ;; setup the fib accumulator values and call then return
-     (push 1)
-     (push 0)
-     (call :fib-body)
-     return
-   :fib-body
-     ;; dup the n from the top of the stack and check against 0
-     (dup 2)
-     skiz (call :fib-then)
-     (dup 2)
-     skiz recurse
-     return
-   :fib-then
-     ;; compute a + b, b and n -1
-     (dup 1) add (swap 2) (push -1) add
-     ;; move the stack back how we found it (n a b -- a b n)
-     rot return))
+  (block :fib-entry
+    (tagbody
+       ;; setup the fib accumulator values and call then return
+       (push 1)
+       (push 0)
+       (call fib-body)
+       return
+     :fib-body
+       ;; dup the n from the top of the stack and check against 0
+       (dup 2)
+       skiz (call fib-then)
+       (dup 2)
+       skiz recurse
+       return
+     :fib-then
+       ;; compute a + b, b and n -1
+       (dup 1) add (swap 2) (push -1) add
+       ;; move the stack back how we found it (n a b -- a b n)
+       rot return)))
 
 (def program
   (make-program :program

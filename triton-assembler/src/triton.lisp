@@ -26,9 +26,27 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defmacro tagbody (&body code)
   "Creates jump tables for triton code. The idiomatic way to create
-blocks and labels."
-  `(begin
-    ,@(mapcar (lambda (x) (if (keywordp x) `(make-label :name ,x) x)) code)))
+blocks and labels.
+Labels are denoted by `keywords', and are called by the `symbol' name
+of the keyword in the current package.
+For example
+
+(tagbody
+    (call body)
+  :body
+    code-goes-here"
+
+  `(symbol-macrolet (,@(mapcar
+                         (lambda (x)
+                           `(,(intern (symbol-name x))
+                             ,(intern (symbol-name (gensym (symbol-name x)))
+                                      :keyword)))
+                         (remove-if-not #'keywordp code)))
+     (begin
+      ,@(mapcar (lambda (x) (if (keywordp x)
+                            `(make-label :name ,(intern (symbol-name x)))
+                            x))
+                code))))
 
 (-> block ((or keyword label) &rest (or list instructions)) tlabels)
 (defun block (label &rest instructions)
@@ -83,7 +101,9 @@ whether or not next instruction takes an argument.")
 
 (-> call (constant) opcode)
 (defun call (n)
-  "Push (o+2,d) to the jump stack, and jump to absolute address d"
+  "Push (o+2,d) to the jump stack, and jump to absolute address
+d. `call' is called with a keyword and symbols which represent
+keywords"
   (make-opcode :name :call :constant n))
 
 (def return (make-opcode :name :return)

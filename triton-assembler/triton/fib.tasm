@@ -1,7 +1,7 @@
 push 50 call fib-entry
 fib-entry:
-  push 1 push 0 call fib-body return
-fib-body:
-  dup 2 skiz call fib-then dup 2 skiz recurse return
-fib-then:
+  push 1 push 0 call fib-body0 return
+fib-body0:
+  dup 2 skiz call fib-then1 dup 2 skiz recurse return
+fib-then1:
   dup 1 add swap 2 push -1 add swap 2 swap 1 return

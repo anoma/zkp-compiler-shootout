@@ -38,4 +38,4 @@
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    ;; Trion VM Opcodes
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-   :halt :push :drop :add :skiz :teq))
+   :halt :push :drop :add :skiz :teq :call :return))
