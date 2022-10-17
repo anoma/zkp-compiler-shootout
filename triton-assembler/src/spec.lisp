@@ -59,22 +59,38 @@
          :type    keyword
          :accessor name
          :documentation "Name of the procedure")
-   (tlabels :initarg :blocks
-            :type    tlabels
+   (tlabels :initarg  :blocks
+            :type     tlabels
             :accessor tlabels
             :initform (make-labels)
-            :documentation "the labels of the procedure")))
+            :documentation "the labels of the procedure")
+   (adhoc :initarg :adhoc
+          :type    list
+          :accessor adhoc
+          :documentation "The adhoc procedures defined in the current procedure")))
 
 ;; another lens into the procedure
 (defmethod blocks ((proc procedure))
   (blocks (tlabels proc)))
+
+(defclass adhoc-procedure ()
+  ((blocks :initarg :blocks
+           :type     block-list
+           :accessor blocks))
+  (:documentation "An adhoc procedure defined in a call graph, used to
+be as calls that are defined on the fly that will be jumped out of,
+giving us the call graph of a function call."))
 
 ;; change the representation to get better speed, it's sad that we do
 ;; O(n) operations for this.
 (defclass tlabels ()
   ((blocks :initarg :blocks
            :type    block-list
-           :accessor blocks))
+           :accessor blocks)
+   (adhoc :initarg :adhoc
+          :type    list
+          :accessor adhoc
+          :documentation "The adhoc procedures defined in the current labels"))
   (:documentation "A series of Blocks in Miden code, may or may not be ordered"))
 
 (defclass block ()
