@@ -29,6 +29,6 @@ pub fn fib_iter(fib_number: u64) -> Miden {
         path: format!("../miden-assembler/miden/fib.masm"),
         name: format!("Miden: iter-{}", fib_number),
         advice: vec![],
-        input: vec![0, 1],
+        input: vec![fib_number],
     }
 }
