@@ -1,6 +1,0 @@
-begin
-  # Looks about 3 cyles every loop, since the repeat can be inlined away #
-  repeat.94
-    swap dup.1 add
-  end
-end

@@ -1,5 +1,0 @@
-begin
-  repeat.88
-     swap dup.1 add
-  end
-end
