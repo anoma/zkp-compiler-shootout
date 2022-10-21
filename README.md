@@ -13,7 +13,9 @@ If you would like your machine / framework / compilation strategy to be benchmar
 
 Results can be seen in the following files:
 
-- [BENCHMARKS.md](./BENCHMARKS.md)
+- [BENCHMARKS-x86.md](./BENCHMARKS-x86.md)
+  + The results rendered in a mark down table
+- [BENCHMARKS-arm64.md](./BENCHMARKS-arm64.md)
   + The results rendered in a mark down table
 - [anoma.github.io/zkp-compiler-shootout/](https://anoma.github.io/zkp-compiler-shootout/)
   + The results with graphs and standard deviations, means, etc.
