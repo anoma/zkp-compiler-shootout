@@ -1,0 +1,105 @@
+name: Build docs
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: write
+
+env:
+  GIT_LFS_SKIP_SMUDGE: 1
+
+concurrency:
+  group: ${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  benchmarks:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [zkp-arm64, zkp-x86]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Setup rust toolchain
+        uses: oxidecomputer/actions-rs_toolchain@ad3f86084a8a5acf2c09cb691421b31cf8af7a36
+        with:
+          override: true
+      - name: Install cargo tools
+        run: |
+          cargo install cargo-criterion | true
+          cargo install criterion-table | true
+      - name: Run benchmarks
+        run: make table
+      - name: Upload BENCHMARK.md
+        uses: actions/upload-artifact@v3
+        with:
+          name: benchmark-${{ matrix.os }}-${{ github.sha }}
+          path: BENCHMARKS.md
+      - name: Upload criterion report
+        uses: actions/upload-artifact@v3
+        with:
+          name: report-${{ matrix.os }}-${{ github.sha }}
+          path: shootout/target/criterion/reports
+
+  commit-benchmarks:
+    runs-on: [ubuntu-latest]
+    needs: [benchmarks]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Download BENCHMARK.md files
+        uses: actions/download-artifact@v3
+        with:
+          name: benchmark-zkp-arm64-${{ github.sha }}
+          path: arm64
+      - name: Download BENCHMARK.md files
+        uses: actions/download-artifact@v3
+        with:
+          name: benchmark-zkp-x86-${{ github.sha }}
+          path: x86
+      - name: Commit and push
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+          mv arm64/BENCHMARKS.md BENCHMARKS-arm64.md && rm -rf arm64
+          mv x86/BENCHMARKS.md BENCHMARKS-x86.md && rm -rf x86
+          git add BENCHMARKS-arm64.md BENCHMARKS-x86.md
+          git commit -m "ci: update benchmarks"
+          git push origin main
+
+  commit-reports:
+    runs-on: [ubuntu-latest]
+    needs: [benchmarks]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Checkout docs branch
+        run: git fetch --all && git checkout docs
+      - name: Download arm report
+        uses: actions/download-artifact@v3
+        with:
+          name: report-zkp-arm64-${{ github.sha }}
+          path: arm64
+      - name: Download x86 report
+        uses: actions/download-artifact@v3
+        with:
+          name: report-zkp-x86-${{ github.sha }}
+          path: x86
+      - name: Commit and push
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+          git describe --all
+          mv arm64 docs
+          mv x86 docs
+          git add -A
+          git commit -m "ci: update reports"
+          git push origin docs
