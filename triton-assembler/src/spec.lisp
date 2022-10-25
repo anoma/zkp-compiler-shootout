@@ -205,6 +205,7 @@ giving us the call graph of a function call."))
 ;; Helper functions to Cons a single instructions onto a structure
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
 (defgeneric cons-instruction (instruction place)
   (:documentation "Adds a given instruction to the front of the given place."))
 

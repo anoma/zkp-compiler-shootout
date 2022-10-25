@@ -11,6 +11,9 @@ risc0-build = "0.10"
 [dependencies]
 risc0-zkvm-guest = "0.10"
 sudoku-core = {path = "../../sudoku-core"}
+blake2      = "0.10.4"
+digest      = "0.10.5"
+typenum     = "1.15"
 
 [profile.release]
 debug = 1

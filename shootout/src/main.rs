@@ -48,12 +48,20 @@ pub fn bench_fib(c: &mut Criterion) {
     bench_zkp(c, String::from("fibonacci large"), to_bench_large);
 }
 
+pub fn bench_blake(c: &mut Criterion) {
+    let to_bench = vec![ZKP::Risc0(risc::blake2b(String::from(
+        "The quick brown fox jumps over the lazy dog",
+    )))];
+    bench_zkp(c, String::from("Blake"), to_bench);
+}
+
 pub fn benchmark(c: &mut Criterion) {
     // the receipt is of a minimal amount of time, so it doesn't
     // matter for testing. The code has problems if we don't include
     // it!
     bench_sudoku(c);
     bench_fib(c);
+    bench_blake(c);
 }
 
 criterion_group!(benches, benchmark);

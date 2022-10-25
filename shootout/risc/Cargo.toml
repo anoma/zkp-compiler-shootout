@@ -18,3 +18,8 @@ num-primes = "0.3.0"
 num-bigint = "0.4.3"
 num-traits = "0.2.15"
 sudoku-core = { path = "sudoku-core" }
+hex-literal = "0.3.4"
+# for debugging
+blake2      = "0.10.4"
+digest      = "0.10.5"
+typenum     = "1.15"

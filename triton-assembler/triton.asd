@@ -1,7 +1,7 @@
 (asdf:defsystem :triton
   :depends-on (:trivia :alexandria :serapeum)
   :version "0.0.1"
-  :description "A qucik and dirty Assembler for tritonVM"
+  :description "A quick and dirty Assembler for tritonVM"
   :author "Mariari"
   :license "MIT"
   :pathname "src/"
@@ -14,7 +14,6 @@
    (:file table    :depends-on (package spec))
    (:file programs :depends-on (package spec triton table)))
   :in-order-to ((asdf:test-op (asdf:test-op :triton/test))))
-
 
 (asdf:defsystem :triton/test
   :depends-on (:triton :fiveam)

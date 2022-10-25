@@ -1,5 +1,5 @@
-pub use risc::fib;
 use risc::Risc;
+pub use risc::{blake2b, fib};
 
 pub fn fib_fixed(name: String, method_id: &'static [u8], method_path: &'static str) -> Risc {
     Risc {
