@@ -32,3 +32,18 @@ pub fn fib_iter(fib_number: u64) -> Miden {
         input: vec![fib_number],
     }
 }
+
+pub fn blake3BrownFox() -> Miden {
+    Miden {
+        path: format!("../miden-assembler/miden/blake3.masm"),
+        name: format!("Miden: Library-quick brown fox"),
+        advice: vec![],
+        // Thank CL for
+        // (byte-array-to-32-bit-word-array
+        //      (babel:string-to-octets "The quick brown fox jumps over the lazy dog"))
+        input: vec![
+            543516756, 1667855729, 1919033451, 544110447, 544763750, 1886221674, 1986994291,
+            1948283493, 1814062440, 544832097, 6778724,
+        ],
+    }
+}

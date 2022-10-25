@@ -49,10 +49,12 @@ pub fn bench_fib(c: &mut Criterion) {
 }
 
 pub fn bench_blake(c: &mut Criterion) {
-    let to_bench = vec![ZKP::Risc0(risc::blake2b(String::from(
+    let to_bench_blake2 = vec![ZKP::Risc0(risc::blake2b(String::from(
         "The quick brown fox jumps over the lazy dog",
     )))];
-    bench_zkp(c, String::from("Blake"), to_bench);
+    let to_bench_blake3 = vec![ZKP::Miden(miden::blake3BrownFox())];
+    bench_zkp(c, String::from("Blake"), to_bench_blake2);
+    bench_zkp(c, String::from("Blake3"), to_bench_blake3);
 }
 
 pub fn benchmark(c: &mut Criterion) {

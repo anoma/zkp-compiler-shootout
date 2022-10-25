@@ -1,0 +1,8 @@
+use.std::crypto::hashes::blake3
+# use.std::crypto::hashes::sha256
+
+
+begin
+   exec.blake3::hash
+   # exec.sha256::hash
+end
