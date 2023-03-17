@@ -4,6 +4,7 @@ mod halo;
 mod miden;
 mod plonk;
 mod risc;
+mod triton;
 use ::risc::{FIB_FIFTY_ID, FIB_FIFTY_PATH, FIB_NINTY_TWO_ID, FIB_NINTY_TWO_PATH};
 use bench::*;
 ////////////////////////////////////////
@@ -14,6 +15,7 @@ use bench::*;
 
 pub fn bench_sudoku(c: &mut Criterion) {
     let to_bench = vec![
+        ZKP::Triton(triton::sudoku()),
         ZKP::Miden(miden::sudoku()),
         ZKP::Plonk(plonk::sudoku()),
         ZKP::Risc0(risc::sudoku()),
@@ -24,6 +26,8 @@ pub fn bench_sudoku(c: &mut Criterion) {
 
 pub fn bench_fib(c: &mut Criterion) {
     let to_bench = vec![
+        ZKP::Triton(triton::fib(50)),
+        ZKP::Triton(triton::fib(93)),
         ZKP::Miden(miden::fib_iter(93)),
         ZKP::Miden(miden::fib_fixed("92")),
         ZKP::Miden(miden::fib_fixed("50")),
@@ -40,9 +44,11 @@ pub fn bench_fib(c: &mut Criterion) {
             FIB_NINTY_TWO_PATH,
         )),
     ];
+    let fib_sequence_idx = 1000;
     let to_bench_large = vec![
-        ZKP::Miden(miden::fib_iter(1000)),
-        ZKP::Risc0(risc::fib(1000)),
+        ZKP::Triton(triton::fib(fib_sequence_idx)),
+        ZKP::Miden(miden::fib_iter(fib_sequence_idx)),
+        ZKP::Risc0(risc::fib(fib_sequence_idx as u32)),
     ];
     bench_zkp(c, String::from("fibonacci"), to_bench);
     bench_zkp(c, String::from("fibonacci large"), to_bench_large);
