@@ -4,7 +4,6 @@
 use blake2::{Blake2b512, Digest};
 use digest::generic_array::GenericArray;
 use risc0_zkvm::guest::env;
-use std::str;
 use std::string::String;
 use typenum::bit::{B0, B1};
 use typenum::uint::{UInt, UTerm};

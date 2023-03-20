@@ -103,7 +103,7 @@ pub fn prove<Z: ZeroKnowledge>(c: &mut Group, v: Z, name: String) {
     c.bench_function(name, |b| {
         b.iter_batched(
             || v.compile(),
-            |c| v.prove(&c),
+            |mut c| v.prove(&mut c),
             criterion::BatchSize::SmallInput,
         );
     });
@@ -113,11 +113,11 @@ pub fn verify<Z: ZeroKnowledge>(c: &mut Group, v: Z, name: String) {
     c.bench_function(name, |b| {
         b.iter_batched(
             || {
-                let circuit = v.compile();
-                let receipt = v.prove(&circuit);
+                let mut circuit = v.compile();
+                let receipt = v.prove(&mut circuit);
                 (circuit, receipt)
             },
-            |(c, p)| v.verify(p, &c),
+            |(mut c, p)| v.verify(p, &mut c),
             criterion::BatchSize::SmallInput,
         );
     });

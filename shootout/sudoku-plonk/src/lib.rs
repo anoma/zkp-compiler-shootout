@@ -132,10 +132,10 @@ impl zero_knowledge::ZeroKnowledge for SudokuCircuit<Fr, JubjubParameters> {
         (pp, res)
     }
 
-    fn prove(&self, (pp, (pk_p, _vk)): &Self::C) -> Self::R {
+    fn prove(&self, (pp, (pk_p, _vk)): &mut Self::C) -> Self::R {
         proof(&pp, pk_p).unwrap()
     }
-    fn verify(&self, (proof, pi): Self::R, (pp, (_pk_p, vk)): &Self::C) {
+    fn verify(&self, (proof, pi): Self::R, (pp, (_pk_p, vk)): &mut Self::C) {
         verify(vk, pi, &pp, proof).unwrap();
     }
 }
