@@ -2,8 +2,8 @@
 #![no_main]
 #![feature(slice_flatten)]
 
-use risc0_zkvm_guest::{env, sha};
-risc0_zkvm_guest::entry!(main);
+risc0_zkvm::guest::entry!(main);
+use risc0_zkvm::guest::env;
 
 pub fn main() {
     let number_to_compute: u32 = env::read();
