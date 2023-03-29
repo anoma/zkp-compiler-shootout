@@ -101,8 +101,8 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
           git describe --all
-          mv arm64 docs
-          mv x86 docs
+          [ -f arm64 ] && mv arm64 docs
+          [ -f x86 ] && mv x86 docs
           git add -A
           git commit -m "ci: update reports"
           git push origin docs
