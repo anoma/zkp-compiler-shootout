@@ -22,7 +22,7 @@ sudoku_halo2    = { path = "sudoku-halo2" }
 miden-interface = { path = "miden"}
 risc            = { path = "risc"}
 triton          = { path = "triton"}
-vampir_plonk    = { path = "vampir-plonk"}
+vampir-plonk    = { path = "vampir-plonk"}
 criterion       = "0.3"
 
 [profile.release]
