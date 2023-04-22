@@ -5,6 +5,7 @@ mod miden;
 mod plonk;
 mod risc;
 mod triton;
+mod vampir_plonk;
 use ::risc::{FIB_FIFTY_ID, FIB_FIFTY_PATH, FIB_NINTY_TWO_ID, FIB_NINTY_TWO_PATH};
 use bench::*;
 ////////////////////////////////////////
@@ -63,13 +64,19 @@ pub fn bench_blake(c: &mut Criterion) {
     bench_zkp(c, String::from("Blake3"), to_bench_blake3);
 }
 
+pub fn bench_vampir(c: &mut Criterion) {
+    let to_bench = vec! [ZKP::VampIR_Plonk(vampir_plonk::blake2s())];
+    bench_zkp(c, String::from("Blake2_abc"), to_bench);
+}
+
 pub fn benchmark(c: &mut Criterion) {
     // the receipt is of a minimal amount of time, so it doesn't
     // matter for testing. The code has problems if we don't include
     // it!
-    bench_sudoku(c);
-    bench_fib(c);
-    bench_blake(c);
+    //bench_sudoku(c);
+    //bench_fib(c);
+    //bench_blake(c);
+    bench_vampir(c);
 }
 
 criterion_group!(benches, benchmark);
