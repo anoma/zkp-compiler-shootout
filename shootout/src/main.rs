@@ -5,7 +5,7 @@ mod miden;
 mod plonk;
 mod risc;
 mod triton;
-mod vampir_plonk;
+mod vampir_p;
 use ::risc::{FIB_FIFTY_ID, FIB_FIFTY_PATH, FIB_NINTY_TWO_ID, FIB_NINTY_TWO_PATH};
 use bench::*;
 ////////////////////////////////////////
@@ -65,7 +65,7 @@ pub fn bench_blake(c: &mut Criterion) {
 }
 
 pub fn bench_vampir(c: &mut Criterion) {
-    let to_bench = vec! [ZKP::VampIR_Plonk(vampir_plonk::blake2s())];
+    let to_bench = vec! [ZKP::VampIR_Plonk(vampir_p::blake2s())];
     bench_zkp(c, String::from("Blake2_abc"), to_bench);
 }
 

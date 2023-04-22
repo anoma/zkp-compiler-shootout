@@ -18,7 +18,7 @@ pub enum ZKP {
     Risc0(risc::Risc),
     Plonk(sudoku_plonk::JubSudoku),
     Halo2(sudoku_halo2::sudoku::Circuit),
-    VampIR_Plonk(vampi_plonk::Blake2s),
+    VampIR_Plonk(vampir_plonk::Blake2s),
 }
 
 // Thus we offer this and much boilerplate instead.
