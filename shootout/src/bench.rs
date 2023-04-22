@@ -13,6 +13,7 @@ use zero_knowledge::ZeroKnowledge;
 // Please remove this when a better way is found.
 #[derive(Clone)]
 pub enum ZKP {
+    Triton(triton::Triton),
     Miden(miden_interface::Miden),
     Risc0(risc::Risc),
     Plonk(sudoku_plonk::JubSudoku),
@@ -45,6 +46,7 @@ fn call_bench(c: &mut Criterion, nam: String, programs: Vec<ZKP>, f: ZKPFn) -> V
 
 pub fn name(z: &ZKP) -> String {
     match z {
+        ZKP::Triton(t) => t.name(),
         ZKP::Miden(m) => m.name(),
         ZKP::Plonk(p) => p.name(),
         ZKP::Risc0(r) => r.name(),
@@ -57,6 +59,7 @@ type ZKPFn = fn(c: &mut Group, z: ZKP, name: String) -> ();
 
 pub fn compile_zkp(c: &mut Group, z: ZKP, name: String) {
     match z {
+        ZKP::Triton(t) => compile(c, t, name),
         ZKP::Miden(m) => compile(c, m, name),
         ZKP::Plonk(p) => compile(c, p, name),
         ZKP::Risc0(r) => compile(c, r, name),
@@ -67,6 +70,7 @@ pub fn compile_zkp(c: &mut Group, z: ZKP, name: String) {
 
 pub fn prove_zkp(c: &mut Group, z: ZKP, name: String) {
     match z {
+        ZKP::Triton(t) => prove(c, t, name),
         ZKP::Miden(m) => prove(c, m, name),
         ZKP::Plonk(p) => prove(c, p, name),
         ZKP::Risc0(r) => prove(c, r, name),
@@ -77,6 +81,7 @@ pub fn prove_zkp(c: &mut Group, z: ZKP, name: String) {
 
 pub fn verify_zkp(c: &mut Group, z: ZKP, name: String) {
     match z {
+        ZKP::Triton(t) => verify(c, t, name),
         ZKP::Miden(m) => verify(c, m, name),
         ZKP::Plonk(p) => verify(c, p, name),
         ZKP::Risc0(r) => verify(c, r, name),
@@ -87,6 +92,7 @@ pub fn verify_zkp(c: &mut Group, z: ZKP, name: String) {
 
 pub fn prove_and_verify_zkp(c: &mut Group, z: ZKP, name: String) {
     match z {
+        ZKP::Triton(t) => prove_and_verify(c, t, name),
         ZKP::Miden(m) => prove_and_verify(c, m, name),
         ZKP::Plonk(p) => prove_and_verify(c, p, name),
         ZKP::Risc0(r) => prove_and_verify(c, r, name),
@@ -109,7 +115,7 @@ pub fn prove<Z: ZeroKnowledge>(c: &mut Group, v: Z, name: String) {
     c.bench_function(name, |b| {
         b.iter_batched(
             || v.compile(),
-            |c| v.prove(&c),
+            |mut c| v.prove(&mut c),
             criterion::BatchSize::SmallInput,
         );
     });
@@ -119,11 +125,11 @@ pub fn verify<Z: ZeroKnowledge>(c: &mut Group, v: Z, name: String) {
     c.bench_function(name, |b| {
         b.iter_batched(
             || {
-                let circuit = v.compile();
-                let receipt = v.prove(&circuit);
+                let mut circuit = v.compile();
+                let receipt = v.prove(&mut circuit);
                 (circuit, receipt)
             },
-            |(c, p)| v.verify(p, &c),
+            |(mut c, p)| v.verify(p, &mut c),
             criterion::BatchSize::SmallInput,
         );
     });

@@ -22,12 +22,12 @@ impl zero_knowledge::ZeroKnowledge for Miden {
         compile(Path::new(&self.path)).unwrap()
     }
 
-    fn prove(&self, program : &Program) -> Self::R {
+    fn prove(&self, program : &mut Program) -> Self::R {
         let inputs = inputs(&self.input, &self.advice).unwrap();
         prove(program, &inputs).unwrap()
     }
 
-    fn verify(&self, receipt: Self::R, program: &Self::C) {
+    fn verify(&self, receipt: Self::R, program: &mut Self::C) {
         let (outputs, proof) = receipt;
         verify_from_start(&program, &outputs, proof, &self.input).unwrap();
     }

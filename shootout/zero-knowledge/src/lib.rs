@@ -5,11 +5,11 @@ pub trait ZeroKnowledge {
     type R;
     fn name(&self) -> String;
     fn compile(&self) -> Self::C;
-    fn prove(&self, setup: &Self::C) -> Self::R;
-    fn verify(&self, receipt: Self::R, program: &Self::C) -> ();
+    fn prove(&self, setup: &mut Self::C) -> Self::R;
+    fn verify(&self, receipt: Self::R, program: &mut Self::C) -> ();
     fn prove_and_verify(&self) -> () {
-        let circuit = self.compile();
-        let receipt = self.prove(&circuit);
-        self.verify(receipt, &circuit);
+        let mut circuit = self.compile();
+        let receipt = self.prove(&mut circuit);
+        self.verify(receipt, &mut circuit);
     }
 }

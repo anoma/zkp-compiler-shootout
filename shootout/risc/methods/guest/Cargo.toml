@@ -1,15 +1,15 @@
 [package]
 name = "methods-guest"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 [workspace]
 
 [build-dependencies]
-risc0-build = "0.10"
+risc0-build = "0.12"
 
 [dependencies]
-risc0-zkvm-guest = "0.10"
+risc0-zkvm = { version = "0.12", default-features = false, features = ["std"] }
 sudoku-core = {path = "../../sudoku-core"}
 blake2      = "0.10.4"
 digest      = "0.10.5"

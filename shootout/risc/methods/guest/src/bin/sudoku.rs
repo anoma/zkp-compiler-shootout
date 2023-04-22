@@ -2,17 +2,17 @@
 #![no_main]
 #![feature(slice_flatten)]
 
-use risc0_zkvm_guest::{env, sha};
+use risc0_zkvm::guest::{env, sha};
 use sudoku_core::Sudoku;
-risc0_zkvm_guest::entry!(main);
+risc0_zkvm::guest::entry!(main);
 
 pub fn main() {
-    let mut puzzle: Sudoku = env::read();
+    let puzzle: Sudoku = env::read();
 
     if !valid_solution(&puzzle) {
         panic!("invalid solution");
     } else {
-        let solution_hash = sha::digest_u8_slice(&puzzle.0.flatten());
+        let solution_hash = sha::digest(&puzzle.0.flatten());
         env::commit(&solution_hash);
     }
 }

@@ -85,21 +85,24 @@ jobs:
         run: git fetch --all && git checkout docs
       - name: Download arm report
         uses: actions/download-artifact@v3
+        if: always()
         with:
           name: report-zkp-arm64-${{ github.sha }}
           path: arm64
       - name: Download x86 report
+        if: always()
         uses: actions/download-artifact@v3
         with:
           name: report-zkp-x86-${{ github.sha }}
           path: x86
       - name: Commit and push
+        if: always()
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
           git describe --all
-          mv arm64 docs
-          mv x86 docs
+          [ -f arm64 ] && mv arm64 docs
+          [ -f x86 ] && mv x86 docs
           git add -A
           git commit -m "ci: update reports"
           git push origin docs

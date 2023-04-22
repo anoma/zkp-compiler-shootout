@@ -1,7 +1,7 @@
 use risc::Risc;
 pub use risc::{blake2b, fib};
 
-pub fn fib_fixed(name: String, method_id: &'static [u8], method_path: &'static str) -> Risc {
+pub fn fib_fixed(name: String, method_id: &'static str, method_path: &'static str) -> Risc {
     Risc {
         method_id,
         method_path,

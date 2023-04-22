@@ -2,7 +2,7 @@
 
 [package]
 name = "risc"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -10,9 +10,7 @@ edition = "2021"
 [dependencies]
 zero-knowledge = { path = "../zero-knowledge" }
 methods-fib = { path = "methods" }
-risc0-zkvm-core = "0.10"
-risc0-zkvm-host = "0.10"
-risc0-zkvm-serde = "0.10"
+risc0-zkvm = "0.12.0"
 serde = "1.0"
 num-primes = "0.3.0"
 num-bigint = "0.4.3"

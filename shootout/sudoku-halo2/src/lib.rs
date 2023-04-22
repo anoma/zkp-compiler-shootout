@@ -21,12 +21,12 @@ impl zero_knowledge::ZeroKnowledge for Circuit {
         (ProvingKey::build(), VerifyingKey::build())
     }
 
-    fn prove(&self, (pk,_vk): &Self::C) -> Self::R {
+    fn prove(&self, (pk,_vk): &mut Self::C) -> Self::R {
         let public_input = &[pallas::Base::from_u128(45 as u128); 27];
         Proof::create(&pk, self.clone(), &[public_input], &mut OsRng).unwrap()
     }
 
-    fn verify(&self, proof: Self::R, (_pk,vk): &Self::C) {
+    fn verify(&self, proof: Self::R, (_pk,vk): &mut Self::C) {
         let public_input = &[pallas::Base::from_u128(45 as u128); 27];
         proof.verify(&vk, &[public_input]).unwrap();
     }
