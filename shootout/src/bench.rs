@@ -17,6 +17,7 @@ pub enum ZKP {
     Risc0(risc::Risc),
     Plonk(sudoku_plonk::JubSudoku),
     Halo2(sudoku_halo2::sudoku::Circuit),
+    VampIR_Plonk(vampir_plonk::VampIRCircuit),
 }
 
 // Thus we offer this and much boilerplate instead.
@@ -48,6 +49,7 @@ pub fn name(z: &ZKP) -> String {
         ZKP::Plonk(p) => p.name(),
         ZKP::Risc0(r) => r.name(),
         ZKP::Halo2(h) => h.name(),
+        ZKP::VampIR_Plonk(vp) => vp.name(),
     }
 }
 
@@ -59,6 +61,7 @@ pub fn compile_zkp(c: &mut Group, z: ZKP, name: String) {
         ZKP::Plonk(p) => compile(c, p, name),
         ZKP::Risc0(r) => compile(c, r, name),
         ZKP::Halo2(h) => compile(c, h, name),
+        ZKP::VampIR_Plonk(vp) => compile(c, vp, name),
     }
 }
 
@@ -68,6 +71,7 @@ pub fn prove_zkp(c: &mut Group, z: ZKP, name: String) {
         ZKP::Plonk(p) => prove(c, p, name),
         ZKP::Risc0(r) => prove(c, r, name),
         ZKP::Halo2(h) => prove(c, h, name),
+        ZKP::VampIR_Plonk(vp) => prove(c, vp, name),
     }
 }
 
@@ -77,6 +81,7 @@ pub fn verify_zkp(c: &mut Group, z: ZKP, name: String) {
         ZKP::Plonk(p) => verify(c, p, name),
         ZKP::Risc0(r) => verify(c, r, name),
         ZKP::Halo2(h) => verify(c, h, name),
+        ZKP::VampIR_Plonk(vp) => verify(c, vp, name),
     }
 }
 
@@ -86,6 +91,7 @@ pub fn prove_and_verify_zkp(c: &mut Group, z: ZKP, name: String) {
         ZKP::Plonk(p) => prove_and_verify(c, p, name),
         ZKP::Risc0(r) => prove_and_verify(c, r, name),
         ZKP::Halo2(h) => prove_and_verify(c, h, name),
+        ZKP::VampIR_Plonk(vp) => prove_and_verify(c, vp, name),
     }
 }
 

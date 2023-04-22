@@ -4,6 +4,7 @@ mod halo;
 mod miden;
 mod plonk;
 mod risc;
+mod vampir_p;
 use ::risc::{FIB_FIFTY_ID, FIB_FIFTY_PATH, FIB_NINTY_TWO_ID, FIB_NINTY_TWO_PATH};
 use bench::*;
 ////////////////////////////////////////
@@ -18,6 +19,7 @@ pub fn bench_sudoku(c: &mut Criterion) {
         ZKP::Plonk(plonk::sudoku()),
         ZKP::Risc0(risc::sudoku()),
         ZKP::Halo2(halo::sudoku()),
+        ZKP::VampIR_Plonk(vampir_p::sudoku()),
     ];
     bench_zkp(c, String::from("Sudoku"), to_bench)
 }
@@ -49,9 +51,12 @@ pub fn bench_fib(c: &mut Criterion) {
 }
 
 pub fn bench_blake(c: &mut Criterion) {
-    let to_bench_blake2 = vec![ZKP::Risc0(risc::blake2b(String::from(
-        "The quick brown fox jumps over the lazy dog",
-    )))];
+    let to_bench_blake2 = vec![
+        ZKP::Risc0(risc::blake2b(String::from(
+        "abc", ))),
+        ZKP::Risc0(risc::blake2b(String::from("abc"))),
+        ZKP::VampIR_Plonk(vampir_p::blake2s()),
+    ];
     let to_bench_blake3 = vec![ZKP::Miden(miden::blake3BrownFox())];
     bench_zkp(c, String::from("Blake"), to_bench_blake2);
     bench_zkp(c, String::from("Blake3"), to_bench_blake3);

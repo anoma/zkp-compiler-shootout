@@ -5,6 +5,7 @@ exclude = [
         "sudoku-halo2",
         "miden",
         "risc",
+        "vampir-plonk",
         "zero-knowledge"
 ]
 
@@ -19,6 +20,7 @@ sudoku_plonk    = { path = "sudoku-plonk" }
 sudoku_halo2    = { path = "sudoku-halo2" }
 miden-interface = { path = "miden"}
 risc            = { path = "risc"}
+vampir-plonk    = { path = "vampir-plonk"}
 criterion       = "0.3"
 
 [profile.release]
