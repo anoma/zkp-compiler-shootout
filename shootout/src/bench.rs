@@ -12,13 +12,13 @@ use zero_knowledge::ZeroKnowledge;
 
 // Please remove this when a better way is found.
 #[derive(Clone)]
-pub enum ZKP {
+pub enum ZKP<'a> {
     Triton(triton::Triton),
     Miden(miden_interface::Miden),
     Risc0(risc::Risc),
     Plonk(sudoku_plonk::JubSudoku),
     Halo2(sudoku_halo2::sudoku::Circuit),
-    VampIR_Plonk(vampir_plonk::Blake2s),
+    VampIR_Plonk(vampir_plonk::Blake2sCircuit<'a>),
 }
 
 // Thus we offer this and much boilerplate instead.
@@ -33,7 +33,7 @@ pub fn bench_zkp(c: &mut Criterion, program_name: String, programs: Vec<ZKP>) {
 }
 
 // return the value as it moves, serves as a forth style move
-fn call_bench(c: &mut Criterion, nam: String, programs: Vec<ZKP>, f: ZKPFn) -> Vec<ZKP> {
+fn call_bench<'a>(c: &mut Criterion, nam: String, programs: Vec<ZKP<'a>>, f: ZKPFn) -> Vec<ZKP<'a>> {
     let g = &mut c.benchmark_group(nam);
     g.sample_size(20);
     programs.iter().for_each(|x| f(g, x.clone(), name(x)));
