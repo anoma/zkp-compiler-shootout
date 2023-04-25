@@ -7,6 +7,8 @@ use triton_vm::stark::*;
 use triton_vm::table::master_table::MasterBaseTable;
 use triton_vm::vm;
 use twenty_first::shared_math::b_field_element::BFieldElement;
+use twenty_first::shared_math::tip5::Tip5;
+use twenty_first::util_types::algebraic_hasher::AlgebraicHasher;
 
 #[derive(Clone)]
 pub struct Triton {
@@ -29,26 +31,19 @@ impl zero_knowledge::ZeroKnowledge for Triton {
     }
 
     fn prove(&self, program: &mut Self::C) -> Self::R {
-        let standard_input = self
-            .standard_input
-            .iter()
-            .map(|&x| BFieldElement::new(x))
-            .collect::<Vec<_>>();
-        let secret_input = self
-            .secret_input
-            .iter()
-            .map(|&x| BFieldElement::new(x))
-            .collect::<Vec<_>>();
-        let (aet, public_output, maybe_error) =
-            vm::simulate(&program, standard_input.clone(), secret_input);
+        let public_input = Self::u64s_to_bfes(&self.standard_input);
+        let secret_input = Self::u64s_to_bfes(&self.secret_input);
+
+        let (aet, public_output, maybe_error) = vm::simulate(program, public_input, secret_input);
         if let Some(error) = maybe_error {
             panic!("Simulation error: {}", error);
         }
+        let standard_output = Self::bfes_to_u64s(&public_output);
 
         let claim = Claim {
-            input: standard_input,
-            program: program.to_bwords(),
-            output: public_output.clone(),
+            input: self.standard_input.clone(),
+            program_digest: Tip5::hash(program),
+            output: standard_output,
             padded_height: MasterBaseTable::padded_height(&aet),
         };
 
@@ -65,5 +60,17 @@ impl zero_knowledge::ZeroKnowledge for Triton {
             panic!("Verification error: {error}");
         }
         assert!(verdict.unwrap());
+    }
+}
+
+impl Triton {
+    /// Convert a vector of u64s to a vector of base field elements, i.e., `BFieldElement`s.
+    pub fn u64s_to_bfes(input: &[u64]) -> Vec<BFieldElement> {
+        input.iter().map(|&x| BFieldElement::new(x)).collect::<Vec<_>>()
+    }
+
+    /// Convert a vector of base field elements, i.e., `BFieldElement`s, to a vector of u64s.
+    pub fn bfes_to_u64s(input: &[BFieldElement]) -> Vec<u64> {
+        input.iter().map(|&x| x.value()).collect::<Vec<_>>()
     }
 }
