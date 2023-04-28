@@ -53,7 +53,7 @@ impl zero_knowledge::ZeroKnowledge for VampIRCircuit {
 }
 
 pub fn setup() -> Result<UniversalParams<Bls12_381>, Error> {
-    Ok(PC::setup(1 << 19, None, &mut OsRng)
+    Ok(PC::setup(1 << 9, None, &mut OsRng)
         .map_err(to_pc_error::<BlsScalar, PC>)
         .expect("unable to setup polynomial commitment scheme public parameters"))
 }
