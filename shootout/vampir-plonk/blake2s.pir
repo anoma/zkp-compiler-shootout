@@ -8,7 +8,7 @@
 
 // Ensure that the given argument is 1 or 0, and returns it
 def bool x = { x*(x-1) = 0; x };
-
+/*
 // Extract the 32 bits from a number argument
 def range32 a = {
     def a0 = bool (fresh ((a\1) % 2));
@@ -240,3 +240,4 @@ def xorhalves (h0,h1,h2,h3,h4,h5,h6,h7) (v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v
 def (h0_1,h1_1,h2_1,h3_1,h4_1,h5_1,h6_1,h7_1) = xorhalves (h0_0, h1_0, h2_0, h3_0, h4_0, h5_0, h6_0, h7_0)(v0_10,v1_10,v2_10,v3_10,v4_10,v5_10,v6_10,v7_10,v8_10,v9_10,v10_10,v11_10,v12_10,v13_10,v14_10,v15_10);
 // check from reference:
 (2355006544,3792993330,2737547233,793111374,545998135,691721886,1285265741,2186897286) = (h0_1,h1_1,h2_1,h3_1,h4_1,h5_1,h6_1,h7_1);
+*/

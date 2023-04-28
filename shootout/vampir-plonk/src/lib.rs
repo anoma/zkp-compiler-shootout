@@ -22,24 +22,23 @@ use vamp_ir::util::prompt_inputs;
 
 type PC = SonicKZG10<Bls12_381, DensePolynomial<BlsScalar>>;
 
-static NAME: &'static str = "Vamp-IR zk-garage plonk: Blake2s";
-
 #[derive(Clone)]
-pub struct Blake2sCircuit<'a> {
-    pub path: &'a str,
+pub struct VampIRCircuit {
+    pub path: &'static str,
+    pub name: String,
 }
 
-impl zero_knowledge::ZeroKnowledge for Blake2sCircuit <'_>{
+impl zero_knowledge::ZeroKnowledge for VampIRCircuit {
 
     type C = (UniversalParams<Bls12_381>, PlonkModule<BlsScalar, JubJubParameters>,
               (ProverKey::<BlsScalar>, (VerifierKey::<BlsScalar, PC>, Vec<usize>)));
     type R = (Proof<BlsScalar, PC>, PublicInputs<BlsScalar>);
 
-    fn name(&self) -> String { NAME.to_string() }
+    fn name(&self) -> String { self.name.clone() }
 
     fn compile(&self) -> Self::C {
         let pp = setup().unwrap();
-        let mut circuit = vamp_compile();
+        let mut circuit = vamp_compile(self.clone());
         let (pk_p, (vk_0, vk_1)) = key_gen(&pp, &mut circuit);
         (pp, circuit, (pk_p, (vk_0, vk_1)))
     }
@@ -59,12 +58,10 @@ pub fn setup() -> Result<UniversalParams<Bls12_381>, Error> {
         .expect("unable to setup polynomial commitment scheme public parameters"))
 }
 
-pub fn vamp_compile() -> PlonkModule<BlsScalar, JubJubParameters> {
-    let blake2s_circuit = Blake2sCircuit { path: "vampir-plonk/blake2s.pir" };
-    let unparsed_file = fs::read_to_string(blake2s_circuit.path).expect("cannot read file");
+pub fn vamp_compile(vamp_circuit: VampIRCircuit) -> PlonkModule<BlsScalar, JubJubParameters> {
+    let unparsed_file = fs::read_to_string(vamp_circuit.path).expect("cannot read file");
     let module = Module::parse(&unparsed_file).unwrap();
     let module_3ac = compile(module, &PrimeFieldOps::<BlsScalar>::default());
-
     let module_rc = Rc::new(module_3ac);
     PlonkModule::<BlsScalar, JubJubParameters>::new(module_rc)
 }
