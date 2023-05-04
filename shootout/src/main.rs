@@ -21,6 +21,7 @@ pub fn bench_sudoku(c: &mut Criterion) {
         ZKP::Plonk(plonk::sudoku()),
         ZKP::Risc0(risc::sudoku()),
         ZKP::Halo2(halo::sudoku()),
+        ZKP::VampIR_Plonk(vampir_p::sudoku())
     ];
     bench_zkp(c, String::from("Sudoku"), to_bench)
 }
@@ -71,8 +72,8 @@ pub fn benchmark(c: &mut Criterion) {
     // matter for testing. The code has problems if we don't include
     // it!
     bench_sudoku(c);
-    bench_fib(c);
-    bench_blake(c);
+    //bench_fib(c);
+    //bench_blake(c);
 }
 
 criterion_group!(benches, benchmark);
