@@ -16,9 +16,13 @@ edition = "2021"
 
 [features]
 
-default = ["sudoku", "fib", "blake", "miden"]
+default = ["all_tests", "all_steps"]
+
+all = ["all_tests", "all_steps", "all_compilers"]
 
 # Compiler features
+all_compilers = ["miden", "triton", "halo2", "plonk", "risc"]
+
 miden  = ["dep:miden-interface"]
 triton = ["dep:triton"]
 halo2  = ["dep:sudoku_halo2"]
@@ -27,9 +31,20 @@ risc   = ["dep:risc"]
 
 # Test Features
 
+all_tests = ["sudoku", "fib", "blake"]
+
 sudoku = []
 fib    = []
 blake  = []
+
+# Steps of the Benchmarks
+
+all_steps = ["compile", "prove", "verify", "prove_and_verify"]
+
+compile = []
+prove   = []
+verify  = []
+prove_and_verify = []
 
 [dependencies]
 zero-knowledge  = { path = "zero-knowledge" }

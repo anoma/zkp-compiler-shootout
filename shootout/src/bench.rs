@@ -34,9 +34,13 @@ pub enum ZKP {
 pub fn bench_zkp(c: &mut Criterion, program_name: String, programs: Vec<ZKP>) {
     // we are doing it this way to avoid multiple mutable references at once
     let p = programs;
+    #[cfg(feature = "compile")]
     let p = call_bench(c, format!("{}: compile", program_name), p, compile_zkp);
+    #[cfg(feature = "prove")]
     let p = call_bench(c, format!("{}: prove", program_name), p, prove_zkp);
+    #[cfg(feature = "verify")]
     let p = call_bench(c, format!("{}: verify", program_name), p, verify_zkp);
+    #[cfg(feature = "prove_and_verify")]
     call_bench(c, format!("{}:", program_name), p, prove_and_verify_zkp);
 }
 

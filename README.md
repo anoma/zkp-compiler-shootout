@@ -9,7 +9,9 @@ Currently we are testing the following Zero Knowledge machines
 3. [Plonk](https://github.com/ZK-Garage/plonk)
 4. [Halo2](https://github.com/zcash/halo2)
 
-If you would like your machine / framework / compilation strategy to be benchmarked against the standard suite, please submit a PR! You can find instructions below.
+If you would like your machine / framework / compilation strategy to
+be benchmarked against the standard suite, please submit a PR! You can
+find instructions below.
 
 Results can be seen in the following files:
 
@@ -30,8 +32,8 @@ file](./shootout/notes.org).
 
 There are two commands for producing results
 
-1. `make table`
-2. `make bench`
+1. `make table arg="desired_backend"`
+2. `make bench arg="desired_backend`
 
 It is recommended to run `make table`. However it requires two
 external dependencies
@@ -46,16 +48,83 @@ cargo install cargo-criterion
 cargo install criterion-table
 ```
 
+
+
+
 Make sure cargo packages are on your path.
 
 Either way, the results can be seen
 
-1. run `make table`
-   - or `make bench`, if one does not wish to install the cargo packages
+1. run `make table arg="desired_flags"`
+   - or `make bench arg="desired_flags`, if one does not wish to install the cargo packages
 2. sit back and watch your CPU spin
 3. The HTML results should be in `./shootout/target/criterion/reports/index.html`
 4. If `make table` was run, the updated benchmark results should be
    seen in `./BENCHMARKS.md`
+
+
+## Benchmark Flags
+
+In order to be effective for developers and users wishing to verify
+results, we do not enable all benchmarks by default.
+
+The following class of flags are had
+
+1. Compiler flags
+2. Test flags
+3. Step Flags
+
+
+All `Step flags` and `Test flags` are enabled by default. ALl `Step flags`
+on may be too slow for your workflow.
+
+| Parent Flag   | Flag             | default status |
+|:--------------|:-----------------|:---------------|
+| all           | all              | off            |
+| all_compilers | miden            | off            |
+| all_compilers | triton           | off            |
+| all_compilers | halo2            | off            |
+| all_compilers | plonk            | off            |
+| all_compilers | risc             | off            |
+| all_tests     | sudoku           | on             |
+| all_tests     | fib              | on             |
+| all_tests     | blake            | on             |
+| all_steps     | compile          | on             |
+| all_steps     | prove            | on             |
+| all_steps     | verify           | on             |
+| all_steps     | prove_and_verify | on             |
+
+
+So if one wants to run everything one can run
+
+```bash
+make table arg="all"
+```
+
+In fact if one is fine with the default `on` features then one just
+needs to run
+
+```bash
+make table arg="miden"
+make bench arg="miden"
+```
+
+where you can replace miden with any compiler_flag, such as `risc`.
+
+However if one wishes to turn off a feature like various `steps` or
+`tests`
+
+then one has to run a command like
+
+```bash
+cd shootout
+
+cargo bench --no-default-features --features "all_tests prove_and_verify miden"
+```
+
+Here, we turn off all the steps, running only the `prove_and_verify`
+part of the benchmark.
+
 
 ## Contributing
 
@@ -102,15 +171,21 @@ For creating a new backend to test, one will have to touch
 tested. Since the code added is just a way to get around Rust's lack
 of typing of existentials this should be an easy task.
 
+One should also add a feature flag for one's compiler in `Cargo.toml`.
+
 Finally, in [`main.rs`](shootout/src/main.rs) we hook up our tests to
 a certain benchmark we care about.
 
 ```rust
 pub fn bench_sudoku(c: &mut Criterion) {
     let to_bench = vec![
+        #[cfg(feature = "miden")]
         ZKP::Miden(miden::sudoku()),
+        #[cfg(feature = "plonk")]
         ZKP::Plonk(plonk::sudoku()),
+        #[cfg(feature = "risc")]
         ZKP::Risc0(risc::sudoku()),
+        #[cfg(feature = "halo2")]
         ZKP::Halo2(halo::sudoku()),
     ];
     bench_zkp(c, String::from("Sudoku"), to_bench)
