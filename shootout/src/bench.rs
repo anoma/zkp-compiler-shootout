@@ -26,6 +26,8 @@ pub enum ZKP {
     Plonk(sudoku_plonk::JubSudoku),
     #[cfg(feature = "halo2")]
     Halo2(sudoku_halo2::sudoku::Circuit),
+    #[cfg(feature = "vampir")]
+    VampIR_Plonk(vampir_plonk::VampIRCircuit),
     Default,
 }
 
@@ -68,6 +70,8 @@ pub fn name(z: &ZKP) -> String {
         ZKP::Risc0(r) => r.name(),
         #[cfg(feature = "halo2")]
         ZKP::Halo2(h) => h.name(),
+        #[cfg(feature = "vampir")]
+        ZKP::VampIR_Plonk(vp) => vp.name(),
         ZKP::Default => "Error".to_string(),
     }
 }
@@ -86,6 +90,8 @@ pub fn compile_zkp(c: &mut Group, z: ZKP, name: String) {
         ZKP::Risc0(r) => compile(c, r, name),
         #[cfg(feature = "halo2")]
         ZKP::Halo2(h) => compile(c, h, name),
+        #[cfg(feature = "vampir")]
+        ZKP::VampIR_Plonk(vp) => compile(c, vp, name),
         ZKP::Default => (),
     }
 }
@@ -102,6 +108,8 @@ pub fn prove_zkp(c: &mut Group, z: ZKP, name: String) {
         ZKP::Risc0(r) => prove(c, r, name),
         #[cfg(feature = "halo2")]
         ZKP::Halo2(h) => prove(c, h, name),
+        #[cfg(feature = "vampir")]
+        ZKP::VampIR_Plonk(vp) => prove(c, vp, name),
         ZKP::Default => (),
     }
 }
@@ -118,6 +126,8 @@ pub fn verify_zkp(c: &mut Group, z: ZKP, name: String) {
         ZKP::Risc0(r) => verify(c, r, name),
         #[cfg(feature = "halo2")]
         ZKP::Halo2(h) => verify(c, h, name),
+        #[cfg(feature = "vampir")]
+        ZKP::VampIR_Plonk(vp) => verify(c, vp, name),
         ZKP::Default => (),
     }
 }
@@ -134,6 +144,8 @@ pub fn prove_and_verify_zkp(c: &mut Group, z: ZKP, name: String) {
         ZKP::Risc0(r) => prove_and_verify(c, r, name),
         #[cfg(feature = "halo2")]
         ZKP::Halo2(h) => prove_and_verify(c, h, name),
+        #[cfg(feature = "vampir")]
+        ZKP::VampIR_Plonk(vp) => prove_and_verify(c, vp, name),
         ZKP::Default => (),
     }
 }

@@ -6,6 +6,7 @@ exclude = [
         "triton",
         "miden",
         "risc",
+        "vampir-plonk",
         "zero-knowledge"
 ]
 
@@ -28,6 +29,7 @@ triton = ["dep:triton"]
 halo2  = ["dep:sudoku_halo2"]
 plonk  = ["dep:sudoku_plonk"]
 risc   = ["dep:risc"]
+vampir = ["dep:vampir-plonk"] # not in all compilers due to triming degree
 
 # Test Features
 
@@ -48,13 +50,17 @@ prove_and_verify = []
 
 [dependencies]
 zero-knowledge  = { path = "zero-knowledge" }
+
 criterion       = "0.3"
 
-sudoku_plonk    = { path = "sudoku-plonk"  , optional = true }
-sudoku_halo2    = { path = "sudoku-halo2"  , optional = true }
-miden-interface = { path = "miden"         , optional = true }
-risc            = { path = "risc"          , optional = true }
-triton          = { path = "triton"        , optional = true }
+
+
+sudoku_plonk    = { path = "sudoku-plonk" , optional = true }
+sudoku_halo2    = { path = "sudoku-halo2" , optional = true }
+miden-interface = { path = "miden"        , optional = true }
+risc            = { path = "risc"         , optional = true }
+triton          = { path = "triton"       , optional = true }
+vampir-plonk    = { path = "vampir-plonk" , optional = true }
 
 [profile.release]
 debug = 1

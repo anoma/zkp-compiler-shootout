@@ -86,6 +86,7 @@ on may be too slow for your workflow.
 | all_compilers | halo2            | off            |
 | all_compilers | plonk            | off            |
 | all_compilers | risc             | off            |
+| all_compilers | vampir           | off            |
 | all_tests     | sudoku           | on             |
 | all_tests     | fib              | on             |
 | all_tests     | blake            | on             |
