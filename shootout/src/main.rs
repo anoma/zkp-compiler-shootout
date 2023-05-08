@@ -1,10 +1,16 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 mod bench;
+#[cfg(feature = "halo2")]
 mod halo;
+#[cfg(feature = "miden")]
 mod miden;
+#[cfg(feature = "plonk")]
 mod plonk;
+#[cfg(feature = "risc")]
 mod risc;
+#[cfg(feature = "triton")]
 mod triton;
+#[cfg(feature = "risc")]
 use ::risc::{FIB_FIFTY_ID, FIB_FIFTY_PATH, FIB_NINTY_TWO_ID, FIB_NINTY_TWO_PATH};
 use bench::*;
 ////////////////////////////////////////
@@ -15,10 +21,15 @@ use bench::*;
 
 pub fn bench_sudoku(c: &mut Criterion) {
     let to_bench = vec![
+        #[cfg(feature = "triton")]
         ZKP::Triton(triton::sudoku()),
+        #[cfg(feature = "miden")]
         ZKP::Miden(miden::sudoku()),
+        #[cfg(feature = "plonk")]
         ZKP::Plonk(plonk::sudoku()),
+        #[cfg(feature = "risc")]
         ZKP::Risc0(risc::sudoku()),
+        #[cfg(feature = "halo2")]
         ZKP::Halo2(halo::sudoku()),
     ];
     bench_zkp(c, String::from("Sudoku"), to_bench)
@@ -26,18 +37,27 @@ pub fn bench_sudoku(c: &mut Criterion) {
 
 pub fn bench_fib(c: &mut Criterion) {
     let to_bench = vec![
+        #[cfg(feature = "triton")]
         ZKP::Triton(triton::fib(50)),
+        #[cfg(feature = "triton")]
         ZKP::Triton(triton::fib(93)),
+        #[cfg(feature = "miden")]
         ZKP::Miden(miden::fib_iter(93)),
+        #[cfg(feature = "miden")]
         ZKP::Miden(miden::fib_fixed("92")),
+        #[cfg(feature = "miden")]
         ZKP::Miden(miden::fib_fixed("50")),
+        #[cfg(feature = "risc")]
         ZKP::Risc0(risc::fib(93)),
+        #[cfg(feature = "risc")]
         ZKP::Risc0(risc::fib(50)),
+        #[cfg(feature = "risc")]
         ZKP::Risc0(risc::fib_fixed(
             String::from("50"),
             FIB_FIFTY_ID,
             FIB_FIFTY_PATH,
         )),
+        #[cfg(feature = "risc")]
         ZKP::Risc0(risc::fib_fixed(
             String::from("92"),
             FIB_NINTY_TWO_ID,
@@ -46,8 +66,11 @@ pub fn bench_fib(c: &mut Criterion) {
     ];
     let fib_sequence_idx = 1000;
     let to_bench_large = vec![
+        #[cfg(feature = "triton")]
         ZKP::Triton(triton::fib(fib_sequence_idx)),
+        #[cfg(feature = "miden")]
         ZKP::Miden(miden::fib_iter(fib_sequence_idx)),
+        #[cfg(feature = "risc")]
         ZKP::Risc0(risc::fib(fib_sequence_idx as u32)),
     ];
     bench_zkp(c, String::from("fibonacci"), to_bench);
@@ -55,10 +78,15 @@ pub fn bench_fib(c: &mut Criterion) {
 }
 
 pub fn bench_blake(c: &mut Criterion) {
-    let to_bench_blake2 = vec![ZKP::Risc0(risc::blake2b(String::from(
-        "The quick brown fox jumps over the lazy dog",
+    let to_bench_blake2 = vec![
+        #[cfg(feature = "risc")]
+        ZKP::Risc0(risc::blake2b(String::from(
+            "The quick brown fox jumps over the lazy dog",
     )))];
-    let to_bench_blake3 = vec![ZKP::Miden(miden::blake3BrownFox())];
+    let to_bench_blake3 = vec![
+        #[cfg(feature = "miden")]
+        ZKP::Miden(miden::blake3BrownFox())
+    ];
     bench_zkp(c, String::from("Blake"), to_bench_blake2);
     bench_zkp(c, String::from("Blake3"), to_bench_blake3);
 }

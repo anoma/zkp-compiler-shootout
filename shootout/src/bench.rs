@@ -1,23 +1,32 @@
 use criterion::measurement::WallTime;
 use criterion::{BenchmarkGroup, Criterion};
 use zero_knowledge::ZeroKnowledge;
-// Rust lacks existential types, and it seems downcasting things is
-// also a pain...
+
+// Rust lacks existential types with associated types, and it seems
+// downcasting things is also a pain...
+//
 // _So we can't express the following_
 //
-// Vec<dyn ZeroKnowledge> or Vec<Box<impl ZeroKnowledge>>
+// Vec<Box<dyn ZeroKnowledge>>
 //
-// as it really wants the generics to be added, or for `impl` doesn't
-// work for let values.
+// If we didn't have associated types this would work fine.
+// as it really wants the associated types to be added, or for `impl`
+// doesn't work for let values.
 
 // Please remove this when a better way is found.
 #[derive(Clone)]
 pub enum ZKP {
+    #[cfg(feature = "triton")]
     Triton(triton::Triton),
+    #[cfg(feature = "miden")]
     Miden(miden_interface::Miden),
+    #[cfg(feature = "risc")]
     Risc0(risc::Risc),
+    #[cfg(feature = "plonk")]
     Plonk(sudoku_plonk::JubSudoku),
+    #[cfg(feature = "halo2")]
     Halo2(sudoku_halo2::sudoku::Circuit),
+    Default,
 }
 
 // Thus we offer this and much boilerplate instead.
@@ -45,11 +54,17 @@ fn call_bench(c: &mut Criterion, nam: String, programs: Vec<ZKP>, f: ZKPFn) -> V
 
 pub fn name(z: &ZKP) -> String {
     match z {
+        #[cfg(feature = "triton")]
         ZKP::Triton(t) => t.name(),
+        #[cfg(feature = "miden")]
         ZKP::Miden(m) => m.name(),
+        #[cfg(feature = "plonk")]
         ZKP::Plonk(p) => p.name(),
+        #[cfg(feature = "risc")]
         ZKP::Risc0(r) => r.name(),
+        #[cfg(feature = "halo2")]
         ZKP::Halo2(h) => h.name(),
+        ZKP::Default => "Error".to_string(),
     }
 }
 
@@ -57,41 +72,65 @@ type ZKPFn = fn(c: &mut Group, z: ZKP, name: String) -> ();
 
 pub fn compile_zkp(c: &mut Group, z: ZKP, name: String) {
     match z {
+        #[cfg(feature = "triton")]
         ZKP::Triton(t) => compile(c, t, name),
+        #[cfg(feature = "miden")]
         ZKP::Miden(m) => compile(c, m, name),
+        #[cfg(feature = "plonk")]
         ZKP::Plonk(p) => compile(c, p, name),
+        #[cfg(feature = "risc")]
         ZKP::Risc0(r) => compile(c, r, name),
+        #[cfg(feature = "halo2")]
         ZKP::Halo2(h) => compile(c, h, name),
+        ZKP::Default => (),
     }
 }
 
 pub fn prove_zkp(c: &mut Group, z: ZKP, name: String) {
     match z {
+        #[cfg(feature = "triton")]
         ZKP::Triton(t) => prove(c, t, name),
+        #[cfg(feature = "miden")]
         ZKP::Miden(m) => prove(c, m, name),
+        #[cfg(feature = "plonk")]
         ZKP::Plonk(p) => prove(c, p, name),
+        #[cfg(feature = "risc")]
         ZKP::Risc0(r) => prove(c, r, name),
+        #[cfg(feature = "halo2")]
         ZKP::Halo2(h) => prove(c, h, name),
+        ZKP::Default => (),
     }
 }
 
 pub fn verify_zkp(c: &mut Group, z: ZKP, name: String) {
     match z {
+        #[cfg(feature = "triton")]
         ZKP::Triton(t) => verify(c, t, name),
+        #[cfg(feature = "miden")]
         ZKP::Miden(m) => verify(c, m, name),
+        #[cfg(feature = "plonk")]
         ZKP::Plonk(p) => verify(c, p, name),
+        #[cfg(feature = "risc")]
         ZKP::Risc0(r) => verify(c, r, name),
+        #[cfg(feature = "halo2")]
         ZKP::Halo2(h) => verify(c, h, name),
+        ZKP::Default => (),
     }
 }
 
 pub fn prove_and_verify_zkp(c: &mut Group, z: ZKP, name: String) {
     match z {
+        #[cfg(feature = "triton")]
         ZKP::Triton(t) => prove_and_verify(c, t, name),
+        #[cfg(feature = "miden")]
         ZKP::Miden(m) => prove_and_verify(c, m, name),
+        #[cfg(feature = "plonk")]
         ZKP::Plonk(p) => prove_and_verify(c, p, name),
+        #[cfg(feature = "risc")]
         ZKP::Risc0(r) => prove_and_verify(c, r, name),
+        #[cfg(feature = "halo2")]
         ZKP::Halo2(h) => prove_and_verify(c, h, name),
+        ZKP::Default => (),
     }
 }
 
