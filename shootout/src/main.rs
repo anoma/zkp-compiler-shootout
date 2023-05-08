@@ -19,6 +19,7 @@ use bench::*;
 // and it'll be included in the results!
 ////////////////////////////////////////
 
+#[cfg(feature = "sudoku")]
 pub fn bench_sudoku(c: &mut Criterion) {
     let to_bench = vec![
         #[cfg(feature = "triton")]
@@ -35,6 +36,7 @@ pub fn bench_sudoku(c: &mut Criterion) {
     bench_zkp(c, String::from("Sudoku"), to_bench)
 }
 
+#[cfg(feature = "fib")]
 pub fn bench_fib(c: &mut Criterion) {
     let to_bench = vec![
         #[cfg(feature = "triton")]
@@ -77,6 +79,7 @@ pub fn bench_fib(c: &mut Criterion) {
     bench_zkp(c, String::from("fibonacci large"), to_bench_large);
 }
 
+#[cfg(feature = "blake")]
 pub fn bench_blake(c: &mut Criterion) {
     let to_bench_blake2 = vec![
         #[cfg(feature = "risc")]
@@ -95,8 +98,11 @@ pub fn benchmark(c: &mut Criterion) {
     // the receipt is of a minimal amount of time, so it doesn't
     // matter for testing. The code has problems if we don't include
     // it!
+    #[cfg(feature = "sudoku")]
     bench_sudoku(c);
+    #[cfg(feature = "fib")]
     bench_fib(c);
+    #[cfg(feature = "blake")]
     bench_blake(c);
 }
 

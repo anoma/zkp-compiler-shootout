@@ -16,9 +16,7 @@ edition = "2021"
 
 [features]
 
-default = ["miden"]
-
-
+default = ["sudoku", "fib", "blake", "miden"]
 
 # Compiler features
 miden  = ["dep:miden-interface"]
@@ -27,7 +25,11 @@ halo2  = ["dep:sudoku_halo2"]
 plonk  = ["dep:sudoku_plonk"]
 risc   = ["dep:risc"]
 
+# Test Features
 
+sudoku = []
+fib    = []
+blake  = []
 
 [dependencies]
 zero-knowledge  = { path = "zero-knowledge" }
