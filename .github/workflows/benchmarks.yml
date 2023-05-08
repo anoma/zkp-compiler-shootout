@@ -37,7 +37,7 @@ jobs:
           cargo install cargo-criterion | true
           cargo install criterion-table | true
       - name: Run benchmarks
-        run: make table
+        run: make all
       - name: Upload BENCHMARK.md
         uses: actions/upload-artifact@v3
         with:

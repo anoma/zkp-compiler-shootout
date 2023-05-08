@@ -14,14 +14,47 @@ name = "shootout"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+
+default = ["all_tests", "all_steps"]
+
+all = ["all_tests", "all_steps", "all_compilers"]
+
+# Compiler features
+all_compilers = ["miden", "triton", "halo2", "plonk", "risc"]
+
+miden  = ["dep:miden-interface"]
+triton = ["dep:triton"]
+halo2  = ["dep:sudoku_halo2"]
+plonk  = ["dep:sudoku_plonk"]
+risc   = ["dep:risc"]
+
+# Test Features
+
+all_tests = ["sudoku", "fib", "blake"]
+
+sudoku = []
+fib    = []
+blake  = []
+
+# Steps of the Benchmarks
+
+all_steps = ["compile", "prove", "verify", "prove_and_verify"]
+
+compile = []
+prove   = []
+verify  = []
+prove_and_verify = []
+
 [dependencies]
 zero-knowledge  = { path = "zero-knowledge" }
-sudoku_plonk    = { path = "sudoku-plonk" }
-sudoku_halo2    = { path = "sudoku-halo2" }
-miden-interface = { path = "miden"}
-risc            = { path = "risc"}
-triton          = { path = "triton"}
 criterion       = "0.3"
+
+sudoku_plonk    = { path = "sudoku-plonk"  , optional = true }
+sudoku_halo2    = { path = "sudoku-halo2"  , optional = true }
+miden-interface = { path = "miden"         , optional = true }
+risc            = { path = "risc"          , optional = true }
+triton          = { path = "triton"        , optional = true }
 
 [profile.release]
 debug = 1
