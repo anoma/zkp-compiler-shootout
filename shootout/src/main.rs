@@ -87,8 +87,7 @@ pub fn bench_fib(c: &mut Criterion) {
 pub fn bench_blake(c: &mut Criterion) {
     let to_bench_blake2 = vec![
         #[cfg(feature = "risc")]
-        ZKP::Risc0(risc::blake2b(String::from(
-            "The quick brown fox jumps over the lazy dog"))),
+        ZKP::Risc0(risc::blake2b(String::from("abc"))),
         #[cfg(feature = "vampir")]
         ZKP::VampIR_Plonk(vampir_p::blake2s()),
     ];
