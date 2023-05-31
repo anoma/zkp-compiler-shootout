@@ -26,6 +26,7 @@ type PC = SonicKZG10<Bls12_381, DensePolynomial<BlsScalar>>;
 pub struct VampIRCircuit {
     pub path: &'static str,
     pub name: String,
+    pub m : u64,
 }
 
 impl zero_knowledge::ZeroKnowledge for VampIRCircuit {
@@ -44,7 +45,8 @@ impl zero_knowledge::ZeroKnowledge for VampIRCircuit {
     }
 
     fn compile(&self) -> Self::C {
-        let pp = setup().unwrap();
+        let m = self.m;
+        let pp = setup(&m).unwrap();
         let mut circuit = vamp_compile(self.clone());
         let (pk_p, (vk_0, vk_1)) = key_gen(&pp, &mut circuit);
         (pp, circuit, (pk_p, (vk_0, vk_1)))
@@ -59,8 +61,8 @@ impl zero_knowledge::ZeroKnowledge for VampIRCircuit {
     }
 }
 
-pub fn setup() -> Result<UniversalParams<Bls12_381>, Error> {
-    Ok(PC::setup(1 << 9, None, &mut OsRng)
+pub fn setup(m: &u64) -> Result<UniversalParams<Bls12_381>, Error> {
+    Ok(PC::setup(1 << m, None, &mut OsRng)
         .map_err(to_pc_error::<BlsScalar, PC>)
         .expect("unable to setup polynomial commitment scheme public parameters"))
 }

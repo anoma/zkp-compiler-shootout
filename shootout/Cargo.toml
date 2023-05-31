@@ -22,14 +22,14 @@ default = ["all_tests", "all_steps"]
 all = ["all_tests", "all_steps", "all_compilers"]
 
 # Compiler features
-all_compilers = ["miden", "triton", "halo2", "plonk", "risc"]
+all_compilers = ["miden", "triton", "halo2", "plonk", "risc", "vampir"]
 
 miden  = ["dep:miden-interface"]
 triton = ["dep:triton"]
 halo2  = ["dep:sudoku_halo2"]
 plonk  = ["dep:sudoku_plonk"]
 risc   = ["dep:risc"]
-vampir = ["dep:vampir-plonk"] # not in all compilers due to triming degree
+vampir = ["dep:vampir-plonk"]
 
 # Test Features
 
