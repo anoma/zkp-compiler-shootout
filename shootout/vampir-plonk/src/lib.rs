@@ -18,7 +18,7 @@ use vamp_ir::ast::Module;
 use vamp_ir::plonk::synth::PlonkModule;
 use vamp_ir::plonk::synth::{make_constant, PrimeFieldOps};
 use vamp_ir::transform::compile;
-use vamp_ir::util::prompt_inputs;
+use vamp_ir::util::{prompt_inputs, Config};
 
 type PC = SonicKZG10<Bls12_381, DensePolynomial<BlsScalar>>;
 
@@ -68,9 +68,10 @@ pub fn setup(m: &u64) -> Result<UniversalParams<Bls12_381>, Error> {
 }
 
 pub fn vamp_compile(vamp_circuit: VampIRCircuit) -> PlonkModule<BlsScalar, JubJubParameters> {
+    let config = Config {quiet: true};
     let unparsed_file = fs::read_to_string(vamp_circuit.path).expect("cannot read file");
     let module = Module::parse(&unparsed_file).unwrap();
-    let module_3ac = compile(module, &PrimeFieldOps::<BlsScalar>::default());
+    let module_3ac = compile(module, &PrimeFieldOps::<BlsScalar>::default(), &config);
     let module_rc = Rc::new(module_3ac);
     PlonkModule::<BlsScalar, JubJubParameters>::new(module_rc)
 }
