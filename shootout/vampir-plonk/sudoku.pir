@@ -1,14 +1,3 @@
-/* An implementation of standard arithmetic logic unit operations in vampir. Run
-   as follows:
-   vamp-ir setup params.pp
-   vamp-ir compile tests/alu.pir params.pp circuit.plonk
-   vamp-ir prove circuit.plonk params.pp proof.plonk
-   vamp-ir verify circuit.plonk params.pp proof.plonk
-*/
-
-// Ensure that the given argument is 1 or 0, and returns it
-def bool x = { x*(x-1) = 0; x };
-
 def sudoku = (7:6:0:5:3:8:1:2:4:[]):
              (2:4:3:7:1:0:6:5:8:[]):
              (8:5:1:4:6:2:0:7:3:[]):
@@ -20,69 +9,55 @@ def sudoku = (7:6:0:5:3:8:1:2:4:[]):
              (3:2:5:1:0:7:8:4:6:[]):
              [];
 
-def hd (h:t) = h;
-def tl (h:t) = t;
-def nth l n = hd (iter n tl l);
-
+// Get the sum of elements of a list
 def plus x y = x + y;
 def sum l = fold l plus 0;
 
+// Verify rows
 def check_36 a = {
     36 = sum a
 };
 
-// Check rows
-def plus x y = x + y;
-def sum l = fold l plus 0;
+// Map a function to a list
+def map_rec f x acc = (f x):acc;
+def map f xs = fold xs (map_rec f) [];
 
-check_36 (nth sudoku 0);
-check_36 (nth sudoku 1);
-check_36 (nth sudoku 2);
-check_36 (nth sudoku 3);
-check_36 (nth sudoku 4);
-check_36 (nth sudoku 5);
-check_36 (nth sudoku 6);
-check_36 (nth sudoku 7);
-check_36 (nth sudoku 8);
+map check_36 sudoku;
 
-// Check columns
-def column sudoku n = {
-    (nth (nth sudoku 0) n:
-     nth (nth sudoku 1) n:
-     nth (nth sudoku 2) n:
-     nth (nth sudoku 3) n:
-     nth (nth sudoku 4) n:
-     nth (nth sudoku 5) n:
-     nth (nth sudoku 6) n:
-     nth (nth sudoku 7) n:
-     nth (nth sudoku 8) n:
-     [])
+//Verify columns
+def hd (h:t) = h; // Gets first element
+def tl (h:t) = t; // Gets rest of the list
+def nth l n = hd (iter n tl l);
+
+def get_item n x y= (nth x n):y;
+def get_column a j = fold a (get_item j) [];
+
+def check_columns i = {
+    check_36 (get_column sudoku i);
+    (i+1)
+};
+iter 9 check_columns 0;
+
+// Take first n elements of list
+def take_rec take (h:t) = h:(take t);
+def take n = iter n take_rec (fun x {[]});
+
+def get_slice b e l = take (e-b) (iter b tl l);
+
+// Append two lists together
+def cons x y = x:y;
+def append xs l = fold xs cons l;
+
+def get_subsection x y matr = {
+    def rows = get_slice (x*3) ((x+1)*3) matr;
+    def get_3 b e j k = append (get_slice b e j) (k);
+    fold rows (get_3 (y*3) (y*3+3)) []
 };
 
-check_36 (column sudoku 0);
-check_36 (column sudoku 1);
-check_36 (column sudoku 2);
-check_36 (column sudoku 3);
-check_36 (column sudoku 4);
-check_36 (column sudoku 5);
-check_36 (column sudoku 6);
-check_36 (column sudoku 7);
-check_36 (column sudoku 8);
-
-// Check sub-sections
-def subsection la lb lc n = {
-    (nth la (n*3):nth la (n*3+1):nth la (n*3+2):
-     nth lb (n*3):nth lb (n*3+1):nth lb (n*3+2):
-     nth lc (n*3):nth lc (n*3+1):nth lc (n*3+2):
-     [])
+def check_subsection i = {
+    check_36 (get_subsection i 0 sudoku);
+    check_36 (get_subsection i 1 sudoku);
+    check_36 (get_subsection i 2 sudoku);
+    (i+1)
 };
-
-check_36 (subsection (nth sudoku 0) (nth sudoku 1) (nth sudoku 2) 0);
-check_36 (subsection (nth sudoku 0) (nth sudoku 1) (nth sudoku 2) 1);
-check_36 (subsection (nth sudoku 0) (nth sudoku 1) (nth sudoku 2) 2);
-check_36 (subsection (nth sudoku 3) (nth sudoku 4) (nth sudoku 5) 0);
-check_36 (subsection (nth sudoku 3) (nth sudoku 4) (nth sudoku 5) 1);
-check_36 (subsection (nth sudoku 3) (nth sudoku 4) (nth sudoku 5) 2);
-check_36 (subsection (nth sudoku 6) (nth sudoku 7) (nth sudoku 8) 0);
-check_36 (subsection (nth sudoku 6) (nth sudoku 7) (nth sudoku 8) 1);
-check_36 (subsection (nth sudoku 6) (nth sudoku 7) (nth sudoku 8) 2);
+iter 3 check_subsection 0;
