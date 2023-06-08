@@ -10,8 +10,10 @@ mod plonk;
 mod risc;
 #[cfg(feature = "triton")]
 mod triton;
-#[cfg(feature = "vampir")]
+#[cfg(feature = "vampir_p")]
 mod vampir_p;
+#[cfg(feature = "vampir_halo2")]
+mod vampir_halo2;
 #[cfg(feature = "risc")]
 use ::risc::{FIB_FIFTY_ID, FIB_FIFTY_PATH, FIB_NINTY_TWO_ID, FIB_NINTY_TWO_PATH};
 use bench::*;
@@ -34,8 +36,10 @@ pub fn bench_sudoku(c: &mut Criterion) {
         ZKP::Risc0(risc::sudoku()),
         #[cfg(feature = "halo2")]
         ZKP::Halo2(halo::sudoku()),
-        #[cfg(feature = "vampir")]
+        #[cfg(feature = "vampir_p")]
         ZKP::VampIR_Plonk(vampir_p::sudoku()),
+        #[cfg(feature = "vampir_halo2")]
+        ZKP::VampIR_Halo2(vampir_halo2::sudoku()),
     ];
     bench_zkp(c, String::from("Sudoku"), to_bench)
 }
@@ -88,8 +92,10 @@ pub fn bench_blake(c: &mut Criterion) {
     let to_bench_blake2 = vec![
         #[cfg(feature = "risc")]
         ZKP::Risc0(risc::blake2b(String::from("abc"))),
-        #[cfg(feature = "vampir")]
+        #[cfg(feature = "vampir_p")]
         ZKP::VampIR_Plonk(vampir_p::blake2s()),
+        #[cfg(feature = "vampir_halo2")]
+        ZKP::VampIR_Halo2(vampir_halo2::blake2s()),
     ];
     let to_bench_blake3 = vec![
         #[cfg(feature = "miden")]
