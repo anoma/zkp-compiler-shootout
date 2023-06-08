@@ -7,6 +7,7 @@ exclude = [
         "miden",
         "risc",
         "vampir-plonk",
+        "vampir-halo2",
         "zero-knowledge"
 ]
 
@@ -29,7 +30,8 @@ triton = ["dep:triton"]
 halo2  = ["dep:sudoku_halo2"]
 plonk  = ["dep:sudoku_plonk"]
 risc   = ["dep:risc"]
-vampir = ["dep:vampir-plonk"] # not in all compilers due to triming degree
+vampir_p = ["dep:vampir-plonk"]
+vampir_halo2 = ["dep:vampir-halo2"]
 
 # Test Features
 
@@ -61,6 +63,7 @@ miden-interface = { path = "miden"        , optional = true }
 risc            = { path = "risc"         , optional = true }
 triton          = { path = "triton"       , optional = true }
 vampir-plonk    = { path = "vampir-plonk" , optional = true }
+vampir-halo2    = { path = "vampir-halo2" , optional = true }
 
 [profile.release]
 debug = 1
