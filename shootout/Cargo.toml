@@ -22,7 +22,7 @@ default = ["all_tests", "all_steps"]
 all = ["all_tests", "all_steps", "all_compilers"]
 
 # Compiler features
-all_compilers = ["miden", "triton", "halo2", "plonk", "risc"]
+all_compilers = ["miden", "triton", "halo2", "plonk"]
 
 miden  = ["dep:miden-interface"]
 triton = ["dep:triton"]
