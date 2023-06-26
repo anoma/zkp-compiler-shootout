@@ -11,7 +11,7 @@ edition = "2021"
 std = []
 
 [dependencies]
-vamp-ir = { git = "https://github.com/anoma/vamp-ir.git", version = "0.1.0"}
+vamp-ir = { git = "https://github.com/anoma/vamp-ir.git", version = "0.1.3"}
 zero-knowledge = { path = "../zero-knowledge" }
 pest = "2.0"
 pest_derive = "2.0"
