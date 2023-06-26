@@ -78,22 +78,25 @@ The following class of flags are had
 All `Step flags` and `Test flags` are enabled by default. ALl `Step flags`
 on may be too slow for your workflow.
 
-| Parent Flag   | Flag             | default status |
-|:--------------|:-----------------|:---------------|
-| all           | all              | off            |
-| all_compilers | miden            | off            |
-| all_compilers | triton           | off            |
-| all_compilers | halo2            | off            |
-| all_compilers | plonk            | off            |
-| all_compilers | risc             | off            |
-| all_compilers | vampir           | off            |
-| all_tests     | sudoku           | on             |
-| all_tests     | fib              | on             |
-| all_tests     | blake            | on             |
-| all_steps     | compile          | on             |
-| all_steps     | prove            | on             |
-| all_steps     | verify           | on             |
-| all_steps     | prove_and_verify | on             |
+| Parent Flag   | Flag             | default status | Notes            |
+|:--------------|:-----------------|:---------------|------------------|
+| all           | all              | off            |                  |
+| all_compilers | miden            | off            |                  |
+| all_compilers | triton           | off            |                  |
+| all_compilers | halo2            | off            |                  |
+| all_compilers | plonk            | off            |                  |
+| all_compilers | risc             | off            | Fails to compile |
+| all_compilers | vampir           | off            |                  |
+| all_tests     | sudoku           | on             |                  |
+| all_tests     | fib              | on             |                  |
+| all_tests     | blake            | on             |                  |
+| all_steps     | compile          | on             |                  |
+| all_steps     | prove            | on             |                  |
+| all_steps     | verify           | on             |                  |
+| all_steps     | prove_and_verify | on             |                  |
+
+- Any compilers that have `Fails to compile`, have to be enabled by
+  hand in arg, as they are excluded from their parent
 
 
 So if one wants to run everything one can run
