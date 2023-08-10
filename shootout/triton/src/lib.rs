@@ -1,42 +1,44 @@
-use triton_opcodes::program::Program;
-use triton_vm::proof::Proof;
-pub use triton_vm::shared_tests::FIBONACCI_SEQUENCE;
-pub use triton_vm::shared_tests::VERIFY_SUDOKU;
+use triton_vm::BFieldElement;
+pub use triton_vm::example_programs::FIBONACCI_SEQUENCE;
+pub use triton_vm::example_programs::VERIFY_SUDOKU;
+use triton_vm::Program;
+use triton_vm::Proof;
+use triton_vm::Claim;
 use triton_vm::stark::*;
-use twenty_first::shared_math::b_field_element::BFieldElement;
 
 #[derive(Clone)]
 pub struct Triton {
     pub name: String,
-    pub source_code: String,
-    pub standard_input: Vec<u64>,
+    pub program: Program,
+    pub public_input: Vec<u64>,
     pub secret_input: Vec<u64>,
 }
 
 impl zero_knowledge::ZeroKnowledge for Triton {
     type C = Program;
-    type R = Proof;
+    type R = (Claim, Proof);
 
     fn name(&self) -> String {
         self.name.clone()
     }
 
     fn compile(&self) -> Self::C {
-        Program::from_code(&self.source_code).unwrap()
+        self.program.clone()
     }
 
-    fn prove(&self, _program: &mut Self::C) -> Self::R {
-        let (_parameters, proof) = triton_vm::prove_from_source(
-            &self.source_code,
-            &self.standard_input,
-            &self.secret_input
+    fn prove(&self, program: &mut Self::C) -> Self::R {
+        let (_parameters, claim, proof) = triton_vm::prove_program(
+            &program,
+            &self.public_input,
+            &self.secret_input.clone().into(),
         ).unwrap();
-        proof
+        (claim, proof)
     }
 
-    fn verify(&self, proof: Self::R, _program: &mut Self::C) {
+    fn verify(&self, claim_and_proof: Self::R, _program: &mut Self::C) {
         let parameters = StarkParameters::default();
-        let verdict = triton_vm::verify(&parameters, &proof);
+        let (claim, proof) = claim_and_proof;
+        let verdict = triton_vm::verify(&parameters, &claim, &proof);
         assert!(verdict);
     }
 }

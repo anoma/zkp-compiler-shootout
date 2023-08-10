@@ -7,7 +7,5 @@ edition = "2021"
 
 [dependencies]
 
-triton-vm = "0.29.1"
-triton-opcodes = "0.29.1"
-twenty-first = "0.28"
+triton-vm = "0.33"
 zero-knowledge = { path = "../zero-knowledge" }
