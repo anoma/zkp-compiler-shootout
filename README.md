@@ -6,8 +6,9 @@ Currently we are testing the following Zero Knowledge machines
 
 1. [RISC0](https://github.com/risc0/risc0)
 2. [Miden](https://github.com/maticnetwork/miden)
-3. [Plonk](https://github.com/ZK-Garage/plonk)
-4. [Halo2](https://github.com/zcash/halo2)
+3. [Triton](https://github.com/TritonVM/triton-vm/)
+4. [Plonk](https://github.com/ZK-Garage/plonk)
+5. [Halo2](https://github.com/zcash/halo2)
 
 If you would like your machine / framework / compilation strategy to
 be benchmarked against the standard suite, please submit a PR! You can
