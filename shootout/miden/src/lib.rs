@@ -1,4 +1,3 @@
-#![feature(allocator_api)]
 use miden::{Assembler, ExecutionError, Program, ProgramInputs, ProofOptions};
 use miden_core::ProgramOutputs;
 use std::path::Path;

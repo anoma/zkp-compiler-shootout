@@ -30,7 +30,6 @@ pub enum ZKP {
     VampIR_Plonk(vampir_plonk::VampIRCircuit),
     #[cfg(feature = "vampir_halo2")]
     VampIR_Halo2(vampir_halo2::VampIRCircuit),
-    Default,
 }
 
 // Thus we offer this and much boilerplate instead.
@@ -76,7 +75,6 @@ pub fn name(z: &ZKP) -> String {
         ZKP::VampIR_Plonk(vp) => vp.name(),
         #[cfg(feature = "vampir_halo2")]
         ZKP::VampIR_Halo2(vp) => vp.name(),
-        ZKP::Default => "Error".to_string(),
     }
 }
 
@@ -98,7 +96,6 @@ pub fn compile_zkp(c: &mut Group, z: ZKP, name: String) {
         ZKP::VampIR_Plonk(vp) => compile(c, vp, name),
         #[cfg(feature = "vampir_halo2")]
         ZKP::VampIR_Halo2(vp) => compile(c, vp, name),
-        ZKP::Default => (),
     }
 }
 
@@ -118,7 +115,6 @@ pub fn prove_zkp(c: &mut Group, z: ZKP, name: String) {
         ZKP::VampIR_Plonk(vp) => prove(c, vp, name),
         #[cfg(feature = "vampir_halo2")]
         ZKP::VampIR_Halo2(vp) => prove(c, vp, name),
-        ZKP::Default => (),
     }
 }
 
@@ -138,7 +134,6 @@ pub fn verify_zkp(c: &mut Group, z: ZKP, name: String) {
         ZKP::VampIR_Plonk(vp) => verify(c, vp, name),
         #[cfg(feature = "vampir_halo2")]
         ZKP::VampIR_Halo2(vp) => verify(c, vp, name),
-        ZKP::Default => (),
     }
 }
 
@@ -158,7 +153,6 @@ pub fn prove_and_verify_zkp(c: &mut Group, z: ZKP, name: String) {
         ZKP::VampIR_Plonk(vp) => prove_and_verify(c, vp, name),
         #[cfg(feature = "vampir_halo2")]
         ZKP::VampIR_Halo2(vp) => prove_and_verify(c, vp, name),
-        ZKP::Default => (),
     }
 }
 
