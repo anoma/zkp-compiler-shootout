@@ -6,7 +6,6 @@ pub use methods_fib::{
 };
 use risc0_zkvm::{ExecutorEnv, MemoryImage, Program, Receipt};
 use risc0_zkvm_platform::{memory::MEM_SIZE, PAGE_SIZE};
-use std::str;
 use std::string::String;
 use typenum::bit::{B0, B1};
 use typenum::uint::{UInt, UTerm};
@@ -20,7 +19,7 @@ pub struct Risc {
 }
 
 impl zero_knowledge::ZeroKnowledge for Risc {
-    type C = (ExecutorEnv<'static>, MemoryImage);
+    type C = Option<(ExecutorEnv<'static>, MemoryImage)>;
     type R = Receipt;
 
     fn name(&self) -> String {
@@ -34,13 +33,14 @@ impl zero_knowledge::ZeroKnowledge for Risc {
             .unwrap();
         let program = Program::load_elf(self.method_elf, MEM_SIZE as u32).unwrap();
         let image = MemoryImage::new(&program, PAGE_SIZE as u32).unwrap();
-        (env, image)
+        Some((env, image))
     }
 
-    fn prove(&self, (env, image): &mut Self::C) -> Self::R {
+    fn prove(&self, c: &mut Self::C) -> Self::R {
+        let (env, image) = c.take().unwrap();
         let prover = risc0_zkvm::default_prover();
         prover
-            .prove(env.clone(), &Default::default(), &Default::default(), image.clone())
+            .prove(env, &Default::default(), &Default::default(), image)
             .unwrap()
     }
 
@@ -75,9 +75,9 @@ pub fn test() {
 }
 
 pub fn hash(
-    str: String,
+    s: String,
 ) -> GenericArray<u8, UInt<UInt<UInt<UInt<UInt<UInt<UInt<UTerm, B1>, B0>, B0>, B0>, B0>, B0>, B0>> {
     let mut hasher = Blake2b512::new();
-    hasher.update(str);
+    hasher.update(s);
     hasher.finalize()
 }
