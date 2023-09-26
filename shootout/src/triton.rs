@@ -5,8 +5,8 @@ use triton::VERIFY_SUDOKU;
 pub fn sudoku() -> Triton {
     Triton {
         name: "Triton".to_string(),
-        source_code: VERIFY_SUDOKU.to_string(),
-        standard_input: vec![
+        program: VERIFY_SUDOKU.clone(),
+        public_input: vec![
             7, 6, 9, /**/ 5, 3, 8, /**/ 1, 2, 4, //
             2, 4, 3, /**/ 7, 1, 9, /**/ 6, 5, 8, //
             8, 5, 1, /**/ 4, 6, 2, /**/ 9, 7, 3, //
@@ -26,8 +26,8 @@ pub fn sudoku() -> Triton {
 pub fn fib(fib_number: u64) -> Triton {
     Triton {
         name: format!("Triton: fibonacci-{fib_number}"),
-        source_code: FIBONACCI_SEQUENCE.to_string(),
-        standard_input: vec![fib_number],
+        program: FIBONACCI_SEQUENCE.clone(),
+        public_input: vec![fib_number],
         secret_input: vec![],
     }
 }
