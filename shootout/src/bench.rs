@@ -14,6 +14,8 @@ use zero_knowledge::ZeroKnowledge;
 // doesn't work for let values.
 
 // Please remove this when a better way is found.
+#[allow(dead_code)]
+#[allow(non_camel_case_types)]
 #[derive(Clone)]
 pub enum ZKP {
     #[cfg(feature = "triton")]
@@ -78,6 +80,7 @@ pub fn name(z: &ZKP) -> String {
 
 type ZKPFn = fn(c: &mut Group, z: ZKP, name: String) -> ();
 
+#[allow(unused_variables)]
 pub fn compile_zkp(c: &mut Group, z: ZKP, name: String) {
     match z {
         #[cfg(feature = "triton")]
@@ -96,6 +99,7 @@ pub fn compile_zkp(c: &mut Group, z: ZKP, name: String) {
     }
 }
 
+#[allow(unused_variables)]
 pub fn prove_zkp(c: &mut Group, z: ZKP, name: String) {
     match z {
         #[cfg(feature = "triton")]
@@ -114,6 +118,7 @@ pub fn prove_zkp(c: &mut Group, z: ZKP, name: String) {
     }
 }
 
+#[allow(unused_variables)]
 pub fn verify_zkp(c: &mut Group, z: ZKP, name: String) {
     match z {
         #[cfg(feature = "triton")]
@@ -132,6 +137,7 @@ pub fn verify_zkp(c: &mut Group, z: ZKP, name: String) {
     }
 }
 
+#[allow(unused_variables)]
 pub fn prove_and_verify_zkp(c: &mut Group, z: ZKP, name: String) {
     match z {
         #[cfg(feature = "triton")]
@@ -156,10 +162,12 @@ pub fn prove_and_verify_zkp(c: &mut Group, z: ZKP, name: String) {
 
 type Group<'a> = BenchmarkGroup<'a, WallTime>;
 
+#[allow(dead_code)]
 pub fn compile<Z: ZeroKnowledge>(c: &mut Group, v: Z, name: String) {
     c.bench_function(name, |b| b.iter(|| v.compile()));
 }
 
+#[allow(dead_code)]
 pub fn prove<Z: ZeroKnowledge>(c: &mut Group, v: Z, name: String) {
     c.bench_function(name, |b| {
         b.iter_batched(
@@ -170,6 +178,7 @@ pub fn prove<Z: ZeroKnowledge>(c: &mut Group, v: Z, name: String) {
     });
 }
 
+#[allow(dead_code)]
 pub fn verify<Z: ZeroKnowledge>(c: &mut Group, v: Z, name: String) {
     c.bench_function(name, |b| {
         b.iter_batched(
@@ -184,6 +193,7 @@ pub fn verify<Z: ZeroKnowledge>(c: &mut Group, v: Z, name: String) {
     });
 }
 
+#[allow(dead_code)]
 pub fn prove_and_verify<Z: ZeroKnowledge>(c: &mut Group, v: Z, name: String) {
     c.bench_function(name, |b| b.iter(|| v.prove_and_verify()));
 }

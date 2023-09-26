@@ -33,6 +33,7 @@ pub fn fib_iter(fib_number: u64) -> Miden {
     }
 }
 
+#[allow(non_snake_case)]
 pub fn blake3BrownFox() -> Miden {
     Miden {
         path: format!("../miden-assembler/miden/blake3.masm"),

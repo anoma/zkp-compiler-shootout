@@ -70,6 +70,7 @@ pub fn bench_fib(c: &mut Criterion) {
             FIB_NINTY_TWO_PATH,
         )),
     ];
+    #[allow(unused_variables)]
     let fib_sequence_idx = 1000;
     let to_bench_large = vec![
         #[cfg(feature = "triton")]
