@@ -28,15 +28,24 @@ The results were collected on a `AMD Ryzen 7 5700X 8-Core @ 16x
 To see very rough notes about the languages in the benchmark and
 potential improvement points please read [my notes
 file](./shootout/notes.org).
-## How to get benchmark results
+## Dependencies
 
-There are two commands for producing results
+For some benchmark backends some external dependencies are required
 
-1. `make table arg="desired_backend"`
-2. `make bench arg="desired_backend`
+### Risc0
 
-It is recommended to run `make table`. However it requires two
-external dependencies
+1. `risczero`
+2. `cargo-risczero`
+
+which can be installed by the following command
+
+```sh
+cargo install cargo-risczero
+cargo risczero install
+```
+
+
+### Make table
 
 1. `cargo-criterion`
 2. `criterion-table`
@@ -49,6 +58,18 @@ cargo install criterion-table
 ```
 
 
+## How to get benchmark results
+
+There are two commands for producing results
+
+1. `make table arg="desired_backend"`
+2. `make bench arg="desired_backend`
+
+It is recommended to run `make table`. However it requires two
+external dependencies
+
+
+see the `dependencies` section for instructions for installation.
 
 
 Make sure cargo packages are on your path.
