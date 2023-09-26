@@ -1,0 +1,13 @@
+* V0.2.0
+** Backend Changes
+- Add *vampir* to the =all_compilers= flag, as it properly compiles
+- split *vampir* into halo2 and plonk, as we now have 2 different
+  vampir backends
+- Triton upgraded to version v0.33!
+- Risc0 upgraded to v0.18.0!
+** Benchmarking Changes
+- Reduce the sample size to 10, as running all the benchmarks takes
+  quite a while.
+** Miscellaneous Changes
+- Removed old log files
+- Moved to rust stable for the locked toolchain
