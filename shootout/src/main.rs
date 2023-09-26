@@ -13,7 +13,7 @@ mod triton;
 #[cfg(feature = "vampir")]
 mod vampir_p;
 #[cfg(feature = "risc")]
-use ::risc::{FIB_FIFTY_ID, FIB_FIFTY_PATH, FIB_NINTY_TWO_ID, FIB_NINTY_TWO_PATH};
+use ::risc::{FIB_FIFTY_ID, FIB_FIFTY_ELF, FIB_NINTY_TWO_ID, FIB_NINTY_TWO_ELF};
 use bench::*;
 ////////////////////////////////////////
 // Hello, you can place your benchmarks
@@ -61,13 +61,13 @@ pub fn bench_fib(c: &mut Criterion) {
         ZKP::Risc0(risc::fib_fixed(
             String::from("50"),
             FIB_FIFTY_ID,
-            FIB_FIFTY_PATH,
+            FIB_FIFTY_ELF,
         )),
         #[cfg(feature = "risc")]
         ZKP::Risc0(risc::fib_fixed(
             String::from("92"),
             FIB_NINTY_TWO_ID,
-            FIB_NINTY_TWO_PATH,
+            FIB_NINTY_TWO_ELF,
         )),
     ];
     let fib_sequence_idx = 1000;
