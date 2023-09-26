@@ -34,6 +34,8 @@ jobs:
           override: true
       - name: Install cargo tools
         run: |
+          cargo install cargo-risczero | true
+          cargo risczero install | true
           cargo install cargo-criterion | true
           cargo install criterion-table | true
       - name: Run benchmarks
