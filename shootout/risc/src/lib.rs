@@ -4,7 +4,8 @@ pub use methods_fib::{
     BLAKE2FAST_ELF, BLAKE2FAST_ID, FIB_ELF, FIB_FIFTY_ELF, FIB_FIFTY_ID, FIB_ID, FIB_NINTY_TWO_ELF,
     FIB_NINTY_TWO_ID, SUDOKU_ELF, SUDOKU_ID,
 };
-use risc0_zkvm::{ExecutorEnv, Receipt};
+use risc0_zkvm::{ExecutorEnv, MemoryImage, Program, Receipt};
+use risc0_zkvm_platform::{memory::MEM_SIZE, PAGE_SIZE};
 use std::str;
 use std::string::String;
 use typenum::bit::{B0, B1};
@@ -19,7 +20,7 @@ pub struct Risc {
 }
 
 impl zero_knowledge::ZeroKnowledge for Risc {
-    type C = ExecutorEnv<'static>;
+    type C = (ExecutorEnv<'static>, MemoryImage);
     type R = Receipt;
 
     fn name(&self) -> String {
@@ -31,12 +32,16 @@ impl zero_knowledge::ZeroKnowledge for Risc {
             .add_input(&self.input)
             .build()
             .unwrap();
-        env
+        let program = Program::load_elf(self.method_elf, MEM_SIZE as u32).unwrap();
+        let image = MemoryImage::new(&program, PAGE_SIZE as u32).unwrap();
+        (env, image)
     }
 
-    fn prove(&self, env: &mut Self::C) -> Self::R {
+    fn prove(&self, (env, image): &mut Self::C) -> Self::R {
         let prover = risc0_zkvm::default_prover();
-        prover.prove_elf(env.clone(), self.method_elf).unwrap()
+        prover
+            .prove(env.clone(), &Default::default(), &Default::default(), image.clone())
+            .unwrap()
     }
 
     fn verify(&self, receipt: Self::R, _setup: &mut Self::C) {
