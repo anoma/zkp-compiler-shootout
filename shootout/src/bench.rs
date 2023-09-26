@@ -75,6 +75,7 @@ pub fn name(z: &ZKP) -> String {
         ZKP::VampIR_Plonk(vp) => vp.name(),
         #[cfg(feature = "vampir_halo2")]
         ZKP::VampIR_Halo2(vp) => vp.name(),
+        _ => "Error".to_string(),
     }
 }
 
