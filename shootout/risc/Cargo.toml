@@ -10,7 +10,8 @@ edition = "2021"
 [dependencies]
 zero-knowledge = { path = "../zero-knowledge" }
 methods-fib = { path = "methods" }
-risc0-zkvm = "0.12.0"
+risc0-zkvm = "0.18.0"
+risc0-zkvm-platform = "0.18.0"
 serde = "1.0"
 num-primes = "0.3.0"
 num-bigint = "0.4.3"

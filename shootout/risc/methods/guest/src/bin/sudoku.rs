@@ -2,8 +2,10 @@
 #![no_main]
 #![feature(slice_flatten)]
 
-use risc0_zkvm::guest::{env, sha};
+use risc0_zkvm::guest::env;
+use risc0_zkvm::sha::{Impl, Sha256};
 use sudoku_core::Sudoku;
+
 risc0_zkvm::guest::entry!(main);
 
 pub fn main() {
@@ -12,7 +14,7 @@ pub fn main() {
     if !valid_solution(&puzzle) {
         panic!("invalid solution");
     } else {
-        let solution_hash = sha::digest(&puzzle.0.flatten());
+        let solution_hash = Impl::hash_bytes(&puzzle.0.flatten());
         env::commit(&solution_hash);
     }
 }

@@ -1,21 +1,22 @@
 #![no_main]
+#![no_std]
 #![feature(slice_flatten)]
+
+extern crate alloc;
 
 use blake2::{Blake2b512, Digest};
 use digest::generic_array::GenericArray;
 use risc0_zkvm::guest::env;
-use std::string::String;
+use alloc::string::String;
 use typenum::bit::{B0, B1};
 use typenum::uint::{UInt, UTerm};
 
 risc0_zkvm::guest::entry!(main);
 
 pub fn main() {
-    let str: String = env::read();
-    let answer = hash(str);
-    // // let s = str::from_utf8(&answer[..]).unwrap();
-    env::commit(&vec!(&answer[..]));
-    // env::commit(&vec!("T".to_string()))
+    let s: String = env::read();
+    let answer = hash(s);
+    env::commit(&answer.as_slice());
 }
 
 pub fn hash(
