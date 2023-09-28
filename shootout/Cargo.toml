@@ -8,7 +8,8 @@ exclude = [
         "risc",
         "vampir-plonk",
         "vampir-halo2",
-        "zero-knowledge"
+        "zero-knowledge",
+        "lurk"
 ]
 
 [package]
@@ -23,7 +24,7 @@ default = ["all_tests", "all_steps"]
 all = ["all_tests", "all_steps", "all_compilers"]
 
 # Compiler features
-all_compilers = ["miden", "triton", "halo2", "plonk", "vampir_p", "vampir_halo2", "risc"]
+all_compilers = ["miden", "triton", "halo2", "plonk", "vampir_p", "vampir_halo2", "risc", "lurk"]
 
 miden  = ["dep:miden-interface"]
 triton = ["dep:triton"]
@@ -32,6 +33,7 @@ plonk  = ["dep:sudoku_plonk"]
 risc   = ["dep:risc"]
 vampir_p = ["dep:vampir-plonk"]
 vampir_halo2 = ["dep:vampir-halo2"]
+lurk   = ["dep:lurk"]
 
 # Test Features
 
@@ -64,6 +66,7 @@ risc            = { path = "risc"         , optional = true }
 triton          = { path = "triton"       , optional = true }
 vampir-plonk    = { path = "vampir-plonk" , optional = true }
 vampir-halo2    = { path = "vampir-halo2" , optional = true }
+lurk            = { path = "lurk"         , optional = true }
 
 [profile.release]
 debug = 1
@@ -79,3 +82,6 @@ ark-serialize = { git = "https://github.com/simonmasson/algebra", rev = "e2ea75c
 ark-ff        = { git = "https://github.com/simonmasson/algebra", rev = "e2ea75c" }
 ark-ec        = { git = "https://github.com/simonmasson/algebra", rev = "e2ea75c" }
 ark-std       = { git = "https://github.com/arkworks-rs/std/"   , rev = "2b3568f" }
+
+# This is needed for Lurk to ensure halo2curves, which imports pasta-curves, uses the *same* traits in bn256_grumpkin
+pasta_curves = { git = "https://github.com/lurk-lab/pasta_curves", branch = "dev" }

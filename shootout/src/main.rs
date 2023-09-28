@@ -2,6 +2,8 @@ use criterion::{criterion_group, criterion_main, Criterion};
 mod bench;
 #[cfg(feature = "halo2")]
 mod halo;
+#[cfg(feature = "lurk")]
+mod lurk;
 #[cfg(feature = "miden")]
 mod miden;
 #[cfg(feature = "plonk")]
@@ -10,12 +12,12 @@ mod plonk;
 mod risc;
 #[cfg(feature = "triton")]
 mod triton;
-#[cfg(feature = "vampir_p")]
-mod vampir_p;
 #[cfg(feature = "vampir_halo2")]
 mod vampir_halo2;
+#[cfg(feature = "vampir_p")]
+mod vampir_p;
 #[cfg(feature = "risc")]
-use ::risc::{FIB_FIFTY_ID, FIB_FIFTY_ELF, FIB_NINTY_TWO_ID, FIB_NINTY_TWO_ELF};
+use ::risc::{FIB_FIFTY_ELF, FIB_FIFTY_ID, FIB_NINTY_TWO_ELF, FIB_NINTY_TWO_ID};
 use bench::*;
 ////////////////////////////////////////
 // Hello, you can place your benchmarks
@@ -73,6 +75,14 @@ pub fn bench_fib(c: &mut Criterion) {
             FIB_NINTY_TWO_ID,
             FIB_NINTY_TWO_ELF,
         )),
+        #[cfg(feature = "lurk")]
+        ZKP::Lurk(lurk::fib(50, lurk::ReduceCount(100))),
+        #[cfg(feature = "lurk")]
+        ZKP::Lurk(lurk::fib(93, lurk::ReduceCount(100))),
+        #[cfg(feature = "lurk")]
+        ZKP::Lurk(lurk::fib(50, lurk::ReduceCount(10))),
+        #[cfg(feature = "lurk")]
+        ZKP::Lurk(lurk::fib(93, lurk::ReduceCount(10))),
     ];
     #[allow(unused_variables)]
     let fib_sequence_idx = 1000;
@@ -83,6 +93,8 @@ pub fn bench_fib(c: &mut Criterion) {
         ZKP::Miden(miden::fib_iter(fib_sequence_idx)),
         #[cfg(feature = "risc")]
         ZKP::Risc0(risc::fib(fib_sequence_idx as u32)),
+        #[cfg(feature = "lurk")]
+        ZKP::Lurk(lurk::fib(fib_sequence_idx as usize, lurk::ReduceCount(100))),
     ];
     bench_zkp(c, String::from("fibonacci"), to_bench);
     bench_zkp(c, String::from("fibonacci large"), to_bench_large);
@@ -100,7 +112,7 @@ pub fn bench_blake(c: &mut Criterion) {
     ];
     let to_bench_blake3 = vec![
         #[cfg(feature = "miden")]
-        ZKP::Miden(miden::blake3BrownFox())
+        ZKP::Miden(miden::blake3BrownFox()),
     ];
     bench_zkp(c, String::from("Blake"), to_bench_blake2);
     bench_zkp(c, String::from("Blake3"), to_bench_blake3);

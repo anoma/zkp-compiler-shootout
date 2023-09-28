@@ -10,6 +10,7 @@ pasta_curves = { git = "https://github.com/lurk-lab/pasta_curves", branch = "dev
 lurk = { git = "https://github.com/lurk-lab/lurk-rs", rev = "d65a71ced96b190c31dd1d19ad1f58fed3b9f4aa" }
 camino = "1.1.6"
 zero-knowledge = { path = "../zero-knowledge" }
+tempfile = "3.8.0"
 
 [patch.crates-io]
 # This is needed to ensure halo2curves, which imports pasta-curves, uses the *same* traits in bn256_grumpkin

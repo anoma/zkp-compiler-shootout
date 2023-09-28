@@ -14,9 +14,7 @@ use lurk::{
     store::Store,
     tag::ExprTag,
 };
-
-// TODO double check it's okay with maintainers to write to temp file. At least switch to using tempfile.
-const PUBLIC_PARAMS_PATH: &str = "/var/tmp/lurk_benches/public_params";
+use tempfile::tempdir;
 
 const FIB_PROGRAM: &str = r#"
 (letrec ((next (lambda (a b) (next b (+ a b))))
@@ -24,6 +22,7 @@ const FIB_PROGRAM: &str = r#"
   (fib))
 "#;
 
+#[derive(Clone)]
 pub struct Lurk {
     pub reduction_count: usize,
     pub input: usize,
@@ -53,11 +52,20 @@ impl<'a> zero_knowledge::ZeroKnowledge for Lurk {
         let prover = NovaProver::new(self.reduction_count, lang_pallas);
 
         // use cached public params
+        // TODO re-use params across same reduction count. Also look into if IO can just be avoided.
+        // Create a new temporary directory.
+        let tmp_dir = tempdir().expect("Failed to create temporary directory");
+
+        // Get the std::path::Path of the temporary directory and convert it to a Utf8Path.
+        let std_path = tmp_dir.path();
+        let utf8_path = Utf8Path::from_path(std_path)
+            .expect("Failed to convert to Utf8Path")
+            .to_owned();
         let pp = public_params(
             self.reduction_count,
             true,
             lang_rc.clone(),
-            Utf8Path::new(PUBLIC_PARAMS_PATH),
+            &utf8_path,
         )
         .unwrap();
 
