@@ -14,6 +14,9 @@ mod triton;
 mod vampir_p;
 #[cfg(feature = "vampir_halo2")]
 mod vampir_halo2;
+#[cfg(feature = "cairo_giza")]
+mod cairo_gz;
+
 #[cfg(feature = "risc")]
 use ::risc::{FIB_FIFTY_ID, FIB_FIFTY_ELF, FIB_NINTY_TWO_ID, FIB_NINTY_TWO_ELF};
 use bench::*;
@@ -97,6 +100,8 @@ pub fn bench_blake(c: &mut Criterion) {
         ZKP::VampIR_Plonk(vampir_p::blake2s()),
         #[cfg(feature = "vampir_halo2")]
         ZKP::VampIR_Halo2(vampir_halo2::blake2s()),
+        #[cfg(feature = "cairo_giza")]
+        ZKP::CairoGiza(cairo_gz::blake2s())
     ];
     let to_bench_blake3 = vec![
         #[cfg(feature = "miden")]

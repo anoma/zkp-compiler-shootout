@@ -32,6 +32,8 @@ pub enum ZKP {
     VampIR_Plonk(vampir_plonk::VampIRCircuit),
     #[cfg(feature = "vampir_halo2")]
     VampIR_Halo2(vampir_halo2::VampIRCircuit),
+    #[cfg(feature = "cairo_giza")]
+    CairoGiza(cairo_giza::CairoGiza),
     Default,
 }
 
@@ -78,6 +80,8 @@ pub fn name(z: &ZKP) -> String {
         ZKP::VampIR_Plonk(vp) => vp.name(),
         #[cfg(feature = "vampir_halo2")]
         ZKP::VampIR_Halo2(vp) => vp.name(),
+        #[cfg(feature = "cairo_giza")]
+        ZKP::CairoGiza(cg) => cg.name(),
         ZKP::Default => "Error".to_string(),
     }
 }
@@ -101,6 +105,8 @@ pub fn compile_zkp(c: &mut Group, z: ZKP, name: String) {
         ZKP::VampIR_Plonk(vp) => compile(c, vp, name),
         #[cfg(feature = "vampir_halo2")]
         ZKP::VampIR_Halo2(vp) => compile(c, vp, name),
+        #[cfg(feature = "cairo_giza")]
+        ZKP::CairoGiza(cg) => compile(c, cg, name),
         ZKP::Default => (),
     }
 }
@@ -122,6 +128,8 @@ pub fn prove_zkp(c: &mut Group, z: ZKP, name: String) {
         ZKP::VampIR_Plonk(vp) => prove(c, vp, name),
         #[cfg(feature = "vampir_halo2")]
         ZKP::VampIR_Halo2(vp) => prove(c, vp, name),
+        #[cfg(feature = "cairo_giza")]
+        ZKP::CairoGiza(cg) => prove(c, cg, name),
         ZKP::Default => (),
     }
 }
@@ -143,6 +151,8 @@ pub fn verify_zkp(c: &mut Group, z: ZKP, name: String) {
         ZKP::VampIR_Plonk(vp) => verify(c, vp, name),
         #[cfg(feature = "vampir_halo2")]
         ZKP::VampIR_Halo2(vp) => verify(c, vp, name),
+        #[cfg(feature = "cairo_giza")]
+        ZKP::CairoGiza(cg) => verify(c, cg, name),
         ZKP::Default => (),
     }
 }
@@ -164,6 +174,8 @@ pub fn prove_and_verify_zkp(c: &mut Group, z: ZKP, name: String) {
         ZKP::VampIR_Plonk(vp) => prove_and_verify(c, vp, name),
         #[cfg(feature = "vampir_halo2")]
         ZKP::VampIR_Halo2(vp) => prove_and_verify(c, vp, name),
+        #[cfg(feature = "cairo_giza")]
+        ZKP::CairoGiza(cg) => prove_and_verify(c, cg, name),
         ZKP::Default => (),
     }
 }

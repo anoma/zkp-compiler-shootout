@@ -8,6 +8,7 @@ exclude = [
         "risc",
         "vampir-plonk",
         "vampir-halo2",
+        "cairo-giza",
         "zero-knowledge"
 ]
 
@@ -23,7 +24,7 @@ default = ["all_tests", "all_steps"]
 all = ["all_tests", "all_steps", "all_compilers"]
 
 # Compiler features
-all_compilers = ["miden", "triton", "halo2", "plonk", "vampir_p", "vampir_halo2", "risc"]
+all_compilers = ["cairo_giza", "miden", "triton", "halo2", "plonk", "vampir_p", "vampir_halo2", "risc"]
 
 miden  = ["dep:miden-interface"]
 triton = ["dep:triton"]
@@ -32,6 +33,7 @@ plonk  = ["dep:sudoku_plonk"]
 risc   = ["dep:risc"]
 vampir_p = ["dep:vampir-plonk"]
 vampir_halo2 = ["dep:vampir-halo2"]
+cairo_giza = ["dep:cairo-giza"]
 
 # Test Features
 
@@ -64,6 +66,7 @@ risc            = { path = "risc"         , optional = true }
 triton          = { path = "triton"       , optional = true }
 vampir-plonk    = { path = "vampir-plonk" , optional = true }
 vampir-halo2    = { path = "vampir-halo2" , optional = true }
+cairo-giza      = { path = "cairo-giza" , optional = true }
 
 [profile.release]
 debug = 1
